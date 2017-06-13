@@ -22,7 +22,7 @@
 			<div id="spaceContainer"></div>
 		</div>
    		<script>
-   			var lineSpace = new LineSpace(d3.select("#spaceContainer"), getXYLocation, interpolate);
+   			var lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, interpolate);
 
    			var column = -1;
 
@@ -67,18 +67,54 @@
 		            });
 			});
 
-   			function getXYLocation(ds) {
-   				var c = [+ds.params["run"], +ds.params["particle velocity"]];
-   				return c;
+   			function getGraphProperties(ds) {
+   				//return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: +ds.params[lineSpace.dimensions[2]]/2000};
+   				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: +ds.params.run % 5 == 0};
    			}
 
    			function interpolate(ds, x, y) {
    				var newDs = ds;
-   				newDs.params["run"] = x;
-   				newDs.params["particle velocity"] = y;
+   				newDs.params[lineSpace.dimensions[0]] = x;
+   				newDs.params[lineSpace.dimensions[1]] = y;
+   				//console.log();
+
+   				var dsDist = [];
+   				lineSpace.dataSet.forEach(function(item, index) {
+   					var x1 = (x-item.params[lineSpace.dimensions[0]]);
+   					var x2 = (y-item.params[lineSpace.dimensions[1]]);
+   					var distance = Math.sqrt(x1*x1 + x2*x2);
+   					//console.log(distance);
+   					if ((item.params.run % 5) != 0) {
+   						dsDist.push({id: index, distance: distance, weight: 1/(distance*distance)});
+   					}
+   				});
+
+				dsDist.sort(function(a, b){return a.distance-b.distance});
+
+				var weightSum = 0;
+				for (var f = 0; f < 5; f++) {
+					weightSum += dsDist[f].weight;
+				}
+
+				var rows = [];
+				for (var f = 0; f < 5; f++) {
+					lineSpace.dataSet[dsDist[f].id].rows.forEach(function(item, index) {
+						if (f == 0) {
+							rows.push({x: item.x, y: item.y*dsDist[f].weight/weightSum});
+						}
+						else {
+							rows[index].y += item.y*dsDist[f].weight/weightSum;
+						}
+					});
+				}
+
+				newDs.rows = rows;
+
+   				//console.log(dsDist[0].distance, dsDist[0].weight, dsDist[0].id, weightSum);
+
+   				//newDs.rows = lineSpace.dataSet[Math.floor(Math.random()*lineSpace.dataSet.length)].rows;
    				return newDs;
    			}
-         	
 
    		</script>
    </body>
