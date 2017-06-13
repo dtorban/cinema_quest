@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel='stylesheet' href='default.css'>
+    <script src="d3.v4.min.js"></script>
+    <script src="LineSpace.js"></script>
+    <script src="FileLoad.js"></script>
+</head>
+   <body>
+	   <div id="header">
+			<h1>Output Explorer</h1>
+			<select id="database">
+				<option value="GF-HP/GF-HP.csv">GF-HP</option>
+				<option value="GF-LP/GF-LP.csv">F-LP</option>
+				<option value="LANLHigh-O/LANLHigh-O.csv">LANLHigh-O</option>
+				<option value="LANLLow-O/LANLLow-O.csv">LANLLow-O</option>
+				<option value="simresults/Al.design.1000.numbered.csv">Flag Simulation</option>
+			</select>
+		</div>
+		<div id="spaceArea">
+			<div id="spaceContainer"></div>
+		</div>
+   		<script>
+   			var lineSpace = new LineSpace(d3.select("#spaceContainer"));
+   		</script>
+   </body>
+</html>
