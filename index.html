@@ -22,23 +22,16 @@
 			<div id="spaceContainer"></div>
 		</div>
    		<script>
-   			var lineSpace = new LineSpace(d3.select("#spaceContainer"));
+   			var lineSpace = new LineSpace(d3.select("#spaceContainer"), getXYLocation, interpolate);
 
    			var column = -1;
 
    			d3.csv("data/GF-HP/GF-HP.csv", function(error, results) {
-   				console.log(d3.keys(results[0]));
-
-				var q = d3.queue();
-	   			q.defer(d3.text, "data/visar/data.out");
-	   			q.await(function(error, results) {
-	   				var dataSets = results.split('\n');
-
+   				params = results;
+   				console.log(results[0]);
 		         	var q = d3.queue();
-		         	dataSets.forEach(function(item, index) {
-		         		if (item.length > 0) {
-		            		q.defer(d3.text, 'data/visar/' + item);
-		         		}
+		         	results.forEach(function(item, index) {
+		            	q.defer(d3.text, item["visar"]);
 		   			});
 		            q.awaitAll(function(error, results) {
 		            	//if (!error) {
@@ -63,20 +56,28 @@
 						                }
 						            });
 
-						            var ds = {paramX: Math.random(), paramY: Math.random(), rows: rows2};
+						            var ds = {params: params[index], rows: rows2};
 						            data.push(ds);
 					        	}
 			               		
 			           		});
 
-			            	
 				            lineSpace.data(data);
 			           // }
 		            });
-	   			});
 			});
 
-   			
+   			function getXYLocation(ds) {
+   				var c = [+ds.params["run"], +ds.params["particle velocity"]];
+   				return c;
+   			}
+
+   			function interpolate(ds, x, y) {
+   				var newDs = ds;
+   				newDs.params["run"] = x;
+   				newDs.params["particle velocity"] = y;
+   				return newDs;
+   			}
          	
 
    		</script>
