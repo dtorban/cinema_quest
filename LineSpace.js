@@ -15,22 +15,26 @@ function LineSpace(parent) {
     this.context.fillRect(0, 0, this.parentRect.width, this.parentRect.height);
 
     this.instanceWidth = self.parentRect.width/8;
-    this.instanceHeight = self.parentRect.height/8;
+    this.instanceHeight = self.parentRect.width/8;
 
    	this.overlayCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width)
 		.attr('height', this.parentRect.width)
-		.attr("style", "z-index: 1;position:absolute;left:0px;top:0px;cursor: default");
+		.attr("style", "z-index: 1;position:absolute;left:0px;top:0px;cursor: none");
 	this.overlayContext = this.overlayCanvas.node().getContext("2d");
 	this.overlayContext.fillStyle = "green";
     this.cursorPosition = [0,0];
 
     this.overlayCanvas.on("mousemove", function() {
-    	self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
-    	self.overlayContext.fillRect(d3.event.offsetX-self.instanceWidth/2, d3.event.offsetY-self.instanceHeight/2, self.instanceWidth, self.instanceHeight);
-    	self.cursorPosition = [d3.event.offsetX, d3.event.offsetY];
+    	if (self.dataSet) {
+    		self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
+	    	var ds = {paramX: self.paramX.invert(d3.event.offsetX), paramY: self.paramY.invert(d3.event.offsetY), rows: self.dataSet[10].rows};
+	 		//self.overlayContext.fillRect(d3.event.offsetX-self.instanceWidth/2, d3.event.offsetY-self.instanceHeight/2, self.instanceWidth, self.instanceHeight);
+	 		self.drawLines(self.overlayContext, ds, 'red');
+	    	//self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
+	    	self.cursorPosition = [d3.event.offsetX, d3.event.offsetY];
+    	}
     });
-
 
     this.paramX = d3.scaleLinear().range([0, self.parentRect.width]);
     this.paramY = d3.scaleLinear().range([self.parentRect.height, 0]);
