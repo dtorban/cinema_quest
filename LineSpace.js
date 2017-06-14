@@ -95,7 +95,7 @@ LineSpace.prototype.data = function(dataSet) {
 	var select = selectDiv
 		.append('select')
   		.attr('class','select')
-  		.attr("style", "visibility: hidden")
+  		//.attr("style", "visibility: hidden")
     	.on('change',function() {
     		self.dimensions[2] = d3.event.target.value;
     		self.update();
@@ -112,8 +112,19 @@ LineSpace.prototype.data = function(dataSet) {
 	paramSet.forEach(function(item, index) {
 		var key = item;
 		var mean = 0;
+		var max = 0;
+		var min = 0;
 		self.dataSet.forEach(function(item, index) {
-			mean += +item.params[key];
+			var val = +item.params[key];
+			if (index == 0) {
+				max = val;
+				min = val;
+			}
+			else {
+				max = max < val ? val : max;
+				min = min > val ? val : min;
+			}
+			mean += val;
 		});
 		mean /= self.dataSet.length;
 
@@ -124,7 +135,7 @@ LineSpace.prototype.data = function(dataSet) {
 		});
 		variance /= self.dataSet.length;
 
-		self.paramInfo[key] = {mean: mean, variance: variance};
+		self.paramInfo[key] = {mean: mean, variance: variance, max: max, min: min};
 		//console.log(item, mean, variance);
 	});
 
@@ -139,30 +150,28 @@ LineSpace.prototype.drawLines = function(context, ds, color) {
 	var transY = self.paramY(graphProperties.y)-this.instanceHeight/2;
 	context.translate(transX, transY);
 
-	var show = true;
 	if (color) {
 		context.strokeStyle = color;
 	}
-	else if (graphProperties.value == 1) {
-		//context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';//color;
-		context.strokeStyle = 'black';//color;
+	else if (graphProperties.show) {
+		context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';//color;
+		//context.strokeStyle = 'black';//color;
 	}
 	else {
-		context.strokeStyle = 'lightblue';
-		show = false;
+		context.strokeStyle = '#f1f9fa';
 	}
 
-	if (show) {
-		context.beginPath();
-		ds.rows.forEach(function(item, index) {
-			if (index == 0) {
-				context.moveTo(self.x(item.x), self.y(item.y));
-			}
-			else {
-				context.lineTo(self.x(item.x), self.y(item.y));
-			}
-		});
-	}
+	//console.log(graphProperties.show, graphProperties.value);
+
+	context.beginPath();
+	ds.rows.forEach(function(item, index) {
+		if (index == 0) {
+			context.moveTo(self.x(item.x), self.y(item.y));
+		}
+		else {
+			context.lineTo(self.x(item.x), self.y(item.y));
+		}
+	});
 
 	context.stroke();
 
@@ -171,11 +180,15 @@ LineSpace.prototype.drawLines = function(context, ds, color) {
 
 	context.beginPath();
 	//context.strokeRect(this.instanceWidth/2,this.instanceHeight/2,1,1);
-	if (color == 'green') {
-		context.strokeRect(transX,transY,this.instanceWidth,this.instanceHeight);
+	if (!graphProperties.show) {
+		context.strokeStyle = 'lightblue';
 	}
 	context.strokeRect(transX+this.instanceWidth/2,transY+this.instanceHeight/2,1,1);
 	context.stroke();
+	if (color == 'green') {
+		context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';
+		context.strokeRect(transX,transY,this.instanceWidth,this.instanceHeight);
+	}
 }
 
 LineSpace.prototype.update = function() {

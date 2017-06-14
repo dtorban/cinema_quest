@@ -56,7 +56,7 @@
 						                }
 						            });
 
-						            var ds = {params: params[index], rows: rows2};
+						            var ds = {id: index, params: params[index], rows: rows2};
 						            data.push(ds);
 					        	}
 			               		
@@ -69,11 +69,13 @@
 
    			function getGraphProperties(ds) {
    				//return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: +ds.params[lineSpace.dimensions[2]]/2000};
-   				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: +ds.params.run % 10 == 0};
+   				var parmInfo = lineSpace.paramInfo[lineSpace.dimensions[2]];
+   				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-parmInfo.min)/(parmInfo.max - parmInfo.min), show: ds.id % 10 == 0};
    			}
 
    			function interpolate(ds, x, y) {
    				var newDs = ds;
+   				newDs.id = 0;
    				newDs.params[lineSpace.dimensions[0]] = x;
    				newDs.params[lineSpace.dimensions[1]] = y;
    				//console.log();
@@ -89,7 +91,7 @@
    					var x2 = (y-item.params[lineSpace.dimensions[1]]);
    					var distance = Math.sqrt(x1*x1/variance1 + x2*x2/variance2);
    					//console.log(distance);
-   					if ((item.params.run % 10) != 0) {
+   					if (item.id % 10 != 0) {
    						dsDist.push({id: index, distance: distance, weight: 1/(distance*distance)});
    					}
    				});
@@ -97,12 +99,12 @@
 				dsDist.sort(function(a, b){return a.distance-b.distance});
 
 				var weightSum = 0;
-				for (var f = 0; f < 20; f++) {
+				for (var f = 0; f < 10; f++) {
 					weightSum += dsDist[f].weight;
 				}
 
 				var rows = [];
-				for (var f = 0; f < 20; f++) {
+				for (var f = 0; f < 10; f++) {
 					lineSpace.dataSet[dsDist[f].id].rows.forEach(function(item, index) {
 						if (f == 0) {
 							rows.push({x: item.x, y: item.y*dsDist[f].weight/weightSum});
