@@ -38,11 +38,9 @@ function LineSpace(parent, getGraphProperties, interpolate) {
     this.overlayCanvas.on("mousemove", function() {
     	if (self.dataSet) {
     		self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
-	    	var params = Object.create(self.dataSet[0].params);
-	    	var ds = {params: params, rows: self.dataSet[0].rows};
-	    	ds = interpolate(ds, self.paramX.invert(d3.event.offsetX-self.margin.right), self.paramY.invert(d3.event.offsetY-self.margin.top));
+	    	var ds = interpolate(self.paramX.invert(d3.event.offsetX-self.margin.right), self.paramY.invert(d3.event.offsetY-self.margin.top));
 	 		//self.overlayContext.fillRect(d3.event.offsetX-self.instanceWidth/2, d3.event.offsetY-self.instanceHeight/2, self.instanceWidth, self.instanceHeight);
-	 		self.drawLines(self.overlayContext, ds, 'green');
+	 		self.drawLines(self.overlayContext, ds, ds.color, true);
 	    	//self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
 	    	self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
     	}
@@ -142,7 +140,7 @@ LineSpace.prototype.data = function(dataSet) {
     self.update();
 }
 
-LineSpace.prototype.drawLines = function(context, ds, color) {
+LineSpace.prototype.drawLines = function(context, ds, color, showBox) {
 	var self = this;
 
 	var graphProperties = self.getGraphProperties(ds);
@@ -185,7 +183,7 @@ LineSpace.prototype.drawLines = function(context, ds, color) {
 	}
 	context.strokeRect(transX+this.instanceWidth/2,transY+this.instanceHeight/2,1,1);
 	context.stroke();
-	if (color == 'green') {
+	if (showBox) {
 		context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';
 		context.strokeRect(transX,transY,this.instanceWidth,this.instanceHeight);
 	}

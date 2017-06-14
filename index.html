@@ -73,7 +73,14 @@
    				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-parmInfo.min)/(parmInfo.max - parmInfo.min), show: ds.id % 10 == 0};
    			}
 
-   			function interpolate(ds, x, y) {
+   			function interpolate(x, y) {
+   				var paramSet = Object.keys(lineSpace.paramInfo);
+   				var params = {}
+   				paramSet.forEach(function(item, index) {
+   					params[item] = lineSpace.paramInfo[item].mean;
+   				});
+
+		    	var ds = {params: params, id: 0};
    				var newDs = ds;
    				newDs.id = 0;
    				newDs.params[lineSpace.dimensions[0]] = x;
@@ -103,6 +110,19 @@
 					weightSum += dsDist[f].weight;
 				}
 
+				paramSet.forEach(function(item, index) {
+					if (item != lineSpace.dimensions[0] && item != lineSpace.dimensions[1]) {
+						for (var f = 0; f < 10; f++) {
+
+							if (f == 0) {
+								params[item] = 0;
+							}
+
+							params[item] += lineSpace.dataSet[dsDist[f].id].params[item]*dsDist[f].weight/weightSum;
+						}
+					}
+   				});
+
 				var rows = [];
 				for (var f = 0; f < 10; f++) {
 					lineSpace.dataSet[dsDist[f].id].rows.forEach(function(item, index) {
@@ -123,6 +143,7 @@
    				//console.log(dsDist[0].distance, dsDist[0].weight, dsDist[0].id, lineSpace.dataSet[dsDist[0].id].params.run, weightSum);
 
    				//newDs.rows = lineSpace.dataSet[Math.floor(Math.random()*lineSpace.dataSet.length)].rows;
+   				newDs.color = 'green';
    				return newDs;
    			}
 
