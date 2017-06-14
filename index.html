@@ -22,7 +22,7 @@
 			<div id="spaceContainer"></div>
 		</div>
    		<script>
-   			var lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, interpolate);
+   			var lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, [interpolate1, interpolate2, interpolate3]);
 
    			var column = -1;
 
@@ -73,7 +73,25 @@
    				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-parmInfo.min)/(parmInfo.max - parmInfo.min), show: ds.id % 10 == 0};
    			}
 
-   			function interpolate(x, y) {
+   			function interpolate1(x, y) {
+   				var ds = interpolate(x, y, 5, 1);
+   				ds.color = 'green';
+   				return ds;
+   			}
+
+   			function interpolate2(x, y) {
+   				var ds = interpolate(x, y, 10, 2);
+   				ds.color = 'blue';
+   				return ds;
+   			}
+
+   			function interpolate3(x, y) {
+   				var ds = interpolate(x, y, 10, 4);
+   				ds.color = 'red';
+   				return ds;
+   			}
+
+   			function interpolate(x, y, k, p) {
    				var paramSet = Object.keys(lineSpace.paramInfo);
    				var params = {}
    				paramSet.forEach(function(item, index) {
@@ -99,20 +117,20 @@
    					var distance = Math.sqrt(x1*x1/variance1 + x2*x2/variance2);
    					//console.log(distance);
    					if (item.id % 10 != 0) {
-   						dsDist.push({id: index, distance: distance, weight: 1/(distance*distance)});
+   						dsDist.push({id: index, distance: distance, weight: 1/(Math.pow(distance,p))});
    					}
    				});
 
 				dsDist.sort(function(a, b){return a.distance-b.distance});
 
 				var weightSum = 0;
-				for (var f = 0; f < 10; f++) {
+				for (var f = 0; f < k; f++) {
 					weightSum += dsDist[f].weight;
 				}
 
 				paramSet.forEach(function(item, index) {
 					if (item != lineSpace.dimensions[0] && item != lineSpace.dimensions[1]) {
-						for (var f = 0; f < 10; f++) {
+						for (var f = 0; f < k; f++) {
 
 							if (f == 0) {
 								params[item] = 0;
@@ -124,7 +142,7 @@
    				});
 
 				var rows = [];
-				for (var f = 0; f < 10; f++) {
+				for (var f = 0; f < k; f++) {
 					lineSpace.dataSet[dsDist[f].id].rows.forEach(function(item, index) {
 						if (f == 0) {
 							rows.push({x: item.x, y: item.y*dsDist[f].weight/weightSum});
@@ -143,7 +161,6 @@
    				//console.log(dsDist[0].distance, dsDist[0].weight, dsDist[0].id, lineSpace.dataSet[dsDist[0].id].params.run, weightSum);
 
    				//newDs.rows = lineSpace.dataSet[Math.floor(Math.random()*lineSpace.dataSet.length)].rows;
-   				newDs.color = 'green';
    				return newDs;
    			}
 

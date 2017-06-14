@@ -1,10 +1,10 @@
 'use strict'
 
-function LineSpace(parent, getGraphProperties, interpolate) {
+function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	var self = this;
 
 	self.getGraphProperties = getGraphProperties;
-	self.interpolate = interpolate;
+	self.interpolateFunctions = interpolateFunctions;
 
 	this.parent = parent;
 	this.parent.attr("style", "position:relative;left:0px;top:0px;background-color:white");
@@ -38,9 +38,11 @@ function LineSpace(parent, getGraphProperties, interpolate) {
     this.overlayCanvas.on("mousemove", function() {
     	if (self.dataSet) {
     		self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
-	    	var ds = interpolate(self.paramX.invert(d3.event.offsetX-self.margin.right), self.paramY.invert(d3.event.offsetY-self.margin.top));
 	 		//self.overlayContext.fillRect(d3.event.offsetX-self.instanceWidth/2, d3.event.offsetY-self.instanceHeight/2, self.instanceWidth, self.instanceHeight);
-	 		self.drawLines(self.overlayContext, ds, ds.color, true);
+	 		interpolateFunctions.forEach(function(item, index) {
+	 			var ds = item(self.paramX.invert(d3.event.offsetX-self.margin.right), self.paramY.invert(d3.event.offsetY-self.margin.top));
+	 			self.drawLines(self.overlayContext, ds, ds.color, index == 0);
+	 		});
 	    	//self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
 	    	self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
     	}
