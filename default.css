@@ -18,7 +18,21 @@ body {
 }
 
 #spaceArea {
+	float: left;
+	position: relative;
 	height: 800px;
+	width: 80%;
+	padding: 10px;
+	background-color: white;
+	box-shadow: inset 0px 0px 5px black;
+}
+
+#parameters {
+	word-wrap: break-word;
+    white-space: pre-wrap;
+    color: red;
+	float: left;
+	width: 15%;
 	padding: 10px;
 	background-color: white;
 	box-shadow: inset 0px 0px 5px black;

@@ -20,6 +20,7 @@
 		<div id="spaceArea">
 			<div id="spaceContainer"></div>
 		</div>
+		<div id="parameters"></div>
    		<script>
 			var lineSpace = null;
 
@@ -35,7 +36,8 @@
 
 			function load() {
 				d3.select('#spaceContainer').html('');
-   			 	lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, [interpolate1, interpolate2, interpolate3, interpolate4]);
+   			 	lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, [interpolate1, interpolate2, interpolate3, interpolate4, interpolate5]);
+   			 	//lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, [interpolate5]);
 
 				dbInfo = d3.select('#database').node().value.split(',');
 
@@ -122,7 +124,7 @@
    			}
 
    			function interpolate3(x, y) {
-   				var ds = interpolate(x, y, 10, 4, weightedEclideanDistance);
+   				var ds = interpolate(x, y, 10, 4, weightedEclideanDistance, d3.select('#parameters'));
    				ds.color = 'red';
    				return ds;
    			}
@@ -130,6 +132,13 @@
    			function interpolate4(x, y) {
    				var ds = interpolate(x, y, 10, 4, cosineSimularity);
    				ds.color = 'cyan';
+   				return ds;
+   			}
+
+   			function interpolate5(x, y) {
+   				var ds = interpolate(x, y, 10, 4, weightedEclideanDistance);
+   				ds.color = 'brown';
+   				ds = interpolateFull(ds, 10, 4, weightedEclideanDistance);
    				return ds;
    			}
 
@@ -173,7 +182,7 @@
    				return dot(a, b)/(mag(a)*mag(b));
    			}
 
-   			function interpolate(x, y, k, p, distanceFunction) {
+   			function interpolate(x, y, k, p, distanceFunction, div) {
    				var paramSet = Object.keys(lineSpace.paramInfo);
    				var params = {}
    				paramSet.forEach(function(item, index) {
@@ -238,15 +247,87 @@
 
 				newDs.rows = rows;
 
-				newDs.extentX = d3.extent(ds.rows, function(d) { return d.x; });
-				newDs.extentY = d3.extent(ds.rows, function(d) { return d.y; });
+				newDs.extentX = d3.extent(newDs.rows, function(d) { return d.x; });
+				newDs.extentY = d3.extent(newDs.rows, function(d) { return d.y; });
 
    				//console.log(dsDist[0].distance, dsDist[0].weight, dsDist[0].id, lineSpace.dataSet[dsDist[0].id].params.run, weightSum);
 
    				//newDs.rows = lineSpace.dataSet[Math.floor(Math.random()*lineSpace.dataSet.length)].rows;
+   				var text = "Interpolated: \n";
+   				paramSet.forEach(function(item, index) {
+   					text += '    ' + item + ": " + newDs.params[item].toPrecision(4) + '\n';
+   				});
+
+   				if (div) {
+   					div.text(text);
+   				}
+
    				return newDs;
    			}
 
+
+   			function interpolateFull(ds, k, p, distanceFunction, div) {
+   				var paramSet = Object.keys(lineSpace.paramInfo);
+
+   				//console.log(lineSpace.dimensions[0], variance1,lineSpace.dimensions[1], variance2);
+   				var w = [];
+   				paramSet.forEach(function(item, index) {
+   					w.push(1/lineSpace.paramInfo[item].variance);
+   				});
+
+   				var dsDist = [];
+   				lineSpace.dataSet.forEach(function(dsOther, index) {
+   					var a = [];
+   					var b = [];
+   					paramSet.forEach(function(item, index) {
+   						a.push(+ds.params[item]);
+   						b.push(+dsOther.params[item]);
+   					});
+   					var distance = distanceFunction(w, a, b);
+   					//console.log(distance);
+   					if (dsOther.id % Math.floor(lineSpace.dataSet.length*0.1) != 0) {
+   						dsDist.push({id: index, distance: distance, weight: 1/(Math.pow(distance,p))});
+   					}
+   				});
+
+				dsDist.sort(function(a, b){return a.distance-b.distance});
+
+				var weightSum = 0;
+				for (var f = 0; f < k; f++) {
+					weightSum += dsDist[f].weight;
+				}
+
+				var rows = [];
+				for (var f = 0; f < k; f++) {
+					lineSpace.dataSet[dsDist[f].id].rows.forEach(function(item, index) {
+						if (f == 0) {
+							rows.push({x: item.x, y: item.y*dsDist[f].weight/weightSum});
+						}
+						else {
+							rows[index].y += item.y*dsDist[f].weight/weightSum;
+						}
+					});
+				}
+
+				ds.rows = rows;
+
+				ds.extentX = d3.extent(ds.rows, function(d) { return d.x; });
+				ds.extentY = d3.extent(ds.rows, function(d) { return d.y; });
+
+   				//console.log(dsDist[0].distance, dsDist[0].weight, dsDist[0].id, lineSpace.dataSet[dsDist[0].id].params.run, weightSum);
+
+   				//newDs.rows = lineSpace.dataSet[Math.floor(Math.random()*lineSpace.dataSet.length)].rows;
+   				var text = "Interpolated: \n";
+   				paramSet.forEach(function(item, index) {
+   					text += '    ' + item + ": " + ds.params[item].toPrecision(4) + '\n';
+   				});
+
+   				if (div) {
+   					div.text(text);
+   				}
+
+   				return ds;
+   			}
    		</script>
    </body>
 </html>

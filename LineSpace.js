@@ -56,7 +56,9 @@ LineSpace.prototype.data = function(dataSet) {
 
 	this.dataSet = dataSet;
 
-	var paramSet = Object.keys(dataSet[0].params);
+	var paramSet = Object.keys(dataSet[0].params).filter(function(d) {
+		return !isNaN(+dataSet[0].params[d]);
+	});
 	self.dimensions = [paramSet[0], paramSet[1], paramSet[2]];
 
 	var selectDiv = self.parent
