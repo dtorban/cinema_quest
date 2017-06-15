@@ -27,10 +27,10 @@ body {
 	box-shadow: inset 0px 0px 5px black;
 }
 
-#parameters {
+.parameters {
 	word-wrap: break-word;
     white-space: pre-wrap;
-    color: red;
+    font-size: small;
 	float: left;
 	width: 15%;
 	padding: 10px;

@@ -20,7 +20,14 @@
 		<div id="spaceArea">
 			<div id="spaceContainer"></div>
 		</div>
-		<div id="parameters"></div>
+		<div id="parameters">
+			<div id="closest" class="parameters"></div>
+			<div id="interp1" class="parameters"></div>
+			<div id="interp2" class="parameters"></div>
+			<div id="interp3" class="parameters"></div>
+			<div id="interp4" class="parameters"></div>
+			<div id="interp5" class="parameters"></div>
+		</div>
    		<script>
 			var lineSpace = null;
 
@@ -112,33 +119,38 @@
    			}
 
    			function interpolate1(x, y) {
-   				var ds = interpolate(x, y, 5, 1, weightedEclideanDistance);
+   				var ds = interpolate(x, y, 5, 1, weightedEclideanDistance, d3.select('#interp1'), true);
    				ds.color = 'green';
+   				d3.select('#interp1').style("color","green");
    				return ds;
    			}
 
    			function interpolate2(x, y) {
-   				var ds = interpolate(x, y, 10, 2, manhattanDistance);
+   				var ds = interpolate(x, y, 10, 2, manhattanDistance, d3.select('#interp2'));
    				ds.color = 'blue';
+   				d3.select('#interp2').style("color","blue");
    				return ds;
    			}
 
    			function interpolate3(x, y) {
-   				var ds = interpolate(x, y, 10, 4, weightedEclideanDistance, d3.select('#parameters'));
+   				var ds = interpolate(x, y, 10, 4, weightedEclideanDistance, d3.select('#interp3'));
    				ds.color = 'red';
+   				d3.select('#interp3').style("color","red");
    				return ds;
    			}
 
    			function interpolate4(x, y) {
-   				var ds = interpolate(x, y, 10, 4, cosineSimularity);
+   				var ds = interpolate(x, y, 10, 4, cosineSimularity, d3.select('#interp4'));
    				ds.color = 'cyan';
+   				d3.select('#interp4').style("color","cyan");
    				return ds;
    			}
 
    			function interpolate5(x, y) {
    				var ds = interpolate(x, y, 10, 4, weightedEclideanDistance);
    				ds.color = 'brown';
-   				ds = interpolateFull(ds, 10, 4, weightedEclideanDistance);
+   				ds = interpolateFull(ds, 10, 4, weightedEclideanDistance, d3.select('#interp5'));
+   				d3.select('#interp5').style("color","brown");
    				return ds;
    			}
 
@@ -260,6 +272,17 @@
 
    				if (div) {
    					div.text(text);
+   				}
+
+   				if (false) {
+   					var closestDs = lineSpace.dataSet[dsDist[0].id];
+   					//console.log(closestDs);
+	   				var text = "Closest: \n";
+	   				paramSet.forEach(function(item, index) {
+	   					text += '    ' + item + ": " + (+closestDs.params[item]).toPrecision(4) + '\n';
+	   				});
+
+	   				d3.select('#closest').text(text);
    				}
 
    				return newDs;
