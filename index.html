@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <link rel='stylesheet' href='default.css'>
     <script src="d3.v4.min.js"></script>
+    <script src="Simularity.js"></script>
     <script src="LineSpace.js"></script>
     <script src="FileLoad.js"></script>
-    <script src="Simularity.js"></script>
 </head>
    <body>
 	   <div id="header">
@@ -59,43 +59,44 @@
    			function getGraphProperties(ds) {
    				//return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: +ds.params[lineSpace.dimensions[2]]/2000};
    				var parmInfo = lineSpace.paramInfo[lineSpace.dimensions[2]];
-   				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-parmInfo.min)/(parmInfo.max - parmInfo.min), show: ds.id % Math.floor(lineSpace.dataSet.length*0.1) == 0};
+   				//return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-parmInfo.min)/(parmInfo.max - parmInfo.min), show: ds.id % Math.floor(lineSpace.dataSet.length*0.1) == 0};
+   				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-parmInfo.min)/(parmInfo.max - parmInfo.min), show: ds.id < 0};
    			}
 
    			function interpolate1(x, y) {
-   				var ds = interpolate(x, y, 5, 1, weightedEclideanDistance, d3.select('#interp1'), true);
-   				ds.color = 'green';
+   				var interp = interpolate(x, y, 5, 1, weightedEclideanDistance, d3.select('#interp1'), true);
+   				interp.color = 'green';
    				d3.select('#interp1').style("color","green");
-   				return ds;
+   				return interp;
    			}
 
    			function interpolate2(x, y) {
-   				var ds = interpolate(x, y, 10, 2, manhattanDistance, d3.select('#interp2'));
-   				ds.color = 'blue';
+   				var interp = interpolate(x, y, 10, 2, manhattanDistance, d3.select('#interp2'));
+   				interp.color = 'blue';
    				d3.select('#interp2').style("color","blue");
-   				return ds;
+   				return interp;
    			}
 
    			function interpolate3(x, y) {
-   				var ds = interpolate(x, y, 10, 4, weightedEclideanDistance, d3.select('#interp3'));
-   				ds.color = 'red';
+   				var interp = interpolate(x, y, 10, 4, weightedEclideanDistance, d3.select('#interp3'));
+   				interp.color = 'red';
    				d3.select('#interp3').style("color","red");
-   				return ds;
+   				return interp;
    			}
 
    			function interpolate4(x, y) {
-   				var ds = interpolate(x, y, 10, 4, cosineSimularity, d3.select('#interp4'));
-   				ds.color = 'cyan';
+   				var interp = interpolate(x, y, 10, 4, cosineSimularity, d3.select('#interp4'));
+   				interp.color = 'cyan';
    				d3.select('#interp4').style("color","cyan");
-   				return ds;
+   				return interp;
    			}
 
    			function interpolate5(x, y) {
-   				var ds = interpolate(x, y, 10, 4, weightedEclideanDistance);
-   				ds.color = 'brown';
-   				ds = interpolateFull(ds, 10, 4, weightedEclideanDistance, d3.select('#interp5'));
+   				var interp = interpolate(x, y, 10, 4, weightedEclideanDistance);
+   				interp = interpolateFull(interp.ds, 10, 4, weightedEclideanDistance, d3.select('#interp5'));
+   				interp.color = 'brown';
    				d3.select('#interp5').style("color","brown");
-   				return ds;
+   				return interp;
    			}
 
    			function interpolate(x, y, k, p, distanceFunction, div) {
@@ -107,29 +108,13 @@
 
 		    	var ds = {params: params, id: 0};
    				var newDs = ds;
-   				newDs.id = 0;
+   				newDs.id = -1;
    				newDs.params[lineSpace.dimensions[0]] = x;
    				newDs.params[lineSpace.dimensions[1]] = y;
    				//console.log();
 
-
-   				var variance1 = lineSpace.paramInfo[lineSpace.dimensions[0]].variance;
-   				var variance2 = lineSpace.paramInfo[lineSpace.dimensions[1]].variance;
-   				//console.log(lineSpace.dimensions[0], variance1,lineSpace.dimensions[1], variance2);
-
-   				var dsDist = [];
-   				lineSpace.dataSet.forEach(function(item, index) {
-   					var a = [x, y];
-   					var b = [item.params[lineSpace.dimensions[0]], item.params[lineSpace.dimensions[1]]];
-   					var w = [1/variance1, 1/variance2];
-   					var distance = distanceFunction(w, a, b);
-   					//console.log(distance);
-   					if (item.id % Math.floor(lineSpace.dataSet.length*0.1) != 0) {
-   						dsDist.push({id: index, distance: distance, weight: 1/(Math.pow(distance,p))});
-   					}
-   				});
-
-				dsDist.sort(function(a, b){return a.distance-b.distance});
+   				var pSet = [lineSpace.dimensions[0], lineSpace.dimensions[1]];
+   				var dsDist = calcDistance(newDs, pSet, function(index) { return lineSpace.paramInfo[index].variance; }, distanceFunction, p);
 
 				var weightSum = 0;
 				for (var f = 0; f < k; f++) {
@@ -189,9 +174,31 @@
 	   				d3.select('#closest').text(text);
    				}
 
-   				return newDs;
+   				return {ds: newDs, neighbors: dsDist};
    			}
 
+   			function calcDistance(ds, paramSet, getVariance, distanceFunction, p) {
+   				var w = [];
+   				paramSet.forEach(function(item, index) {
+   					w.push(1/getVariance(item));
+   				});
+
+   				var dsDist = [];
+   				lineSpace.dataSet.forEach(function(dsOther, index) {
+   					var a = [];
+   					var b = [];
+   					paramSet.forEach(function(item, index) {
+   						a.push(+ds.params[item]);
+   						b.push(+dsOther.params[item]);
+   					});
+   					var distance = distanceFunction(w, a, b);
+   					dsDist.push({id: index, distance: distance, weight: 1/(Math.pow(distance,p))});
+   				});
+
+				dsDist.sort(function(a, b){return a.distance-b.distance});
+
+   				return dsDist;
+   			}
 
    			function interpolateFull(ds, k, p, distanceFunction, div) {
    				var paramSet = Object.keys(lineSpace.paramInfo);
@@ -212,9 +219,9 @@
    					});
    					var distance = distanceFunction(w, a, b);
    					//console.log(distance);
-   					if (dsOther.id % Math.floor(lineSpace.dataSet.length*0.1) != 0) {
+   					//if (dsOther.id % Math.floor(lineSpace.dataSet.length*0.1) != 0) {
    						dsDist.push({id: index, distance: distance, weight: 1/(Math.pow(distance,p))});
-   					}
+   					//}
    				});
 
 				dsDist.sort(function(a, b){return a.distance-b.distance});
@@ -253,7 +260,7 @@
    					div.text(text);
    				}
 
-   				return ds;
+   				return {ds: ds, neighbors: dsDist};
    			}
    		</script>
    </body>
