@@ -199,7 +199,7 @@ LineSpace.prototype.drawLines = function(context, ds, color, showBox) {
 	context.beginPath();
 	//context.strokeRect(this.instanceWidth/2,this.instanceHeight/2,1,1);
 	if (!graphProperties.show) {
-		context.strokeStyle = 'lightblue';
+		context.strokeStyle = 'blue';
 	}
 	context.strokeRect(transX+this.instanceWidth/2,transY+this.instanceHeight/2,1,1);
 	context.stroke();

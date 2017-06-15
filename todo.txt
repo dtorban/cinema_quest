@@ -1,0 +1,10 @@
+Add axis with labels
+Add interpolation names
+Add PCA view
+Show dots
+Fix aliasing
+Add new parameters
+Integrate with Emulator
+Direct manipulation view
+Gradients of error
+Feature extraction view
