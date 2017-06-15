@@ -18,8 +18,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	this.context.globalAlpha = 0.4;
 	this.context.globalCompositeOperation = "difference";
 
-    this.instanceWidth = self.parentRect.width/10;
-    this.instanceHeight = self.parentRect.width/10;
+    this.instanceWidth = self.parentRect.width/7;
+    this.instanceHeight = self.parentRect.width/7;
 
     this.margin = {top: this.instanceHeight/2, right: this.instanceWidth/2, bottom: this.instanceHeight/2, left: this.instanceWidth/2};
     this.context.translate(this.margin.right, this.margin.top);
@@ -47,6 +47,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	    	self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
     	}
     });
+
+    this.showAll = false;
 }
 
 LineSpace.prototype.data = function(dataSet) {
@@ -60,6 +62,16 @@ LineSpace.prototype.data = function(dataSet) {
 	var selectDiv = self.parent
 		.append('div')
   		.attr("style", "z-index: 10;position:absolute;left:0px;top:0px;cursor: default");
+
+	var checkbox = selectDiv.append("input")
+	    .attr("type", "checkbox")
+	    .on('click',function() {
+	    	self.showAll = d3.event.target.checked;
+    		self.update();
+    	});
+    if (self.showAll) {
+    	checkbox.attr("checked", self.showAll);
+    }	    
 
 	var select = selectDiv
 		.append('select')
@@ -95,7 +107,7 @@ LineSpace.prototype.data = function(dataSet) {
 	var select = selectDiv
 		.append('select')
   		.attr('class','select')
-  		//.attr("style", "visibility: hidden")
+  		.attr("style", "visibility: hidden")
     	.on('change',function() {
     		self.dimensions[2] = d3.event.target.value;
     		self.update();
@@ -154,26 +166,30 @@ LineSpace.prototype.drawLines = function(context, ds, color, showBox) {
 		context.strokeStyle = color;
 	}
 	else if (graphProperties.show) {
-		context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';//color;
+		//context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';//color;
+		context.strokeStyle = 'black'
+		//context.lineWidth = 2;
+		this.context.globalAlpha = 1;
 		//context.strokeStyle = 'black';//color;
 	}
 	else {
-		context.strokeStyle = '#f1f9fa';
+		context.strokeStyle = 'grey';//'#f1f9fa';
 	}
 
 	//console.log(graphProperties.show, graphProperties.value);
+	if (self.showAll || graphProperties.show) {
+		context.beginPath();
+		ds.rows.forEach(function(item, index) {
+			if (index == 0) {
+				context.moveTo(self.x(item.x), self.y(item.y));
+			}
+			else {
+				context.lineTo(self.x(item.x), self.y(item.y));
+			}
+		});
 
-	context.beginPath();
-	ds.rows.forEach(function(item, index) {
-		if (index == 0) {
-			context.moveTo(self.x(item.x), self.y(item.y));
-		}
-		else {
-			context.lineTo(self.x(item.x), self.y(item.y));
-		}
-	});
-
-	context.stroke();
+		context.stroke();
+	}
 
 	context.translate(-transX, -transY);
 
@@ -188,6 +204,11 @@ LineSpace.prototype.drawLines = function(context, ds, color, showBox) {
 	if (showBox) {
 		context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';
 		context.strokeRect(transX,transY,this.instanceWidth,this.instanceHeight);
+	}
+
+	if (graphProperties.show) {
+		//context.lineWidth = 1;
+		this.context.globalAlpha = 0.4;
 	}
 }
 

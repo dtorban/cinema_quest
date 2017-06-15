@@ -10,88 +10,170 @@
    <body>
 	   <div id="header">
 			<h1>Output Explorer</h1>
-			<select id="database">
-				<option value="GF-HP/GF-HP.csv">GF-HP</option>
-				<option value="GF-LP/GF-LP.csv">F-LP</option>
-				<option value="LANLHigh-O/LANLHigh-O.csv">LANLHigh-O</option>
-				<option value="LANLLow-O/LANLLow-O.csv">LANLLow-O</option>
-				<option value="simresults/Al.design.1000.numbered.csv">Flag Simulation</option>
+			<select id="database" onchange="load()">
+				<option value="data/GF-HP/GF-HP.csv,visar,column,\t,0">GF-HP-Visar1</option>
+				<option value="data/GF-HP/GF-HP.csv,visar,column,\t,1">GF-HP-Visar2</option>
+				<option value="data/GF-HP/GF-HP.csv,diffraction,columns,\t,0,1">GF-HP-Diffraction</option>
+				<option value="data/simresults/Al.design.1000.numbered.csv,sim,columns, ,1,3,700">Flag Simulation</option>
 			</select>
 		</div>
 		<div id="spaceArea">
 			<div id="spaceContainer"></div>
 		</div>
    		<script>
-   			var lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, [interpolate1, interpolate2, interpolate3]);
+			var lineSpace = null;
 
-   			var column = -1;
+   			load();
 
-   			d3.csv("data/GF-HP/GF-HP.csv", function(error, results) {
-   				params = results;
-   				console.log(results[0]);
-		         	var q = d3.queue();
-		         	results.forEach(function(item, index) {
-		            	q.defer(d3.text, item["visar"]);
-		   			});
-		            q.awaitAll(function(error, results) {
-		            	//if (!error) {
-			            	var data = [];
-				        	results.forEach(function(text, index) {
-				        		if (text) {
-				        			var rows = d3.tsvParseRows(text).map(function(row) {
-					            		return row.map(function(value) {
-					            			return +value;
-					               		});
-					            	});
+   			function escapeRegExp(str) {
+			    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+			}
 
-						            var rows2 = [];
-						            var count = 0;
-						            rows.forEach(function(item, index) {
-						                if (column > 0) {
-						               		rows2.push({x : item[0], y : item[column]});
-						                }
-						                else {
-						               		rows2.push({x : count, y : item[1]});
-						               		count++;
-						                }
-						            });
+			function replaceAll(str, find, replace) {
+			  return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+			}
 
-						            var ds = {id: index, params: params[index], rows: rows2};
-						            data.push(ds);
-					        	}
-			               		
-			           		});
+			function load() {
+				d3.select('#spaceContainer').html('');
+   			 	lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, [interpolate1, interpolate2, interpolate3, interpolate4]);
 
-				            lineSpace.data(data);
-			           // }
-		            });
-			});
+				dbInfo = d3.select('#database').node().value.split(',');
+
+	   			d3.csv(dbInfo[0], function(error, results) {
+	   				params = results;
+	   				console.log(results[0]);
+			         	var q = d3.queue();
+			         	results.forEach(function(item, index) {
+			            	q.defer(d3.text, item[dbInfo[1]]);
+			   			});
+			            q.awaitAll(function(error, results) {
+			            	//if (!error) {
+				            	var data = [];
+					        	results.forEach(function(text, index) {
+					        		if (text) {
+										// correct for white space delemited
+						    			if (dbInfo[3] == " ") {
+						    				var lines = text.split('\n');
+						    				text = '';
+							    			lines = lines.slice(dbInfo[6], lines.length);
+							    			lines.forEach(function(item, index) {
+							    				if (index == 0) {
+							    					text = lines[index].trim();
+							    				}
+							    				else {
+							    					if (index % 10 == 0) {
+							    						text = text + "\n" + lines[index].trim();
+							    					}
+							    				}
+							    			});
+							    			text = replaceAll(text,"  ","\t");
+						    			}
+							    
+
+					        			var rows = d3.tsvParseRows(text).map(function(row) {
+						            		return row.map(function(value) {
+						            			return +value;
+						               		});
+						            	});
+
+							            var rows2 = [];
+							            var count = 0;
+							            rows.forEach(function(item, index) {
+							                if (dbInfo[2] == 'column') {
+							               		rows2.push({x : count, y : item[dbInfo[4]]});
+							               		count++;
+							                }
+							                else if (dbInfo[2] == 'columns') {
+							                	rows2.push({x : item[dbInfo[4]], y : item[dbInfo[5]]});
+							                }
+							                else {
+							               		//rows2.push({x : item[0], y : item[column]});
+							                }
+							            });
+
+							            var ds = {id: index, params: params[index], rows: rows2};
+							            data.push(ds);
+						        	}
+				               		
+				           		});
+
+					            lineSpace.data(data);
+				           // }
+			            });
+				});
+	   		}
 
    			function getGraphProperties(ds) {
    				//return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: +ds.params[lineSpace.dimensions[2]]/2000};
    				var parmInfo = lineSpace.paramInfo[lineSpace.dimensions[2]];
-   				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-parmInfo.min)/(parmInfo.max - parmInfo.min), show: ds.id % 10 == 0};
+   				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-parmInfo.min)/(parmInfo.max - parmInfo.min), show: ds.id % Math.floor(lineSpace.dataSet.length*0.1) == 0};
    			}
 
    			function interpolate1(x, y) {
-   				var ds = interpolate(x, y, 5, 1);
+   				var ds = interpolate(x, y, 5, 1, weightedEclideanDistance);
    				ds.color = 'green';
    				return ds;
    			}
 
    			function interpolate2(x, y) {
-   				var ds = interpolate(x, y, 10, 2);
+   				var ds = interpolate(x, y, 10, 2, manhattanDistance);
    				ds.color = 'blue';
    				return ds;
    			}
 
    			function interpolate3(x, y) {
-   				var ds = interpolate(x, y, 10, 4);
+   				var ds = interpolate(x, y, 10, 4, weightedEclideanDistance);
    				ds.color = 'red';
    				return ds;
    			}
 
-   			function interpolate(x, y, k, p) {
+   			function interpolate4(x, y) {
+   				var ds = interpolate(x, y, 10, 4, cosineSimularity);
+   				ds.color = 'cyan';
+   				return ds;
+   			}
+
+   			function dot(a, b) {
+   				var sum = 0;
+   				for (var f = 0; f < a.length && f < b.length; f++) {
+   					sum += a[f]*b[f];
+   				}
+
+   				return sum;
+   			}
+
+   			function mag(a) {
+   				var sum = 0;
+   				for (var f = 0; f < a.length; f++) {
+   					sum += Math.pow(a[f],2);
+   				}
+
+   				return Math.sqrt(sum);
+   			}
+
+   			function weightedEclideanDistance(w, a, b) {
+   				var sum = 0;
+   				for (var f = 0; f < a.length && f < b.length && f < w.length; f++) {
+   					sum += w[f]*Math.pow(a[f]-b[f],2);
+   				}
+
+   				return Math.sqrt(sum);
+   			}
+
+   			function manhattanDistance(w, a, b) {
+   				var sum = 0;
+   				for (var f = 0; f < a.length && f < b.length && f < w.length; f++) {
+   					sum += Math.abs(a[f]-b[f]);
+   				}
+
+   				return sum;
+   			}
+
+   			function cosineSimularity(w, a, b) {
+   				return dot(a, b)/(mag(a)*mag(b));
+   			}
+
+   			function interpolate(x, y, k, p, distanceFunction) {
    				var paramSet = Object.keys(lineSpace.paramInfo);
    				var params = {}
    				paramSet.forEach(function(item, index) {
@@ -112,11 +194,12 @@
 
    				var dsDist = [];
    				lineSpace.dataSet.forEach(function(item, index) {
-   					var x1 = (x-item.params[lineSpace.dimensions[0]]);
-   					var x2 = (y-item.params[lineSpace.dimensions[1]]);
-   					var distance = Math.sqrt(x1*x1/variance1 + x2*x2/variance2);
+   					var a = [x, y];
+   					var b = [item.params[lineSpace.dimensions[0]], item.params[lineSpace.dimensions[1]]];
+   					var w = [1/variance1, 1/variance2];
+   					var distance = distanceFunction(w, a, b);
    					//console.log(distance);
-   					if (item.id % 10 != 0) {
+   					if (item.id % Math.floor(lineSpace.dataSet.length*0.1) != 0) {
    						dsDist.push({id: index, distance: distance, weight: 1/(Math.pow(distance,p))});
    					}
    				});
