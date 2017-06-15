@@ -18,8 +18,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	this.context.globalAlpha = 0.4;
 	this.context.globalCompositeOperation = "difference";
 
-    this.instanceWidth = self.parentRect.width/7;
-    this.instanceHeight = self.parentRect.width/7;
+    this.instanceWidth = self.parentRect.width/5;
+    this.instanceHeight = self.parentRect.width/5;
 
     this.margin = {top: this.instanceHeight/2, right: this.instanceWidth/2, bottom: this.instanceHeight/2, left: this.instanceWidth/2};
     this.context.translate(this.margin.right, this.margin.top);
@@ -29,26 +29,40 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
    	this.overlayCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width)
 		.attr('height', this.parentRect.width)
-		.attr("style", "z-index: 1;position:absolute;left:0px;top:0px;cursor: none");
+		.attr("style", "z-index: 1;position:absolute;left:0px;top:0px;cursor: default");
 	this.overlayContext = this.overlayCanvas.node().getContext("2d");
 	this.overlayContext.translate(this.margin.right, this.margin.top);
 	this.overlayContext.fillStyle = "green";
     this.cursorPosition = [0,0];
 
+    this.interpolating = false;
+
+    this.overlayCanvas.on("mousedown", function() {
+    	self.interpolating = !self.interpolating;
+    	if(self.interpolating) {
+    		self.interpolate(d3.event.offsetX, d3.event.offsetY);
+    	}
+    	self.overlayCanvas.style("cursor", self.interpolating ? "none" : "default");
+    });
+
     this.overlayCanvas.on("mousemove", function() {
-    	if (self.dataSet) {
-    		self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
-	 		//self.overlayContext.fillRect(d3.event.offsetX-self.instanceWidth/2, d3.event.offsetY-self.instanceHeight/2, self.instanceWidth, self.instanceHeight);
-	 		interpolateFunctions.forEach(function(item, index) {
-	 			var ds = item(self.paramX.invert(d3.event.offsetX-self.margin.right), self.paramY.invert(d3.event.offsetY-self.margin.top));
-	 			self.drawLines(self.overlayContext, ds, ds.color, index == 0);
-	 		});
+    	if (self.dataSet && self.interpolating) {
+    		self.interpolate(d3.event.offsetX, d3.event.offsetY);
 	    	//self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
 	    	self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
     	}
     });
 
     this.showAll = false;
+}
+
+LineSpace.prototype.interpolate = function(x, y) {
+	var self = this;
+	self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
+	self.interpolateFunctions.forEach(function(item, index) {
+	 	var ds = item(self.paramX.invert(x-self.margin.right), self.paramY.invert(y-self.margin.top));
+	 	self.drawLines(self.overlayContext, ds, ds.color, index == 0);
+	});
 }
 
 LineSpace.prototype.data = function(dataSet) {
@@ -253,4 +267,5 @@ LineSpace.prototype.redraw = function() {
 	this.dataSet.forEach(function(ds, index) {
 		self.drawLines(self.context, ds);
 	});
+	self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
 }
