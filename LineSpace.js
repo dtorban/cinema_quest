@@ -112,13 +112,17 @@ LineSpace.prototype.data = function(dataSet) {
     	});
     if (self.showAll) {
     	checkbox.attr("checked", self.showAll);
-    }	    
+    }	   
 
-	var selectDiv2 = self.parent
+    var selectDivX = self.parent
+		.append('div')
+  		.attr("style", "z-index: 10;position:absolute;left:"+ (this.parentRect.width/2 - 62) +"px;top:"+ (this.parentRect.height - 30) +"px;cursor: default");
+ 
+	var selectDivY = self.parent
 		.append('div')
   		.attr("style", "z-index: 10;position:absolute;left:0px;top:"+ (this.parentRect.height/2) +"px;cursor: default");
 
-	var select = selectDiv2
+	var select = selectDivX
 		.append('select')
   		.attr('id','xval')
   		.attr('class','select')
@@ -127,6 +131,7 @@ LineSpace.prototype.data = function(dataSet) {
     		self.update();
     	});
 
+
 	var options = select
 	 	.selectAll('option')
 		.data(paramSet).enter()
@@ -134,11 +139,8 @@ LineSpace.prototype.data = function(dataSet) {
 		.text(function (d) { return d; })
     	.property("selected", function(d){ return d === self.dimensions[0]; });
 
-	var selectDiv3 = self.parent
-		.append('div')
-  		.attr("style", "z-index: 10;position:absolute;left:"+ (this.parentRect.width/2 - 75) +"px;top:"+ (this.parentRect.height - 30) +"px;cursor: default");
 
-	var select = selectDiv3
+	var select = selectDivY
 		.append('select')
   		.attr('class','select')
     	.on('change',function() {
@@ -305,4 +307,81 @@ LineSpace.prototype.redraw = function() {
 		self.drawLines(self.context, ds);
 	});
 	self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
+	self.xAxis(this.context);
+	self.yAxis(this.context);
+}
+
+// This draws the xAxis
+LineSpace.prototype.xAxis = function(context) {
+	var self = this;
+	var tickCount = 10,
+		tickSize = 6,
+		ticks = self.paramX.ticks(tickCount),
+		tickFormat = self.paramX.tickFormat();
+
+	var internalHeight = self.parentRect.height - self.instanceHeight;
+	var internalWidth = self.parentRect.width - self.instanceWidth;
+
+	context.beginPath();
+	ticks.forEach(function(d) {
+		context.moveTo(self.paramX(d), internalHeight);
+		context.lineTo(self.paramX(d), internalHeight + tickSize);
+	});
+	context.strokeStyle = "black";
+	context.stroke();
+
+	context.beginPath();
+	context.moveTo(0, internalHeight+tickSize);
+	context.lineTo(0, internalHeight);
+	context.lineTo(internalWidth, internalHeight);
+	context.lineTo(internalWidth, internalHeight+tickSize);
+	context.strokeStyle = "black";
+	context.stroke();
+
+	context.textAlign = "center";
+	context.textBaseline = "top";
+	ticks.forEach(function(d) {
+		context.fillText(tickFormat(d), self.paramX(d), internalHeight + tickSize);
+	});
+}
+
+// This draws the yAxis
+LineSpace.prototype.yAxis = function(context) {
+	var self = this;
+	var tickCount = 10,
+		tickSize = 6,
+		tickPadding = 3,
+		ticks = self.paramY.ticks(tickCount),
+		tickFormat = self.paramY.tickFormat(tickCount);
+
+	var internalHeight = self.parentRect.height - self.instanceHeight;
+
+	context.beginPath();
+	ticks.forEach(function(d) {
+		context.moveTo(0, self.paramY(d));
+		context.lineTo(-6, self.paramY(d));
+	});
+	context.strokeStyle = "black";
+	context.stroke();
+
+	context.beginPath();
+	context.moveTo(-tickSize, 0);
+	context.lineTo(0.5, 0);
+	context.lineTo(0.5, internalHeight);
+	context.lineTo(-tickSize, internalHeight);
+	context.strokeStyle = "black";
+	context.stroke();
+
+	context.textAlign = "right";
+	context.textBaseline = "middle";
+	ticks.forEach(function(d) {
+		context.fillText(tickFormat(d), -tickSize - tickPadding, self.paramY(d));
+	});
+
+	context.save();
+	context.rotate(-Math.PI / 2);
+	context.textAlign = "right";
+	context.textBaseline = "top";
+	context.font = "bold 10px sans-serif";
+	context.restore();
 }
