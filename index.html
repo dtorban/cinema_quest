@@ -47,7 +47,7 @@
 
 			function load() {
 				d3.select('#spaceContainer').html('');
-   			 	lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, [interpolate1, interpolate2, interpolate3, interpolate4]);
+   			 	lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, [interpolate1, interpolate3, interpolate4]);
 
 				var dbString = d3.select('#database').node().value;
 
@@ -77,36 +77,41 @@
    				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-pInfo.min)/(pInfo.max - pInfo.min), show: ds.id < 0};
    			}
 
-   			function interpolate1(x, y) {
-   				var interp = interpolate(x, y, 5, 1, weightedEclideanDistance, d3.select('#interp1'), true);
+   			function interpolate1(query) {
+   				d3.select('#interp1').text("Eclidean Distance (k=5, p=1)");
+   				var interp = interpolate(query, 5, 1, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, d3.select('#interp1'), true);
    				interp.color = 'green';
    				d3.select('#interp1').style("color","green");
    				return interp;
    			}
 
-   			function interpolate2(x, y) {
-   				var interp = interpolate(x, y, 10, 2, manhattanDistance, d3.select('#interp2'));
+   			function interpolate2(query) {
+   				d3.select('#interp2').text("Manhattan Distance (k=10, p=2)");
+   				var interp = interpolate(query, 10, 2, function(index) { return 1.0/paramInfo[index].variance; }, manhattanDistance, d3.select('#interp2'));
    				interp.color = 'blue';
    				d3.select('#interp2').style("color","blue");
    				return interp;
    			}
 
-   			function interpolate3(x, y) {
-   				var interp = interpolate(x, y, 10, 4, weightedEclideanDistance, d3.select('#interp3'));
+   			function interpolate3(query) {
+   				d3.select('#interp3').text("Eclidean Distance (k=10, p=4)");
+   				var interp = interpolate(query, 10, 4, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, d3.select('#interp3'));
    				interp.color = 'red';
    				d3.select('#interp3').style("color","red");
    				return interp;
    			}
 
-   			function interpolate4(x, y) {
-   				var interp = interpolate(x, y, 10, 4, cosineSimularity, d3.select('#interp4'));
+   			function interpolate4(query) {
+   				d3.select('#interp4').text("Centered Cosine (k=10, p=4)");
+   				var interp = interpolate(query, 10, 4, function(index) { return -paramInfo[index].mean; }, centeredCosineSimularity, d3.select('#interp4'));
    				interp.color = 'cyan';
    				d3.select('#interp4').style("color","cyan");
    				return interp;
    			}
 
-   			function interpolate(x, y, k, p, distanceFunction, div) {
+   			function interpolate(query, k, p, weightFunction, distanceFunction, div) {
    				var paramSet = Object.keys(lineSpace.paramInfo);
+   				var querySet = Object.keys(query);
    				var params = {}
    				paramSet.forEach(function(item, index) {
    					params[item] = paramInfo[item].mean;
@@ -115,12 +120,12 @@
 		    	var ds = {params: params, id: 0};
    				var newDs = ds;
    				newDs.id = -1;
-   				newDs.params[lineSpace.dimensions[0]] = x;
-   				newDs.params[lineSpace.dimensions[1]] = y;
+   				paramSet.forEach(function(item, index) {
+   					newDs.params[item] = query[item];
+   				});
    				//console.log();
 
-   				var pSet = [lineSpace.dimensions[0], lineSpace.dimensions[1]];
-   				var dsDist = calcDistance(newDs, trainingSet, pSet, function(index) { return paramInfo[index].variance; }, distanceFunction, p);
+   				var dsDist = calcDistance(newDs, trainingSet, querySet, weightFunction, distanceFunction, p);
 
 				var weightSum = 0;
 				for (var f = 0; f < k; f++) {
@@ -128,7 +133,7 @@
 				}
 
 				paramSet.forEach(function(item, index) {
-					if (item != lineSpace.dimensions[0] && item != lineSpace.dimensions[1]) {
+					if (!(item in query)) {
 						for (var f = 0; f < k; f++) {
 
 							if (f == 0) {
@@ -160,24 +165,13 @@
    				//console.log(dsDist[0].distance, dsDist[0].weight, dsDist[0].id, lineSpace.dataSet[dsDist[0].id].params.run, weightSum);
 
    				//newDs.rows = lineSpace.dataSet[Math.floor(Math.random()*lineSpace.dataSet.length)].rows;
-   				var text = "Interpolated: \n";
+   				var text = "\n";
    				paramSet.forEach(function(item, index) {
    					text += '    ' + item + ": " + newDs.params[item].toPrecision(4) + '\n';
    				});
 
    				if (div) {
-   					div.text(text);
-   				}
-
-   				if (false) {
-   					var closestDs = lineSpace.dataSet[dsDist[0].id];
-   					//console.log(closestDs);
-	   				var text = "Closest: \n";
-	   				paramSet.forEach(function(item, index) {
-	   					text += '    ' + item + ": " + (+closestDs.params[item]).toPrecision(4) + '\n';
-	   				});
-
-	   				d3.select('#closest').text(text);
+   					div.text(div.text() + text);
    				}
 
    				return {ds: newDs, neighbors: dsDist};

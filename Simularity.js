@@ -18,6 +18,22 @@
    				return Math.sqrt(sum);
    			}
 
+   			function vectorMult(a, b) {
+   				var c = [];
+   				for (var f = 0; f < a.length; f++) {
+   					c.push(a[f]*b[f]);
+   				}
+   				return c;
+   			}
+
+   			function vectorAdd(a, b) {
+   				var c = [];
+   				for (var f = 0; f < a.length; f++) {
+   					c.push(a[f]+b[f]);
+   				}
+   				return c;
+   			}
+
    			function weightedEclideanDistance(w, a, b) {
    				var sum = 0;
    				for (var f = 0; f < a.length && f < b.length && f < w.length; f++) {
@@ -36,14 +52,18 @@
    				return sum;
    			}
 
-   			function cosineSimularity(w, a, b) {
-   				return dot(a, b)/(mag(a)*mag(b));
+   			function centeredCosineSimularity(w, a, b) {
+   				a = vectorAdd(a, w);
+   				b = vectorAdd(b, w);
+   				var x = -(dot(a, b)/(mag(a)*mag(b)));
+   				//console.log(a, b, dot(a, b), mag(a), mag(b),x);
+   				return x;
    			}
 
-   			function calcDistance(ds, dataSet, paramSet, getVariance, distanceFunction, p) {
+   			function calcDistance(ds, dataSet, paramSet, getWeight, distanceFunction, p) {
    				var w = [];
    				paramSet.forEach(function(item, index) {
-   					w.push(1/getVariance(item));
+   					w.push(getWeight(item));
    				});
 
    				var dsDist = [];
