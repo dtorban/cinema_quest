@@ -18,8 +18,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	this.context.globalAlpha = 0.4;
 	this.context.globalCompositeOperation = "difference";
 
-    this.instanceWidth = self.parentRect.width/3;
-    this.instanceHeight = self.parentRect.height/3;
+    this.instanceWidth = self.parentRect.width/2.5;
+    this.instanceHeight = self.parentRect.height/2.5;
 
     this.margin = {top: this.instanceHeight/2, right: this.instanceWidth/2, bottom: this.instanceHeight/2, left: this.instanceWidth/2};
     this.context.translate(this.margin.right, this.margin.top);
@@ -61,14 +61,28 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 LineSpace.prototype.interpolate = function(x, y) {
 	var self = this;
 	self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
+	var pSet = [self.dimensions[0], self.dimensions[1]];
+	var tempParams = {};
+	tempParams[self.dimensions[0]] = self.paramX.invert(x-self.margin.right);
+	tempParams[self.dimensions[1]] = self.paramY.invert(y-self.margin.top);
+	var tempDs = {params: tempParams};
+   	var dsDist = calcDistance(tempDs, self.dataSet, pSet, function(item) { return self.paramInfo[item].variance; }, weightedEclideanDistance, 2);
+
 	var interpResults = [];
 	self.interpolateFunctions.forEach(function(item, index) {
 	 	var interp = item(self.paramX.invert(x-self.margin.right), self.paramY.invert(y-self.margin.top));
 	 	interpResults.push(interp);
-	 	/*for (var f = 5; f >= 0; f--) {
-			self.overlayContext.globalAlpha = (5-f)/5;
-	 		self.drawLines(self.overlayContext, self.dataSet[interp.neighbors[f].id], 'black', false, true);
-		}*/
+
+	 	var weightSum = 0;
+	 	for (var f = 0; f < 5; f++) {
+			weightSum+= dsDist[f].weight;
+	 	}
+
+	 	for (var f = 0; f < 5; f++) {
+			self.overlayContext.globalAlpha = dsDist[f].weight/weightSum;
+	 		self.drawLines(self.overlayContext, self.dataSet[dsDist[f].id], 'grey', false, true, 
+	 			{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true});
+		}
 	});
 	self.overlayContext.globalAlpha = 1.0;
 	interpResults.forEach(function(interp, index) {
@@ -181,10 +195,14 @@ LineSpace.prototype.data = function(dataSet) {
     self.update();
 }
 
-LineSpace.prototype.drawLines = function(context, ds, color, showBox, forceShow) {
+LineSpace.prototype.drawLines = function(context, ds, color, showBox, forceShow, localCoords) {
 	var self = this;
 
 	var graphProperties = self.getGraphProperties(ds);
+	if(localCoords) {
+		graphProperties = localCoords;
+	}
+
 	var transX = self.paramX(graphProperties.x)-this.instanceWidth/2;
 	var transY = self.paramY(graphProperties.y)-this.instanceHeight/2;
 	context.translate(transX, transY);

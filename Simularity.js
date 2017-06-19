@@ -40,3 +40,25 @@
    				return dot(a, b)/(mag(a)*mag(b));
    			}
 
+   			function calcDistance(ds, dataSet, paramSet, getVariance, distanceFunction, p) {
+   				var w = [];
+   				paramSet.forEach(function(item, index) {
+   					w.push(1/getVariance(item));
+   				});
+
+   				var dsDist = [];
+   				dataSet.forEach(function(dsOther, index) {
+   					var a = [];
+   					var b = [];
+   					paramSet.forEach(function(item, index) {
+   						a.push(+ds.params[item]);
+   						b.push(+dsOther.params[item]);
+   					});
+   					var distance = distanceFunction(w, a, b);
+   					dsDist.push({id: index, distance: distance, weight: 1/(Math.pow(distance,p))});
+   				});
+
+				dsDist.sort(function(a, b){return a.distance-b.distance});
+
+   				return dsDist;
+   			}
