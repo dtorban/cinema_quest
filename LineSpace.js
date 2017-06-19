@@ -44,7 +44,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     	if(self.interpolating) {
     		self.interpolate(d3.event.offsetX, d3.event.offsetY);
     	}
-    	self.overlayCanvas.style("cursor", self.interpolating ? "none" : "default");
+    	self.overlayCanvas.style("cursor", self.interpolating ? "crosshair" : "default");
     });
 
     this.overlayCanvas.on("mousemove", function() {
@@ -114,7 +114,11 @@ LineSpace.prototype.data = function(dataSet) {
     	checkbox.attr("checked", self.showAll);
     }	    
 
-	var select = selectDiv
+	var selectDiv2 = self.parent
+		.append('div')
+  		.attr("style", "z-index: 10;position:absolute;left:0px;top:"+ (this.parentRect.height/2) +"px;cursor: default");
+
+	var select = selectDiv2
 		.append('select')
   		.attr('id','xval')
   		.attr('class','select')
@@ -130,7 +134,11 @@ LineSpace.prototype.data = function(dataSet) {
 		.text(function (d) { return d; })
     	.property("selected", function(d){ return d === self.dimensions[0]; });
 
-	var select = selectDiv
+	var selectDiv3 = self.parent
+		.append('div')
+  		.attr("style", "z-index: 10;position:absolute;left:"+ (this.parentRect.width/2 - 75) +"px;top:"+ (this.parentRect.height - 30) +"px;cursor: default");
+
+	var select = selectDiv3
 		.append('select')
   		.attr('class','select')
     	.on('change',function() {
@@ -242,7 +250,7 @@ LineSpace.prototype.drawLines = function(context, ds, color, showBox, forceShow,
 	context.beginPath();
 	//context.strokeRect(this.instanceWidth/2,this.instanceHeight/2,1,1);
 	if (!graphProperties.show) {
-		context.strokeStyle = 'blue';
+		context.strokeStyle = 'blue';//color;
 	}
 	context.strokeRect(transX+this.instanceWidth/2,transY+this.instanceHeight/2,1,1);
 	context.stroke();
