@@ -72,7 +72,7 @@
 
    			function getGraphProperties(ds) {
    				//return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: +ds.params[lineSpace.dimensions[2]]/2000};
-   				var pInfo = paramInfo[lineSpace.dimensions[2]];
+   				var pInfo = lineSpace.paramInfo[lineSpace.dimensions[2]];
    				//return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-parmInfo.min)/(parmInfo.max - parmInfo.min), show: ds.id % Math.floor(lineSpace.dataSet.length*0.1) == 0};
    				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-pInfo.min)/(pInfo.max - pInfo.min), show: ds.id < 0};
    			}
@@ -110,11 +110,13 @@
    			}
 
    			function interpolate(query, k, p, weightFunction, distanceFunction, div) {
-   				var paramSet = Object.keys(lineSpace.paramInfo);
+   				var paramSet = Object.keys(paramInfo);
    				var querySet = Object.keys(query);
    				var params = {}
    				paramSet.forEach(function(item, index) {
-   					params[item] = paramInfo[item].mean;
+   					if (item in paramInfo) {
+   						params[item] = paramInfo[item].mean;
+   					}
    				});
 
 		    	var ds = {params: params, id: 0};

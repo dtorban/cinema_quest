@@ -52,6 +52,55 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     });
 
     this.showAll = false;
+
+    var selectDiv = self.parent
+		.append('div')
+  		.attr("style", "z-index: 10;position:absolute;left:0px;top:0px;cursor: default");
+
+	var checkbox = selectDiv.append("input")
+	    .attr("type", "checkbox")
+	    .on('click',function() {
+	    	self.showAll = d3.event.target.checked;
+	    	self.redraw();
+    		//self.update();
+    	});
+    if (self.showAll) {
+    	checkbox.attr("checked", self.showAll);
+    }	   
+
+    var selectDivX = self.parent
+		.append('div')
+  		.attr("style", "z-index: 10;position:absolute;left:"+ (this.parentRect.width/2 - 62) +"px;top:"+ (this.parentRect.height - 30) +"px;cursor: default");
+ 
+	var selectDivY = self.parent
+		.append('div')
+  		.attr("style", "z-index: 10;position:absolute;left:0px;top:"+ (this.parentRect.height/2) +"px;cursor: default");
+
+	self.xSelect = selectDivX
+		.append('select')
+  		.attr('id','xval')
+  		.attr('class','select')
+    	.on('change',function() {
+    		self.dimensions[0] = d3.event.target.value;
+    		self.update();
+    	});
+
+    self.ySelect = selectDivY
+		.append('select')
+  		.attr('class','select')
+    	.on('change',function() {
+    		self.dimensions[1] = d3.event.target.value;
+    		self.update();
+    	});
+
+    self.valueSelect = selectDiv
+		.append('select')
+  		.attr('class','select')
+  		//.attr("style", "visibility: hidden")
+    	.on('change',function() {
+    		self.dimensions[2] = d3.event.target.value;
+    		self.redraw();
+    	});
 }
 
 LineSpace.prototype.handleInterpolate = function(event) {
@@ -61,6 +110,7 @@ LineSpace.prototype.handleInterpolate = function(event) {
 	    self.interpolate(d3.event.offsetX, d3.event.offsetY);
 	}
 	self.overlayCanvas.style("cursor", self.interpolating ? "crosshair" : "default");
+	//self.overlayCanvas.style("cursor", self.interpolating ? "none" : "default");
 } 
 
 LineSpace.prototype.interpolate = function(x, y) {
@@ -81,7 +131,7 @@ LineSpace.prototype.interpolate = function(x, y) {
 	for (var f = 0; f < 5; f++) {
 		self.overlayContext.globalAlpha = dsDist[f].weight/weightSum;
 	 	self.drawLines(self.overlayContext, self.dataSet[dsDist[f].id], 'black', false, true, 
-	 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true});
+	 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
 	}
 
 	var interpResults = [];
@@ -94,7 +144,7 @@ LineSpace.prototype.interpolate = function(x, y) {
 	});
 	self.overlayContext.globalAlpha = 1.0;
 	interpResults.forEach(function(interp, index) {
-		self.drawLines(self.overlayContext, interp.ds, interp.color, index == 0);
+		self.drawLines(self.overlayContext, interp.ds, interp.color, index == 0, false, null, true);
 	});
 }
 
@@ -108,112 +158,26 @@ LineSpace.prototype.data = function(dataSet) {
 	});
 	self.dimensions = [paramSet[0], paramSet[1], paramSet[2]];
 
-	var selectDiv = self.parent
-		.append('div')
-  		.attr("style", "z-index: 10;position:absolute;left:0px;top:0px;cursor: default");
-
-	var checkbox = selectDiv.append("input")
-	    .attr("type", "checkbox")
-	    .on('click',function() {
-	    	self.showAll = d3.event.target.checked;
-    		self.update();
-    	});
-    if (self.showAll) {
-    	checkbox.attr("checked", self.showAll);
-    }	   
-
-    var selectDivX = self.parent
-		.append('div')
-  		.attr("style", "z-index: 10;position:absolute;left:"+ (this.parentRect.width/2 - 62) +"px;top:"+ (this.parentRect.height - 30) +"px;cursor: default");
- 
-	var selectDivY = self.parent
-		.append('div')
-  		.attr("style", "z-index: 10;position:absolute;left:0px;top:"+ (this.parentRect.height/2) +"px;cursor: default");
-
-	var select = selectDivX
-		.append('select')
-  		.attr('id','xval')
-  		.attr('class','select')
-    	.on('change',function() {
-    		self.dimensions[0] = d3.event.target.value;
-    		self.update();
-    	});
-
-
-	var options = select
+	var options = self.xSelect
 	 	.selectAll('option')
 		.data(paramSet).enter()
 		.append('option')
 		.text(function (d) { return d; })
     	.property("selected", function(d){ return d === self.dimensions[0]; });
 
-
-	var select = selectDivY
-		.append('select')
-  		.attr('class','select')
-    	.on('change',function() {
-    		self.dimensions[1] = d3.event.target.value;
-    		self.update();
-    	});
-
-	var options = select
+	var options = self.ySelect
 	 	.selectAll('option')
 		.data(paramSet).enter()
 		.append('option')
 		.text(function (d) { return d; })
     	.property("selected", function(d){ return d === self.dimensions[1]; });
 
-	var select = selectDiv
-		.append('select')
-  		.attr('class','select')
-  		.attr("style", "visibility: hidden")
-    	.on('change',function() {
-    		self.dimensions[2] = d3.event.target.value;
-    		self.update();
-    	});
-
-	var options = select
-	 	.selectAll('option')
-		.data(paramSet).enter()
-		.append('option')
-		.text(function (d) { return d; })
-    	.property("selected", function(d){ return d === self.dimensions[2]; });
-
-   	self.paramInfo = {};
-	paramSet.forEach(function(item, index) {
-		var key = item;
-		var mean = 0;
-		var max = 0;
-		var min = 0;
-		self.dataSet.forEach(function(item, index) {
-			var val = +item.params[key];
-			if (index == 0) {
-				max = val;
-				min = val;
-			}
-			else {
-				max = max < val ? val : max;
-				min = min > val ? val : min;
-			}
-			mean += val;
-		});
-		mean /= self.dataSet.length;
-
-		var variance = 0;
-		self.dataSet.forEach(function(item, index) {
-			var val = +item.params[key];
-			variance += (val - mean)*(val-mean);
-		});
-		variance /= self.dataSet.length;
-
-		self.paramInfo[key] = {mean: mean, variance: variance, max: max, min: min};
-		//console.log(item, mean, variance);
-	});
+   	self.paramInfo = calcParamInfo(self.dataSet);
 
     self.update();
 }
 
-LineSpace.prototype.drawLines = function(context, ds, color, showBox, forceShow, localCoords) {
+LineSpace.prototype.drawLines = function(context, ds, color, showBox, forceShow, localCoords, noPoint) {
 	var self = this;
 
 	var graphProperties = self.getGraphProperties(ds);
@@ -260,11 +224,20 @@ LineSpace.prototype.drawLines = function(context, ds, color, showBox, forceShow,
 	context.beginPath();
 	//context.strokeRect(this.instanceWidth/2,this.instanceHeight/2,1,1);
 	if (!graphProperties.show) {
-		context.strokeStyle = 'blue';//color;
+		context.fillStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';//'blue';//color;
 	}
-	context.strokeRect(transX+this.instanceWidth/2,transY+this.instanceHeight/2,1,1);
-	context.stroke();
-	if (showBox) {
+
+	if (!noPoint) {
+		context.fillRect(transX+this.instanceWidth/2-1,transY+this.instanceHeight/2-1,3,3);
+		context.stroke();
+	}
+	else {
+		context.fillStyle = 'black';
+		context.strokeRect(transX+this.instanceWidth/2-2,transY+this.instanceHeight/2-2,5,5);
+		context.stroke();
+	}
+
+	if(showBox) {
 		context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';
 		context.strokeRect(transX,transY,this.instanceWidth,this.instanceHeight);
 	}
@@ -308,8 +281,22 @@ LineSpace.prototype.update = function() {
 		});
 
 		var averageError = average(interpResults);
-		ds["Error"] = averageError;
+		ds.params["Error"] = averageError;
 	});
+
+	self.paramInfo["Error"] = calcStatistics(self.dataSet, function(d) { return d.params.Error; });
+	self.paramInfo["Error"].dynamic = true;
+
+	var paramSet = Object.keys(self.dataSet[0].params).filter(function(d) {
+		return !isNaN(+self.dataSet[0].params[d]);
+	});
+
+	var options = self.valueSelect
+	 	.selectAll('option')
+		.data(paramSet).enter()
+		.append('option')
+		.text(function (d) { return d; })
+    	.property("selected", function(d){ return d === self.dimensions[2]; });
 
 	self.paramX.domain(d3.extent(paramExtentX, function(d) { return d; }));
 	self.paramY.domain(d3.extent(paramExtentY, function(d) { return d; }));

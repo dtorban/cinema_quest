@@ -95,6 +95,34 @@
    				return dsDist;
    			}
 
+   			function calcStatistics(items, getValue) {
+				var mean = 0;
+				var max = 0;
+				var min = 0;
+				items.forEach(function(item, index) {
+					var val = getValue(item);
+					if (index == 0) {
+						max = val;
+						min = val;
+					}
+					else {
+						max = max < val ? val : max;
+						min = min > val ? val : min;
+					}
+					mean += val;
+				});
+				mean /= items.length;
+
+				var variance = 0;
+				items.forEach(function(item, index) {
+					var val = getValue(item);
+					variance += (val - mean)*(val-mean);
+				});
+				variance /= items.length;
+
+				return {mean: mean, variance: variance, max: max, min: min};
+   			}
+
    			function calcParamInfo(dataSet) {
    				var paramInfo = {};
    				var paramSet = Object.keys(dataSet[0].params).filter(function(d) {
@@ -103,31 +131,8 @@
 
 				paramSet.forEach(function(item, index) {
 					var key = item;
-					var mean = 0;
-					var max = 0;
-					var min = 0;
-					dataSet.forEach(function(item, index) {
-						var val = +item.params[key];
-						if (index == 0) {
-							max = val;
-							min = val;
-						}
-						else {
-							max = max < val ? val : max;
-							min = min > val ? val : min;
-						}
-						mean += val;
-					});
-					mean /= dataSet.length;
 
-					var variance = 0;
-					dataSet.forEach(function(item, index) {
-						var val = +item.params[key];
-						variance += (val - mean)*(val-mean);
-					});
-					variance /= dataSet.length;
-
-					paramInfo[key] = {mean: mean, variance: variance, max: max, min: min};
+					paramInfo[key] = calcStatistics(dataSet, function(d) { return +d.params[key]; });
 				});
 
 				return paramInfo;
