@@ -101,6 +101,14 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     		self.dimensions[2] = d3.event.target.value;
     		self.redraw();
     	});
+
+    self.colorMapPicker = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps.csv", function() { self.onColorMapChange();})
+}
+
+LineSpace.prototype.onColorMapChange = function() {
+	var self = this;
+	console.log(self);
+	self.redraw();
 }
 
 LineSpace.prototype.handleInterpolate = function(event) {
@@ -146,6 +154,8 @@ LineSpace.prototype.interpolate = function(x, y) {
 	interpResults.forEach(function(interp, index) {
 		self.drawLines(self.overlayContext, interp.ds, interp.color, index == 0, false, null, true);
 	});
+
+	self.colorMapPicker.getColor(0.5);
 }
 
 LineSpace.prototype.data = function(dataSet) {
@@ -224,7 +234,9 @@ LineSpace.prototype.drawLines = function(context, ds, color, showBox, forceShow,
 	context.beginPath();
 	//context.strokeRect(this.instanceWidth/2,this.instanceHeight/2,1,1);
 	if (!graphProperties.show) {
-		context.fillStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';//'blue';//color;
+		var colorValue = self.colorMapPicker.getColor(graphProperties.value);
+		context.fillStyle = 'rgba('+colorValue[0]+','+colorValue[1]+','+colorValue[2]+','+colorValue[3]+')';
+		//context.fillStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';//'blue';//color;
 	}
 
 	if (!noPoint) {
@@ -238,7 +250,7 @@ LineSpace.prototype.drawLines = function(context, ds, color, showBox, forceShow,
 	}
 
 	if(showBox) {
-		context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';
+		//context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';
 		context.strokeRect(transX,transY,this.instanceWidth,this.instanceHeight);
 	}
 
@@ -329,6 +341,7 @@ LineSpace.prototype.xAxis = function(context) {
 	var internalHeight = self.parentRect.height - self.instanceHeight;
 	var internalWidth = self.parentRect.width - self.instanceWidth;
 
+	context.fillStyle = 'black';
 	context.beginPath();
 	ticks.forEach(function(d) {
 		context.moveTo(self.paramX(d), internalHeight);
@@ -363,6 +376,7 @@ LineSpace.prototype.yAxis = function(context) {
 
 	var internalHeight = self.parentRect.height - self.instanceHeight;
 
+	context.fillStyle = 'black';
 	context.beginPath();
 	ticks.forEach(function(d) {
 		context.moveTo(0, self.paramY(d));
