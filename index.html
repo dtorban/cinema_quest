@@ -164,8 +164,10 @@
 				newDs.extentX = d3.extent(newDs.rows, function(d) { return d.x; });
 				newDs.extentY = d3.extent(newDs.rows, function(d) { return d.y; });
 
+				var dsTestDist = calcDistance(newDs, testSet, querySet, weightFunction, distanceFunction, p);
+
 				var interpError = weightedEclideanDistance(null, 
-					Array.from(trainingSet[dsDist[0].id].rows, x => x.y),
+					Array.from(testSet[dsTestDist[0].id].rows, x => x.y),
 					Array.from(newDs.rows, x => x.y));
 
    				//console.log(dsDist[0].distance, dsDist[0].weight, dsDist[0].id, lineSpace.dataSet[dsDist[0].id].params.run, weightSum);
