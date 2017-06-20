@@ -162,6 +162,10 @@
 				newDs.extentX = d3.extent(newDs.rows, function(d) { return d.x; });
 				newDs.extentY = d3.extent(newDs.rows, function(d) { return d.y; });
 
+				var interpError = weightedEclideanDistance(null, 
+					Array.from(trainingSet[dsDist[0].id].rows, x => x.y),
+					Array.from(newDs.rows, x => x.y));
+
    				//console.log(dsDist[0].distance, dsDist[0].weight, dsDist[0].id, lineSpace.dataSet[dsDist[0].id].params.run, weightSum);
 
    				//newDs.rows = lineSpace.dataSet[Math.floor(Math.random()*lineSpace.dataSet.length)].rows;
@@ -170,11 +174,13 @@
    					text += '    ' + item + ": " + newDs.params[item].toPrecision(4) + '\n';
    				});
 
+   				text += '    error: ' + interpError.toPrecision(4) + '\n';
+
    				if (div) {
    					div.text(div.text() + text);
    				}
 
-   				return {ds: newDs, neighbors: dsDist};
+   				return {ds: newDs, neighbors: dsDist, error: interpError};
    			}
    		</script>
    </body>

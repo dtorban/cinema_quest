@@ -297,6 +297,18 @@ LineSpace.prototype.update = function() {
 		ds.extentY = d3.extent(ds.rows, function(d) { return d.y; });
 		extentX.push.apply(extentX, ds.extentX);
 		extentY.push.apply(extentY, ds.extentY);
+
+		var interpResults = [];
+		self.interpolateFunctions.forEach(function(item, index) {
+			var query = {};
+			query[self.dimensions[0]] = graphProperties.x;
+			query[self.dimensions[1]] = graphProperties.y;
+		 	var interp = item(query);
+		 	interpResults.push(interp.error);
+		});
+
+		var averageError = average(interpResults);
+		ds["Error"] = averageError;
 	});
 
 	self.paramX.domain(d3.extent(paramExtentX, function(d) { return d; }));

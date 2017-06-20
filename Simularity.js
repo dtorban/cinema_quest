@@ -34,10 +34,22 @@
    				return c;
    			}
 
+   			function average(x) {
+   				var sum = x.reduce(function(a, b) { return a + b; });
+				return sum / x.length;
+   			}
+
    			function weightedEclideanDistance(w, a, b) {
    				var sum = 0;
-   				for (var f = 0; f < a.length && f < b.length && f < w.length; f++) {
-   					sum += w[f]*Math.pow(a[f]-b[f],2);
+   				if (w) {
+	   				for (var f = 0; f < a.length && f < b.length && f < w.length; f++) {
+	   					sum += w[f]*Math.pow(a[f]-b[f],2);
+	   				}
+   				}
+   				else {
+   					for (var f = 0; f < a.length && f < b.length; f++) {
+	   					sum += Math.pow(a[f]-b[f],2);
+	   				}
    				}
 
    				return Math.sqrt(sum);
