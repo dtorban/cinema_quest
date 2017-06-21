@@ -18,8 +18,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	this.context.globalAlpha = 0.4;
 	this.context.globalCompositeOperation = "difference";
 
-    this.instanceWidth = self.parentRect.width/2;
-    this.instanceHeight = self.parentRect.height/2;
+    this.instanceWidth = self.parentRect.width/8;
+    this.instanceHeight = self.parentRect.height/8;
 
     this.margin = {top: this.instanceHeight/2, right: this.instanceWidth/2, bottom: this.instanceHeight/2, left: this.instanceWidth/2};
     this.context.translate(this.margin.right, this.margin.top);
@@ -107,7 +107,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 
 LineSpace.prototype.onColorMapChange = function() {
 	var self = this;
-	console.log(self);
 	self.redraw();
 }
 

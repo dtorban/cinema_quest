@@ -3,11 +3,14 @@
 <head>
     <meta charset="utf-8">
     <link rel='stylesheet' href='default.css'>
+	<link rel='stylesheet' href='css/parallelCoordinates.css'>
+	<script src="lib/jquery-3.2.1.min.js"></script>
     <script src="d3.v4.min.js"></script>
     <script src="Simularity.js"></script>
     <script src="ColorMapPicker.js"></script>
     <script src="LineSpace.js"></script>
     <script src="FileLoad.js"></script>
+	<script src = 'lib/ParallelCoordinatesChart.js'></script>
 </head>
    <body>
 	   <div id="header">
@@ -18,6 +21,9 @@
 				<option value="data/GF-HP/GF-HP.csv,diffraction,columns,\t,0,1">GF-HP-Diffraction</option>
 				<option value="data/simresults/Al.design.1000.numbered.csv,sim,columns, ,1,3,700">Flag Simulation</option>
 			</select>
+		</div>
+		<div id="svgArea">
+			<div id="svgContainer"></div>
 		</div>
 		<div id="spaceArea">
 			<div id="spaceContainer"></div>
@@ -35,6 +41,7 @@
 			var trainingSet = null;
 			var paramInfo = null;
 			var testSet = null;
+			var pcc = null;
 
    			load();
 
@@ -47,12 +54,21 @@
 			}
 
 			function load() {
+				$('#svgContainer').html('');
 				d3.select('#spaceContainer').html('');
-   			 	lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, [interpolate1, interpolate3, interpolate4]);
-
 				var dbString = d3.select('#database').node().value;
 
+				pcc = new ParallelCoordinatesChart(d3.select('#svgContainer'),
+												dbString.split(',')[0],
+												['sim'],
+												doneLoading);
+   			 	lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, [interpolate1, interpolate3, interpolate4]);
+
+
 				loadDatabase(dbString, dataLoaded);
+	   		}
+
+	   		function doneLoading() {
 	   		}
 
 	   		function dataLoaded(data) {
