@@ -33,6 +33,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	this.overlayContext = this.overlayCanvas.node().getContext("2d");
 	this.overlayContext.translate(this.margin.right, this.margin.top);
 	this.overlayContext.fillStyle = "green";
+	this.overlayContext.lineWidth = 1.0;
 	this.overlayContext.globalAlpha = 1.0;
 	this.overlayContext.globalCompositeOperation = "difference";
     this.cursorPosition = [0,0];
@@ -41,6 +42,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 
 	this.overlayCanvas.on("mousedown", function() {
 	    self.handleInterpolate(d3.event);
+	    self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
     });
 
     this.overlayCanvas.on("mousemove", function() {
@@ -122,7 +124,10 @@ LineSpace.prototype.handleInterpolate = function(event) {
 
 LineSpace.prototype.interpolate = function(x, y) {
 	var self = this;
+
+	self.overlayContext.beginPath();
 	self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
+	self.overlayContext.stroke();
 	var pSet = [self.dimensions[0], self.dimensions[1]];
 	var tempParams = {};
 	tempParams[self.dimensions[0]] = self.paramX.invert(x-self.margin.right);
@@ -230,7 +235,6 @@ LineSpace.prototype.drawLines = function(context, ds, color, showBox, forceShow,
 	context.translate(-transX, -transY);
 
 
-	context.beginPath();
 	//context.strokeRect(this.instanceWidth/2,this.instanceHeight/2,1,1);
 	if (!graphProperties.show) {
 		var colorValue = self.colorMapPicker.getColor(graphProperties.value);
@@ -239,23 +243,31 @@ LineSpace.prototype.drawLines = function(context, ds, color, showBox, forceShow,
 	}
 
 	if (!noPoint) {
-		context.fillRect(transX+this.instanceWidth/2-1,transY+this.instanceHeight/2-1,3,3);
-		context.stroke();
+		this.context.globalAlpha = 1.0;
+		this.context.globalCompositeOperation = "source-over";
+		context.beginPath()
+		context.arc(transX+this.instanceWidth/2, transY+this.instanceHeight/2, 5, 0, 2 * Math.PI);
+		context.fill();
+		//context.fillRect(transX+this.instanceWidth/2-1,transY+this.instanceHeight/2-1,3,3);
+		//context.stroke();
 	}
 	else {
 		context.fillStyle = 'black';
-		context.strokeRect(transX+this.instanceWidth/2-2,transY+this.instanceHeight/2-2,5,5);
-		context.stroke();
+		context.beginPath()
+		context.arc(transX+this.instanceWidth/2, transY+this.instanceHeight/2, 3, 0, 2 * Math.PI);
+		context.fill();
 	}
 
 	if(showBox) {
-		//context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';
+		context.beginPath();
 		context.strokeRect(transX,transY,this.instanceWidth,this.instanceHeight);
+		context.stroke();
 	}
 
 	if (graphProperties.show) {
 		//context.lineWidth = 1;
 		this.context.globalAlpha = 0.4;
+		this.context.globalCompositeOperation = "difference";
 	}
 }
 
