@@ -71,18 +71,20 @@
 
 	   		function doneLoading() {
 
-   			 	pcc.overlayPathData.push({data: {}, style: "stroke: green;"});
-   			 	pcc.overlayPathData.push({data: {}, style: "stroke: red;"});
-   			 	pcc.overlayPathData.push({data: {}, style: "stroke: cyan;"});
+   			 	pcc.overlayPathData.push({data: {}, style: "stroke: green; stroke-width: 2px;"});
+   			 	pcc.overlayPathData.push({data: {}, style: "stroke: red; stroke-width: 2px;"});
+   			 	pcc.overlayPathData.push({data: {}, style: "stroke: cyan; stroke-width: 2px;"});
 	   			//$('.pCoordChart .resultPaths path[index="'+30+'"]').css('stroke', 'blue');
    			 	//pcc.updateOverlayPaths();
 	   		}
 
 	   		function dataLoaded(data) {
-	   			trainingSet = [];
-	   			testSet = [];
+	   			//trainingSet = [];
+	   			//testSet = [];
 	   			fullSet = data;
-	   			data.forEach(function(item, index) {
+	   			trainingSet = data;
+	   			testSet = data;
+	   			/*data.forEach(function(item, index) {
 		   			if (Math.random() < 0.5) {
 		   				trainingSet.push(item);
 		   			}
@@ -90,6 +92,7 @@
 		   				testSet.push(item);
 		   			}
 	   			});
+	   			*/
 		   		paramInfo = calcParamInfo(trainingSet);
 
 	   			lineSpace.data(testSet);
