@@ -238,8 +238,10 @@ LineSpace.prototype.drawLines = function(context, ds, color, showBox, forceShow,
 	//context.strokeRect(this.instanceWidth/2,this.instanceHeight/2,1,1);
 	if (!graphProperties.show) {
 		var colorValue = self.colorMapPicker.getColor(graphProperties.value);
-		context.fillStyle = 'rgba('+colorValue[0]+','+colorValue[1]+','+colorValue[2]+','+colorValue[3]+')';
+		var c = 'rgba('+colorValue[0]+','+colorValue[1]+','+colorValue[2]+','+colorValue[3]+')';
+		context.fillStyle = c;
 		//context.fillStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';//'blue';//color;
+		$('.pCoordChart .resultPaths path[index="'+graphProperties.index+'"]').css('stroke', c);
 	}
 
 	if (!noPoint) {

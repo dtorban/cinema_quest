@@ -4,9 +4,9 @@
 
 .pCoordChart path{
 	fill: none;
-	stroke-width: 2px;
+	stroke-width: 1px;
 	stroke: palegreen;
-	stroke-opacity: 0.3;
+	stroke-opacity: 0.5;
 
 	vector-effect: non-scaling-stroke;
 }

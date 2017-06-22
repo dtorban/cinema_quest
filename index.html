@@ -28,7 +28,7 @@
 		<div id="spaceArea">
 			<div id="spaceContainer"></div>
 		</div>
-		<div id="parameters">
+		<div id="parameters" style="visibility: hidden">
 			<div id="closest" class="parameters"></div>
 			<div id="interp1" class="parameters"></div>
 			<div id="interp2" class="parameters"></div>
@@ -41,6 +41,7 @@
 			var trainingSet = null;
 			var paramInfo = null;
 			var testSet = null;
+			var fullSet = null;
 			var pcc = null;
 
    			load();
@@ -60,7 +61,7 @@
 
 				pcc = new ParallelCoordinatesChart(d3.select('#svgContainer'),
 												dbString.split(',')[0],
-												['sim'],
+												['sim','visar','diffraction'],
 												doneLoading);
    			 	lineSpace = new LineSpace(d3.select("#spaceContainer"), getGraphProperties, [interpolate1, interpolate3, interpolate4]);
 
@@ -69,11 +70,18 @@
 	   		}
 
 	   		function doneLoading() {
+
+   			 	pcc.overlayPathData.push({data: {}, style: "stroke: green;"});
+   			 	pcc.overlayPathData.push({data: {}, style: "stroke: red;"});
+   			 	pcc.overlayPathData.push({data: {}, style: "stroke: cyan;"});
+	   			//$('.pCoordChart .resultPaths path[index="'+30+'"]').css('stroke', 'blue');
+   			 	//pcc.updateOverlayPaths();
 	   		}
 
 	   		function dataLoaded(data) {
 	   			trainingSet = [];
 	   			testSet = [];
+	   			fullSet = data;
 	   			data.forEach(function(item, index) {
 		   			if (Math.random() < 0.5) {
 		   				trainingSet.push(item);
@@ -91,7 +99,7 @@
    				//return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: +ds.params[lineSpace.dimensions[2]]/2000};
    				var pInfo = lineSpace.paramInfo[lineSpace.dimensions[2]];
    				//return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-parmInfo.min)/(parmInfo.max - parmInfo.min), show: ds.id % Math.floor(lineSpace.dataSet.length*0.1) == 0};
-   				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-pInfo.min)/(pInfo.max - pInfo.min), show: ds.id < 0};
+   				return {x: +ds.params[lineSpace.dimensions[0]], y: +ds.params[lineSpace.dimensions[1]], value: (+ds.params[lineSpace.dimensions[2]]-pInfo.min)/(pInfo.max - pInfo.min), show: ds.id < 0, index: ds.id};
    			}
 
    			function interpolate1(query) {
@@ -99,6 +107,8 @@
    				var interp = interpolate(query, 5, 1, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, d3.select('#interp1'), true);
    				interp.color = 'green';
    				d3.select('#interp1').style("color","green");
+   				pcc.overlayPathData[0].data = interp.ds.params;
+   				pcc.updateOverlayPaths(true);
    				return interp;
    			}
 
@@ -115,6 +125,8 @@
    				var interp = interpolate(query, 10, 4, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, d3.select('#interp3'));
    				interp.color = 'red';
    				d3.select('#interp3').style("color","red");
+   				pcc.overlayPathData[1].data = interp.ds.params;
+   				pcc.updateOverlayPaths(true);
    				return interp;
    			}
 
@@ -123,6 +135,8 @@
    				var interp = interpolate(query, 10, 4, function(index) { return -paramInfo[index].mean; }, centeredCosineSimularity, d3.select('#interp4'));
    				interp.color = 'cyan';
    				d3.select('#interp4').style("color","cyan");
+   				pcc.overlayPathData[2].data = interp.ds.params;
+   				pcc.updateOverlayPaths(true);
    				return interp;
    			}
 
