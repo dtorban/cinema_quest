@@ -42,6 +42,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 
     this.interpolating = false;
     this.resizable = false;
+    this.removeable = false;
     this.resizing = false;
 
     this.actionCanvas = parent.append("canvas")
@@ -84,7 +85,13 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 			self.lenses.push(lense);
 			self.currentLenseIndex = self.lenses.length-1;
 		}
-		
+
+		if (self.removeable) {
+			lense.canvas.remove();
+			self.lenses.splice(self.currentLenseIndex,1);
+			return;
+		}
+
 		if (self.resizable) {
 			self.resizing = true;
 		}
@@ -92,14 +99,15 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 		if (self.resizing) {
 			self.handleResize(d3.event);
 		}
-		else {
+		else if (Math.abs(Math.abs(self.cursorPosition[0] - lense.position[0])) < lense.width/15 && 
+				Math.abs(self.cursorPosition[1] - lense.position[1]) < lense.height/15) {
 	    	self.handleInterpolate(d3.event);
 			lense.position = [self.cursorPosition[0],self.cursorPosition[1]];
 		}
     });
 
     this.actionCanvas.on("mouseup", function() {
-    	if (!self.resizing) {
+    	if (!self.resizing && self.interpolating) {
 		    self.handleInterpolate(d3.event);
 		    self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
 			self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];
@@ -123,6 +131,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	    	}
 	    	else {
 				self.resizable = false;
+				self.removeable = false;
 				var found = false;
 				var lense = null;
 				for (var f = 0; f < self.lenses.length; f++) {
@@ -133,11 +142,18 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 					if (Math.abs(x) < lense.scale*lense.width/2 && Math.abs(y) < lense.scale*lense.height/2) {
 
 						if ((Math.abs(x) < lense.scale*lense.width/2 &&
-							Math.abs(x) > lense.scale*lense.width/2-5) ||
+							Math.abs(x) > lense.scale*lense.width/2-10) ||
 							(Math.abs(y) < lense.scale*lense.height/2 &&
-							Math.abs(y) > lense.scale*lense.height/2-5)) {
-							self.actionCanvas.style("cursor", "nesw-resize");
-							self.resizable = true;
+							Math.abs(y) > lense.scale*lense.height/2-10)) {
+							//self.actionCanvas.style("cursor", "nesw-resize");
+							if (x < -lense.scale*lense.width/2+15 && y < -lense.scale*lense.height/2+15) {
+								self.actionCanvas.style("cursor", "url(css/delete.png) 16 16, not-allowed");
+   								self.removeable = true;
+   							}
+   							else {
+   								self.actionCanvas.style("cursor", "nesw-resize");
+								self.resizable = true;
+   							}
 							found = true;
 						}
 						else if(Math.abs(x) < lense.width/15 && Math.abs(y) < lense.height/15) {
