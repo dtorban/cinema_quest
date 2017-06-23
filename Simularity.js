@@ -34,6 +34,14 @@
    				return c;
    			}
 
+            function vectorSubtract(a, b) {
+               var c = [];
+               for (var f = 0; f < a.length; f++) {
+                  c.push(a[f]-b[f]);
+               }
+               return c;
+            }
+
    			function average(x) {
    				var sum = x.reduce(function(a, b) { return a + b; });
 				return sum / x.length;

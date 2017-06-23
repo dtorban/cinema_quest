@@ -78,6 +78,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 			context.globalCompositeOperation = "difference";
 			lense.canvas = canvas;
 			lense.context = context;
+			lense.prevScale = 1.0;
 			lense.scale = 1.0;
 			lense.position = [self.cursorPosition[0],self.cursorPosition[1]];
 			self.lenses.push(lense);
@@ -86,29 +87,39 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 		
 		if (self.resizable) {
 			self.resizing = true;
-			lense.scale *= 1.5;
 		}
 
-	    self.handleInterpolate(d3.event);
-
-		lense.position = [self.cursorPosition[0],self.cursorPosition[1]];
+		if (self.resizing) {
+			self.handleResize(d3.event);
+		}
+		else {
+	    	self.handleInterpolate(d3.event);
+			lense.position = [self.cursorPosition[0],self.cursorPosition[1]];
+		}
     });
 
     this.actionCanvas.on("mouseup", function() {
-	    self.handleInterpolate(d3.event);
-	    self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
-
-		self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];
+    	if (!self.resizing) {
+		    self.handleInterpolate(d3.event);
+		    self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
+			self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];
+		}
+		else {
+			self.resizing = false;
+		}
     });
 
     this.actionCanvas.on("mousemove", function() {
     	if (self.dataSet) {
-    		if (self.interpolating) {
+    		if (!self.resizing && self.interpolating) {
 	    		self.interpolate(d3.event.offsetX, d3.event.offsetY, self.lenses[self.currentLenseIndex]);
 		    	//self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
 		    	self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
 
 				self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];
+	    	}
+	    	else if (self.resizing) {
+	    		self.handleResize(d3.event);
 	    	}
 	    	else {
 				self.resizable = false;
@@ -127,12 +138,12 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 							Math.abs(y) > lense.scale*lense.height/2-5)) {
 							self.actionCanvas.style("cursor", "nesw-resize");
 							self.resizable = true;
+							found = true;
 						}
-						else {
+						else if(Math.abs(x) < lense.width/15 && Math.abs(y) < lense.height/15) {
 							self.actionCanvas.style("cursor", "move");
+							found = true;
 						}
-
-						found = true;
 
 						break;
 					}
@@ -214,13 +225,29 @@ LineSpace.prototype.handleInterpolate = function(event) {
 	//self.overlayCanvas.style("cursor", self.interpolating ? "none" : "default");
 } 
 
+LineSpace.prototype.handleResize = function(event) {
+	var self = this;
+	var lense = self.lenses[self.currentLenseIndex];
+	var x = lense.position[0] + self.margin.left;
+	var y = lense.position[1] + self.margin.top;
+	var center = lense.position;
+	var corner = [lense.position[0]+lense.width/2, lense.position[1]+lense.height/2];
+	var v1 = vectorSubtract(corner, center);
+	var v1Len = mag(v1);
+	var v2 = vectorSubtract([d3.event.offsetX-self.margin.left, d3.event.offsetY-self.margin.top], center);
+	var v2Len = mag(v2);
+	lense.prevScale = lense.scale;
+	lense.scale = v2Len/v1Len;
+	self.interpolate(x, y, self.lenses[self.currentLenseIndex]);
+} 
+
 LineSpace.prototype.interpolate = function(x, y, lense) {
 	var self = this;
 
 	var context = lense.context;
 	var prevPosition = lense.position;
 	context.beginPath();
-	context.clearRect(prevPosition[0]-lense.scale*self.instanceWidth/2-2, prevPosition[1]-lense.scale*self.instanceHeight/2-2, lense.scale*self.instanceWidth+4, lense.scale*self.instanceHeight+4);
+	context.clearRect(prevPosition[0]-lense.prevScale*self.instanceWidth/2-2, prevPosition[1]-lense.prevScale*self.instanceHeight/2-2, lense.prevScale*self.instanceWidth+4, lense.prevScale*self.instanceHeight+4);
 	context.stroke();
 	var pSet = [self.dimensions[0], self.dimensions[1]];
 	var tempParams = {};
@@ -437,7 +464,7 @@ LineSpace.prototype.redraw = function() {
 	this.context.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
 
 	this.dataSet.forEach(function(ds, index) {
-		self.drawLines({context: self.context, scale: 1.0}, ds);
+		self.drawLines({context: self.context, scale: 1.0, prevScale: 1.0}, ds);
 	});
 	//self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
 	
