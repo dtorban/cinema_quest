@@ -112,26 +112,34 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	    	}
 	    	else {
 				self.resizable = false;
+				var found = false;
 				var lense = null;
 				for (var f = 0; f < self.lenses.length; f++) {
 					lense = self.lenses[f];
 					var x = d3.event.offsetX-self.margin.right - lense.position[0];
 					var y = d3.event.offsetY-self.margin.top - lense.position[1];
-					if ((Math.abs(x) < lense.scale*lense.width/2 &&
-						Math.abs(x) > lense.scale*lense.width/2-5) ||
-						(Math.abs(y) < lense.scale*lense.height/2 &&
-						Math.abs(y) > lense.scale*lense.height/2-5)) {
-						self.actionCanvas.style("cursor", "nesw-resize");
-						self.resizable = true;
+					
+					if (Math.abs(x) < lense.scale*lense.width/2 && Math.abs(y) < lense.scale*lense.height/2) {
+
+						if ((Math.abs(x) < lense.scale*lense.width/2 &&
+							Math.abs(x) > lense.scale*lense.width/2-5) ||
+							(Math.abs(y) < lense.scale*lense.height/2 &&
+							Math.abs(y) > lense.scale*lense.height/2-5)) {
+							self.actionCanvas.style("cursor", "nesw-resize");
+							self.resizable = true;
+						}
+						else {
+							self.actionCanvas.style("cursor", "move");
+						}
+
+						found = true;
+
 						break;
 					}
-					else if (Math.abs(x) < lense.scale*lense.width/2 && Math.abs(y) < lense.scale*lense.height/2) {
-						self.actionCanvas.style("cursor", "move");
-						break;
-					}
-					else {
-						self.actionCanvas.style("cursor", "default");
-					}
+				}
+
+				if (!found) {
+					self.actionCanvas.style("cursor", "default");
 				}
 	    	}
     	}
