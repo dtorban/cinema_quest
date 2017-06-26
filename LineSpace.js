@@ -82,6 +82,11 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 			lense.prevScale = 1.0;
 			lense.scale = 1.0;
 			lense.position = [self.cursorPosition[0],self.cursorPosition[1]];
+			lense.interpResults = [];
+			lense.interpParameters = [];
+			self.interpolateFunctions.forEach(function(item, index) {
+				lense.interpParameters.push({});
+			});
 			self.lenses.push(lense);
 			self.currentLenseIndex = self.lenses.length-1;
 		}
@@ -112,7 +117,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 		    self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
 			self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];
 		}
-		else {
+		else if (self.resizing) {
+			self.handleResize(d3.event);
 			self.resizing = false;
 		}
     });
@@ -159,6 +165,35 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 						else if(Math.abs(x) < lense.width/15 && Math.abs(y) < lense.height/15) {
 							self.actionCanvas.style("cursor", "move");
 							found = true;
+						}
+						else {
+							var transX = lense.width/2;
+							var transY = lense.height/2;
+							var xVal = self.x.invert(x/lense.scale+transX);
+							var yVal = self.y.invert(y/lense.scale+transY);
+
+							lense.interpResults.forEach(function(item, index) {
+								var i = 0;
+								var j = item.ds.rows.length-1;
+								while (i < j) {
+									var m = Math.floor((i+j)/2);
+									if (xVal > item.ds.rows[m].x) {
+										i = m + 1;
+									}
+									else {
+										j = m;
+									}
+								}
+
+								//console.log(item.ds.rows[i].x, item.ds.rows[i].y, yVal);
+								var foundY = item.ds.rows[i].y;
+
+								if (Math.abs(yVal - foundY) < (self.y.domain()[1]-self.y.domain()[0])*0.02) {
+									self.actionCanvas.style("cursor", "crosshair");
+									found = true;
+								}
+							});
+							//console.log(self.x.domain(),self.y.domain(),self.x.invert(x/lense.scale+transX), self.y.invert(y/lense.scale+transY), lense.interpResults[0].ds.rows.length);
 						}
 
 						break;
@@ -292,6 +327,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	 	interpResults.push(interp);
 	});
 	context.globalAlpha = 1.0;
+	lense.interpResults = interpResults;
 	interpResults.forEach(function(interp, index) {
 		self.drawLines(lense, interp.ds, interp.color, index == 0, false, null, true);
 	});
