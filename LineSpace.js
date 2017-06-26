@@ -2,6 +2,22 @@
 
 function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	var self = this;
+    
+    //Determine screen DPI to rescale canvas contexts
+    //(prevents artifacts and blurring on some displays)
+    //https://stackoverflow.com/a/15666143/2827258
+    this.pixelRatio = (function() {
+                       var ctx = document.createElement('canvas').getContext("2d"),
+                       dpr = window.devicePixelRatio || 1,
+                       bsr = ctx.webkitBackingStorePixelRatio ||
+                       ctx.mozBackingStorePixelRatio ||
+                       ctx.msBackingStorePixelRatio ||
+                       ctx.oBackingStorePixelRatio ||
+                       ctx.backingStorePixelRatio || 1;
+                       return dpr / bsr;
+                       })();
+    
+    console.log(this.pixelRatio);
 
 	self.getGraphProperties = getGraphProperties;
 	self.interpolateFunctions = interpolateFunctions;
@@ -10,10 +26,13 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	this.parent.attr("style", "position:relative;left:0px;top:0px;background-color:white");
 	this.parentRect = parent.node().getBoundingClientRect();
 	this.canvas = parent.append("canvas")
-		.attr('width', this.parentRect.width)
-		.attr('height', this.parentRect.height)
+		.attr('width', this.parentRect.width*this.pixelRatio)
+		.attr('height', this.parentRect.height*this.pixelRatio)
 		.attr("style", "z-index: 0;position:relative;left:0px;top:0px;");
 	this.context = this.canvas.node().getContext("2d");
+    this.context.scale(self.pixelRatio,self.pixelRatio);
+    this.canvas.style("width", ''+this.parentRect.width +'px');
+    this.canvas.style("height", ''+this.parentRect.height +'px');
     this.context.clearRect(0, 0, this.parentRect.width, this.parentRect.height);
 	this.context.globalAlpha = 0.4;
 	this.context.globalCompositeOperation = "difference";
@@ -50,9 +69,11 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     this.manipOutputIndex = -1;
 
     this.actionCanvas = parent.append("canvas")
-		.attr('width', this.parentRect.width)
-		.attr('height', this.parentRect.width)
+		.attr('width', this.parentRect.width*this.pixelRatio)
+		.attr('height', this.parentRect.height*this.pixelRatio)
 		.attr("style", "z-index: 2;position:absolute;left:0px;top:0px;cursor: default");
+    this.actionCanvas.style("width", ''+this.parentRect.width +'px');
+    this.actionCanvas.style("height", ''+this.parentRect.height +'px');
 
 	this.actionCanvas.on("mousedown", function() {
 		self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
@@ -71,11 +92,14 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 		if (self.currentLenseIndex < 0) {
 			lense = {width: self.instanceWidth, height: self.instanceHeight};
 			var canvas = parent.append("canvas")
-				.attr('width', self.parentRect.width)
-				.attr('height', self.parentRect.width)
+				.attr('width', self.parentRect.width*self.pixelRatio)
+				.attr('height', self.parentRect.height*self.pixelRatio)
 				.attr('class', 'lense')
 				.attr("style", "z-index: 1;position:absolute;left:0px;top:0px;cursor: default");
 			var context = canvas.node().getContext("2d");
+            context.scale(self.pixelRatio,self.pixelRatio);
+            canvas.style("width", ''+self.parentRect.width +'px');
+            canvas.style("height", ''+self.parentRect.height +'px');
 			context.translate(self.margin.right, self.margin.top);
 			context.fillStyle = "green";
 			context.lineWidth = 1.0;
