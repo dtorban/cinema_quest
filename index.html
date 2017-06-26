@@ -81,6 +81,13 @@
 	   		function dataLoaded(data) {
 	   			//trainingSet = [];
 	   			//testSet = [];
+
+				data.forEach(function(item, index) {
+					for (var f = 0; f < item.rows.length; f++) {
+						item.params["output_" + f] = item.rows[f].y;
+					}
+				});
+
 	   			fullSet = data;
 	   			trainingSet = data;
 	   			testSet = data;
@@ -169,7 +176,7 @@
 				}
 
 				paramSet.forEach(function(item, index) {
-					if (!(item in query)) {
+					if (!(item in query) && !item.startsWith("output_")) {
 						for (var f = 0; f < k; f++) {
 
 							if (f == 0) {
@@ -209,7 +216,7 @@
    				//newDs.rows = lineSpace.dataSet[Math.floor(Math.random()*lineSpace.dataSet.length)].rows;
    				var text = "\n";
    				paramSet.forEach(function(item, index) {
-   					text += '    ' + item + ": " + newDs.params[item].toPrecision(4) + '\n';
+   					//text += '    ' + item + ": " + newDs.params[item].toPrecision(4) + '\n';
    				});
 
    				text += '    error: ' + interpError.toPrecision(4) + '\n';

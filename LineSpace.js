@@ -44,6 +44,10 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     this.resizable = false;
     this.removeable = false;
     this.resizing = false;
+    this.canManipulate = false;
+    this.manipulating = false;
+    this.manipInterpIndex = -1;
+    this.manipOutputIndex = -1;
 
     this.actionCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width)
@@ -101,18 +105,25 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 			self.resizing = true;
 		}
 
+		if (self.canManipulate) {
+			self.handleManipulate(d3.event);
+			self.manipulating = true;
+		}
+
 		if (self.resizing) {
 			self.handleResize(d3.event);
+		}
+		else if (self.manipulating) {
+
 		}
 		else if (Math.abs(Math.abs(self.cursorPosition[0] - lense.position[0])) < lense.width/15 && 
 				Math.abs(self.cursorPosition[1] - lense.position[1]) < lense.height/15) {
 	    	self.handleInterpolate(d3.event);
-			lense.position = [self.cursorPosition[0],self.cursorPosition[1]];
 		}
     });
 
     this.actionCanvas.on("mouseup", function() {
-    	if (!self.resizing && self.interpolating) {
+    	if (self.interpolating) {
 		    self.handleInterpolate(d3.event);
 		    self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
 			self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];
@@ -121,11 +132,16 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 			self.handleResize(d3.event);
 			self.resizing = false;
 		}
+		else if (self.manipulating) {
+			self.handleManipulate(d3.event);
+			//self.lenses[self.currentLenseIndex].interpParameters[self.manipInterpIndex] = {};
+			self.manipulating = false;
+		}
     });
 
     this.actionCanvas.on("mousemove", function() {
     	if (self.dataSet) {
-    		if (!self.resizing && self.interpolating) {
+    		if (self.interpolating) {
 	    		self.interpolate(d3.event.offsetX, d3.event.offsetY, self.lenses[self.currentLenseIndex]);
 		    	//self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
 		    	self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
@@ -135,9 +151,13 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	    	else if (self.resizing) {
 	    		self.handleResize(d3.event);
 	    	}
+	    	else if (self.manipulating) {
+	    		self.handleManipulate(d3.event);
+	    	}
 	    	else {
 				self.resizable = false;
 				self.removeable = false;
+				self.canManipulate = false;
 				var found = false;
 				var lense = null;
 				for (var f = 0; f < self.lenses.length; f++) {
@@ -185,12 +205,15 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 									}
 								}
 
-								//console.log(item.ds.rows[i].x, item.ds.rows[i].y, yVal);
+								console.log(xVal, item.ds.rows[i].x, item.ds.rows[i].y, yVal);
 								var foundY = item.ds.rows[i].y;
 
 								if (Math.abs(yVal - foundY) < (self.y.domain()[1]-self.y.domain()[0])*0.02) {
 									self.actionCanvas.style("cursor", "crosshair");
 									found = true;
+									self.manipInterpIndex = index;
+									self.manipOutputIndex = i;
+									self.canManipulate = true;
 								}
 							});
 							//console.log(self.x.domain(),self.y.domain(),self.x.invert(x/lense.scale+transX), self.y.invert(y/lense.scale+transY), lense.interpResults[0].ds.rows.length);
@@ -292,6 +315,21 @@ LineSpace.prototype.handleResize = function(event) {
 	self.interpolate(x, y, self.lenses[self.currentLenseIndex]);
 } 
 
+LineSpace.prototype.handleManipulate = function(event) {
+	var self = this;
+	var lense = self.lenses[self.currentLenseIndex];
+	var x = lense.position[0] + self.margin.left;
+	var y = lense.position[1] + self.margin.top;
+	var xPos = d3.event.offsetX-self.margin.right - lense.position[0];
+	var yPos = d3.event.offsetY-self.margin.top - lense.position[1];
+	var transX = lense.width/2;
+	var transY = lense.height/2;
+	var xVal = self.x.invert(xPos/lense.scale+transX);
+	var yVal = self.y.invert(yPos/lense.scale+transY);
+	lense.interpParameters[self.manipInterpIndex]["output_" + self.manipOutputIndex] = yVal;
+	self.interpolate(x, y, lense);
+} 
+
 LineSpace.prototype.interpolate = function(x, y, lense) {
 	var self = this;
 
@@ -319,10 +357,15 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	}
 
 	var interpResults = [];
-	self.interpolateFunctions.forEach(function(item, index) {
+	self.interpolateFunctions.forEach(function(item, functionIndex) {
 		var query = {};
 		query[self.dimensions[0]] = self.paramX.invert(x-self.margin.right);
 		query[self.dimensions[1]] = self.paramY.invert(y-self.margin.top);
+		var lenseQueryParams = Object.keys(lense.interpParameters[functionIndex]);
+		lenseQueryParams.forEach(function(item, index) {
+			query[item] = lense.interpParameters[functionIndex][item];
+		});
+		//query["output"] = 483;
 	 	var interp = item(query);
 	 	interpResults.push(interp);
 	});
@@ -339,6 +382,10 @@ LineSpace.prototype.data = function(dataSet) {
 	var self = this;
 
 	this.dataSet = dataSet;
+
+   	self.paramInfo = calcParamInfo(self.dataSet);
+	//self.paramInfo["output"] = calcStatistics(self.dataSet, function(d) { return d.rows[512].y; });
+
 
 	var paramSet = Object.keys(dataSet[0].params).filter(function(d) {
 		return !isNaN(+dataSet[0].params[d]);
@@ -358,8 +405,6 @@ LineSpace.prototype.data = function(dataSet) {
 		.append('option')
 		.text(function (d) { return d; })
     	.property("selected", function(d){ return d === self.dimensions[1]; });
-
-   	self.paramInfo = calcParamInfo(self.dataSet);
 
     self.update();
 }
