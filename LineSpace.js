@@ -67,6 +67,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     this.manipulating = false;
     this.manipInterpIndex = -1;
     this.manipOutputIndex = -1;
+    this.query = [];
 
     this.actionCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
@@ -308,6 +309,14 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     self.colorMapPicker = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps.csv", function() { self.onColorMapChange();})
 }
 
+LineSpace.prototype.onSelectionChange = function(query) {
+	var self = this;
+	self.query = query;
+	if (self.dataSet) {
+		self.redraw();
+	}
+}
+
 LineSpace.prototype.onColorMapChange = function() {
 	var self = this;
 	self.redraw();
@@ -351,6 +360,7 @@ LineSpace.prototype.handleManipulate = function(event) {
 	var xVal = self.x.invert(xPos/lense.scale+transX);
 	var yVal = self.y.invert(yPos/lense.scale+transY);
 	lense.interpParameters[self.manipInterpIndex]["output_" + self.manipOutputIndex] = yVal;
+	//console.log(self.manipOutputIndex, xVal, yVal);
 	self.interpolate(x, y, lense);
 } 
 
@@ -602,7 +612,8 @@ LineSpace.prototype.redraw = function() {
 	var self = this;
 	this.context.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
 
-	this.dataSet.forEach(function(ds, index) {
+	this.query.forEach(function(item, index) {
+		var ds = self.dataSet[item];
 		self.drawLines({context: self.context, scale: 1.0, prevScale: 1.0}, ds);
 	});
 	//self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);

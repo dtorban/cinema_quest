@@ -75,7 +75,13 @@
    			 	pcc.overlayPathData.push({data: {}, style: "stroke: red; stroke-width: 2px;"});
    			 	pcc.overlayPathData.push({data: {}, style: "stroke: cyan; stroke-width: 2px;"});
 	   			//$('.pCoordChart .resultPaths path[index="'+30+'"]').css('stroke', 'blue');
+
    			 	//pcc.updateOverlayPaths();
+	   			pcc.dispatch.on('selectionchange', onSelectionChange);
+	   		}
+
+	   		function onSelectionChange(query) {
+	   			lineSpace.onSelectionChange(query);
 	   		}
 
 	   		function dataLoaded(data) {
@@ -103,6 +109,8 @@
 		   		paramInfo = calcParamInfo(trainingSet);
 
 	   			lineSpace.data(testSet);
+
+	   			lineSpace.onSelectionChange(pcc.query);
 	   		}
 
    			function getGraphProperties(ds) {
