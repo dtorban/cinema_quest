@@ -17,14 +17,20 @@ body {
 	margin: initial;
 }
 
-#spaceArea {
-	float: left;
-	position: relative;
-	height: 800px;
+#resultsArea {
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
 	width: 100%;
 	padding: 10px;
 	background-color: white;
 	box-shadow: inset 0px 0px 5px black;
+}
+
+#spaceArea {
+	width: 100%;
+	height: 100%;
 }
 
 .parameters {
@@ -80,13 +86,6 @@ body {
 	left: 0px;
 }
 
-#resultsArea {
-	position: absolute;
-	top: 5px;
-	bottom: 5px;
-	right: 5px;
-	left: 405px;
-}
 .socket {
 	box-sizing: border-box;
 	padding: 10px;

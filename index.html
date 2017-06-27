@@ -25,16 +25,18 @@
 		<div id="svgArea">
 			<div id="svgContainer"></div>
 		</div>
-		<div id="spaceArea">
-			<div id="spaceContainer"></div>
-		</div>
-		<div id="parameters" style="visibility: hidden">
-			<div id="closest" class="parameters"></div>
-			<div id="interp1" class="parameters"></div>
-			<div id="interp2" class="parameters"></div>
-			<div id="interp3" class="parameters"></div>
-			<div id="interp4" class="parameters"></div>
-			<div id="interp5" class="parameters"></div>
+		<div id="resultsArea">
+			<div id="spaceArea">
+				<div id="spaceContainer"></div>
+			</div>
+			<!--div id="parameters" style="visibility: hidden">
+				<div id="closest" class="parameters"></div>
+				<div id="interp1" class="parameters"></div>
+				<div id="interp2" class="parameters"></div>
+				<div id="interp3" class="parameters"></div>
+				<div id="interp4" class="parameters"></div>
+				<div id="interp5" class="parameters"></div>
+			</div-->
 		</div>
    		<script>
 			var lineSpace = null;
@@ -43,6 +45,8 @@
 			var testSet = null;
 			var fullSet = null;
 			var pcc = null;
+
+   			updateResultsArea();
 
    			load();
 
@@ -122,7 +126,7 @@
 
    			function interpolate1(query) {
    				d3.select('#interp1').text("Eclidean Distance (k=5, p=1)");
-   				var interp = interpolate(query, 5, 1, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, d3.select('#interp1'), true);
+   				var interp = interpolate(query, 5, 1, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, null, true);
    				interp.color = 'green';
    				d3.select('#interp1').style("color","green");
    				pcc.overlayPathData[0].data = interp.ds.params;
@@ -132,7 +136,7 @@
 
    			function interpolate2(query) {
    				d3.select('#interp2').text("Manhattan Distance (k=10, p=2)");
-   				var interp = interpolate(query, 10, 2, function(index) { return 1.0/paramInfo[index].variance; }, manhattanDistance, d3.select('#interp2'));
+   				var interp = interpolate(query, 10, 2, function(index) { return 1.0/paramInfo[index].variance; }, manhattanDistance, null);
    				interp.color = 'blue';
    				d3.select('#interp2').style("color","blue");
    				return interp;
@@ -140,7 +144,7 @@
 
    			function interpolate3(query) {
    				d3.select('#interp3').text("Eclidean Distance (k=10, p=4)");
-   				var interp = interpolate(query, 10, 4, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, d3.select('#interp3'));
+   				var interp = interpolate(query, 10, 4, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, null);
    				interp.color = 'red';
    				d3.select('#interp3').style("color","red");
    				pcc.overlayPathData[1].data = interp.ds.params;
@@ -150,7 +154,7 @@
 
    			function interpolate4(query) {
    				d3.select('#interp4').text("Centered Cosine (k=10, p=4)");
-   				var interp = interpolate(query, 10, 4, function(index) { return -paramInfo[index].mean; }, centeredCosineSimularity, d3.select('#interp4'));
+   				var interp = interpolate(query, 10, 4, function(index) { return -paramInfo[index].mean; }, centeredCosineSimularity, null);
    				interp.color = 'cyan';
    				d3.select('#interp4').style("color","cyan");
    				pcc.overlayPathData[2].data = interp.ds.params;
@@ -235,6 +239,11 @@
 
    				return {ds: newDs, neighbors: dsDist, error: interpError};
    			}
+
+   			function updateResultsArea() {
+				var topRect = d3.select('#svgArea').node().getBoundingClientRect();
+				d3.select('#resultsArea').style('top',topRect.height+'px');
+			}
    		</script>
    </body>
 </html>
