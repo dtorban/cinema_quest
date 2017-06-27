@@ -17,7 +17,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
                        return dpr / bsr;
                        })();
     
-    console.log(this.pixelRatio);
+    //console.log(this.pixelRatio);
 
 	self.getGraphProperties = getGraphProperties;
 	self.interpolateFunctions = interpolateFunctions;
@@ -102,7 +102,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
             canvas.style("height", ''+self.parentRect.height +'px');
 			context.translate(self.margin.right, self.margin.top);
 			context.fillStyle = "green";
-			context.lineWidth = 1.0;
+			context.lineWidth = 1.1;
 			context.globalAlpha = 1.0;
 			context.globalCompositeOperation = "difference";
 			lense.canvas = canvas;
@@ -229,7 +229,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 									}
 								}
 
-								console.log(xVal, item.ds.rows[i].x, item.ds.rows[i].y, yVal);
+								//console.log(xVal, item.ds.rows[i].x, item.ds.rows[i].y, yVal);
 								var foundY = item.ds.rows[i].y;
 
 								if (Math.abs(yVal - foundY) < (self.y.domain()[1]-self.y.domain()[0])*0.02) {
@@ -357,11 +357,22 @@ LineSpace.prototype.handleManipulate = function(event) {
 LineSpace.prototype.interpolate = function(x, y, lense) {
 	var self = this;
 
+
 	var context = lense.context;
 	var prevPosition = lense.position;
 	context.beginPath();
 	context.clearRect(prevPosition[0]-lense.prevScale*self.instanceWidth/2-2, prevPosition[1]-lense.prevScale*self.instanceHeight/2-2, lense.prevScale*self.instanceWidth+4, lense.prevScale*self.instanceHeight+4);
 	context.stroke();
+	context.closePath();
+	context.beginPath();
+	context.globalAlpha = 0.8;
+	context.fillStyle = 'white';
+	context.globalCompositeOperation = "difference";
+	context.fillRect(x-self.margin.right-lense.scale*self.instanceWidth/2,y-self.margin.top-lense.scale*self.instanceHeight/2,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
+	context.stroke();
+	context.closePath();
+	context.globalAlpha = 1.0;
+	context.globalCompositeOperation = "source-over";
 	var pSet = [self.dimensions[0], self.dimensions[1]];
 	var tempParams = {};
 	tempParams[self.dimensions[0]] = self.paramX.invert(x-self.margin.right);
@@ -473,6 +484,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		});
 
 		context.stroke();
+		context.closePath();
 	}
 
 	context.translate(-transX, -transY);
@@ -493,6 +505,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		context.beginPath()
 		context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5, 0, 2 * Math.PI);
 		context.fill();
+		context.closePath();
 		//context.fillRect(transX+this.instanceWidth/2-1,transY+this.instanceHeight/2-1,3,3);
 		//context.stroke();
 	}
@@ -501,12 +514,17 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		context.beginPath()
 		context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 3, 0, 2 * Math.PI);
 		context.fill();
+		context.closePath();
 	}
 
 	if(showBox) {
+		context.strokeStyle = 'black';
+		context.lineWidth = 2.0;
 		context.beginPath();
 		context.strokeRect(transX,transY,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
 		context.stroke();
+		context.closePath();
+		context.lineWidth = 1.1;
 	}
 
 	if (graphProperties.show) {
@@ -539,7 +557,7 @@ LineSpace.prototype.update = function() {
 		extentX.push.apply(extentX, ds.extentX);
 		extentY.push.apply(extentY, ds.extentY);
 
-		var interpResults = [];
+		/*var interpResults = [];
 		self.interpolateFunctions.forEach(function(item, index) {
 			var query = {};
 			query[self.dimensions[0]] = graphProperties.x;
@@ -549,11 +567,11 @@ LineSpace.prototype.update = function() {
 		});
 
 		var averageError = average(interpResults);
-		ds.params["Error"] = averageError;
+		ds.params["Error"] = averageError;*/
 	});
 
-	self.paramInfo["Error"] = calcStatistics(self.dataSet, function(d) { return d.params.Error; });
-	self.paramInfo["Error"].dynamic = true;
+	//self.paramInfo["Error"] = calcStatistics(self.dataSet, function(d) { return d.params.Error; });
+	//self.paramInfo["Error"].dynamic = true;
 
 	var paramSet = Object.keys(self.dataSet[0].params).filter(function(d) {
 		return !isNaN(+self.dataSet[0].params[d]);
