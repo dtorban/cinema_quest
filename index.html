@@ -13,17 +13,19 @@
 	<script src = 'lib/ParallelCoordinatesChart.js'></script>
 </head>
    <body>
-	   <div id="header">
-			<h1>Output Explorer</h1>
-			<select id="database" onchange="load()">
-				<option value="data/GF-HP/GF-HP.csv,visar,column,\t,0">GF-HP-Visar1</option>
-				<option value="data/GF-HP/GF-HP.csv,visar,column,\t,1">GF-HP-Visar2</option>
-				<option value="data/GF-HP/GF-HP.csv,diffraction,columns,\t,0,1">GF-HP-Diffraction</option>
-				<option value="data/simresults/Al.design.1000.numbered.csv,sim,columns, ,1,3,700">Flag Simulation</option>
-			</select>
-		</div>
-		<div id="svgArea">
-			<div id="svgContainer"></div>
+	   <div id="topArea">
+		   <div id="header">
+				<h1>Output Explorer</h1>
+				<select id="database" onchange="load()">
+					<option value="data/GF-HP/GF-HP.csv,visar,column,\t,0">GF-HP-Visar1</option>
+					<option value="data/GF-HP/GF-HP.csv,visar,column,\t,1">GF-HP-Visar2</option>
+					<option value="data/GF-HP/GF-HP.csv,diffraction,columns,\t,0,1">GF-HP-Diffraction</option>
+					<option value="data/simresults/Al.design.1000.numbered.csv,sim,columns, ,1,3,700">Flag Simulation</option>
+				</select>
+			</div>
+			<div id="svgArea">
+				<div id="svgContainer"></div>
+			</div>
 		</div>
 		<div id="resultsArea">
 			<div id="spaceArea">
@@ -241,8 +243,8 @@
    			}
 
    			function updateResultsArea() {
-				var topRect = d3.select('#svgArea').node().getBoundingClientRect();
-				d3.select('#resultsArea').style('top',topRect.height+'px');
+				var topRect = d3.select('#topArea').node().getBoundingClientRect();
+				d3.select('#resultsArea').style('top',(topRect.height)+'px');
 			}
    		</script>
    </body>
