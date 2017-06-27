@@ -37,6 +37,10 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	this.context.globalAlpha = 0.4;
 	this.context.globalCompositeOperation = "difference";
 
+	// Image data
+	this.imageData = this.context.createImageData(1,1);
+	this.imageDataVal = this.imageData.data;
+
     this.instanceWidth = self.parentRect.width/8;
     this.instanceHeight = self.parentRect.height/8;
 
@@ -309,7 +313,16 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     self.valueSelect.style("float", "left").style("position", "relative");
 
     self.colorMapPicker = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps.csv", function() { self.onColorMapChange();})
-    //self.colorMapPicker2 = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps.csv", function() {console.log("test");})
+    self.colorMapPicker2 = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps2.csv", function() {self.onColorMapChange();})
+}
+
+LineSpace.prototype.setPixelValue = function(context, x, y, r, g, b, a) {
+	var self = this;
+	self.imageDataVal[0] = r;
+	self.imageDataVal[1] = g;
+	self.imageDataVal[2] = b;
+	self.imageDataVal[3] = a;
+	context.putImageData(self.imageData, x, y);
 }
 
 LineSpace.prototype.onSelectionChange = function(query) {
@@ -614,6 +627,56 @@ LineSpace.prototype.update = function() {
 LineSpace.prototype.redraw = function() {
 	var self = this;
 	this.context.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
+
+	//console.log(colorValue);
+
+/*	var points = [
+  {x: 1, y: 2},
+  {x: 3, y: 4},
+  {x: 5, y: 6},
+  {x: 7, y: 8}
+];*/
+	var points = [];
+	self.dataSet.forEach(function(item, index) {
+		points.push(item.params);
+	});
+
+
+	var distance = function(a, b){
+	  return Math.pow(+a[self.dimensions[0]] - b[self.dimensions[0]], 2) +  Math.pow(+a[self.dimensions[1]] - b[self.dimensions[1]], 2);
+	}
+
+	var tree = new kdTree(points, distance, [self.dimensions[0], self.dimensions[1]]);
+
+
+//console.log(nearest);
+	var colorValue = null;
+	for (var f = 0; f < self.parentRect.width - self.instanceWidth; f++) {
+		for (var i = 0; i < self.parentRect.height - self.instanceHeight; i++) {
+			/*var pSet = [self.dimensions[0], self.dimensions[1]];
+			var tempParams = {};
+			tempParams[self.dimensions[0]] = self.paramX.invert(i);
+			tempParams[self.dimensions[1]] = self.paramY.invert(f);
+			var tempDs = {params: tempParams};*/
+		   	//var dsDist = calcDistance(tempDs, self.dataSet, pSet, function(item) { return 1.0/self.paramInfo[item].variance; }, weightedEclideanDistance, 2);
+
+		   	if ((f % 1 == 0) && (i % 1 == 0)) {
+				var point = {};
+				point[self.dimensions[0]] = self.paramX.invert(f);
+				point[self.dimensions[1]] = self.paramY.invert(i);
+				var nearest = tree.nearest(point, 1);
+				//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
+
+				var val = +nearest[0][0][self.dimensions[2]];
+				var pInfo = self.paramInfo[self.dimensions[2]];
+
+				//console.log(nearest, nearest[0][0], val, pInfo);
+
+				colorValue = self.colorMapPicker2.getColor((val - pInfo.min)/(pInfo.max-pInfo.min));
+		   	}
+			self.setPixelValue(this.context, f+this.margin.left, i+this.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+		}
+	}
 
 	this.query.forEach(function(item, index) {
 		var ds = self.dataSet[item];

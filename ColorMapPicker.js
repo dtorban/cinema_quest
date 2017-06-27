@@ -20,6 +20,8 @@ function ColorMapPicker(parent, dataFile, onChange) {
     $(document).click(function() {
         $('.wrapper-dropdown-1').removeClass('active');
     });
+
+  self.output = [0,0,0,0];
     
 	this.colorMapSelect =  this.dd
 		.append('ul')
@@ -47,6 +49,7 @@ function ColorMapPicker(parent, dataFile, onChange) {
                  .attr('width', self.img.node().width)
                  .attr('height', self.img.node().height);
                self.context.drawImage(self.img.node(), 0, 0, self.img.node().width, self.img.node().height);
+               self.imageData = self.context.getImageData(0, Math.floor(self.img.node().height/2), self.img.node().width, 1).data;
                onChange();
             });
 
@@ -60,12 +63,15 @@ function ColorMapPicker(parent, dataFile, onChange) {
 			.attr('height', self.img.node().height)
 			.attr("style","z-index: -1;position:absolute;left:0px;top:0px;visibility: hidden");
 		self.context = self.canvas.node().getContext("2d");
-		self.context.drawImage(self.img.node(), 0, 0, self.img.node().width, self.img.node().height)
-    });
+		self.context.drawImage(self.img.node(), 0, 0, self.img.node().width, self.img.node().height);
+    self.imageData = self.context.getImageData(0, Math.floor(self.img.node().height/2), self.img.node().width, 1).data;
+  });
 }
 ColorMapPicker.prototype.getColor = function(value) {
 	var self = this;
-
-	var imageData = self.context.getImageData(Math.floor(self.img.node().width*value), Math.floor(self.img.node().height/2), 1, 1).data;
-	return imageData;
+  self.output[0] = self.imageData[Math.floor(self.img.node().width*value)*4];
+  self.output[1] = self.imageData[Math.floor(self.img.node().width*value)*4+1];
+  self.output[2] = self.imageData[Math.floor(self.img.node().width*value)*4+2];
+  self.output[3] = self.imageData[Math.floor(self.img.node().width*value)*4+3];
+  return self.output;
 }
