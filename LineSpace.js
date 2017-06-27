@@ -270,7 +270,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     	});
     if (self.showAll) {
     	checkbox.attr("checked", self.showAll);
-    }	   
+    }
+    checkbox.style("float", "left").style("position", "relative");
 
     var selectDivX = self.parent
 		.append('div')
@@ -305,8 +306,10 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     		self.dimensions[2] = d3.event.target.value;
     		self.redraw();
     	});
+    self.valueSelect.style("float", "left").style("position", "relative");
 
     self.colorMapPicker = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps.csv", function() { self.onColorMapChange();})
+    //self.colorMapPicker2 = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps.csv", function() {console.log("test");})
 }
 
 LineSpace.prototype.onSelectionChange = function(query) {
