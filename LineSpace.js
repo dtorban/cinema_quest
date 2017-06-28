@@ -28,7 +28,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	this.canvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
 		.attr('height', this.parentRect.height*this.pixelRatio)
-		.attr("style", "z-index: 0;position:relative;left:0px;top:0px;");
+		.attr("style", "z-index: 1;position:relative;left:0px;top:0px;");
 	this.context = this.canvas.node().getContext("2d");
     this.context.scale(self.pixelRatio,self.pixelRatio);
     this.canvas.style("width", ''+this.parentRect.width +'px');
@@ -37,14 +37,34 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	this.context.globalAlpha = 0.4;
 	this.context.globalCompositeOperation = "difference";
 
-	// Image data
-	this.imageData = this.context.createImageData(1,1);
-	this.imageDataVal = this.imageData.data;
-
     this.instanceWidth = self.parentRect.width/8;
     this.instanceHeight = self.parentRect.height/8;
+	this.margin = {top: this.instanceHeight/2, right: this.instanceWidth/2, bottom: this.instanceHeight/2, left: this.instanceWidth/2};
 
-    this.margin = {top: this.instanceHeight/2, right: this.instanceWidth/2, bottom: this.instanceHeight/2, left: this.instanceWidth/2};
+	this.bgcanvas = parent.append("canvas")
+		.attr('width', this.parentRect.width*this.pixelRatio)
+		.attr('height', this.parentRect.height*this.pixelRatio)
+		.attr("style", "z-index: 0;position:absolute;left:0px;top:0px;");
+	this.bgcontext = this.bgcanvas.node().getContext("2d");
+    this.bgcontext.scale(self.pixelRatio,self.pixelRatio);
+    this.bgcanvas.style("width", ''+this.parentRect.width +'px');
+    this.bgcanvas.style("height", ''+this.parentRect.height +'px');
+    this.bgcontext.clearRect(0, 0, this.parentRect.width, this.parentRect.height);
+	this.bgcontext.globalAlpha = 0.4;
+	this.bgcontext.globalCompositeOperation = "difference";
+
+	this.bgValues = [];
+	this.bgImageWidth = (this.parentRect.width-this.margin.left)*this.pixelRatio;
+	this.bgImageHeight = (this.parentRect.height-this.margin.top)*this.pixelRatio;
+	for (var f = 0; f < this.bgImageWidth*this.bgImageHeight; f++) {
+		this.bgValues.push(0.0);
+	}
+
+	// Image data
+	this.imageData = this.bgcontext.createImageData(1,1);
+	this.imageDataVal = this.imageData.data;
+
+
     this.context.translate(this.margin.right, this.margin.top);
     this.innerWidth = this.parentRect.width - this.instanceWidth;
     this.innerHeight = this.parentRect.height - this.instanceHeight;
@@ -76,7 +96,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     this.actionCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
 		.attr('height', this.parentRect.height*this.pixelRatio)
-		.attr("style", "z-index: 2;position:absolute;left:0px;top:0px;cursor: default");
+		.attr("style", "z-index: 3;position:absolute;left:0px;top:0px;cursor: default");
     this.actionCanvas.style("width", ''+this.parentRect.width +'px');
     this.actionCanvas.style("height", ''+this.parentRect.height +'px');
 
@@ -100,7 +120,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 				.attr('width', self.parentRect.width*self.pixelRatio)
 				.attr('height', self.parentRect.height*self.pixelRatio)
 				.attr('class', 'lense')
-				.attr("style", "z-index: 1;position:absolute;left:0px;top:0px;cursor: default");
+				.attr("style", "z-index: 2;position:absolute;left:0px;top:0px;cursor: default");
 			var context = canvas.node().getContext("2d");
             context.scale(self.pixelRatio,self.pixelRatio);
             canvas.style("width", ''+self.parentRect.width +'px');
@@ -313,7 +333,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     self.valueSelect.style("float", "left").style("position", "relative");
 
     self.colorMapPicker = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps.csv", function() { self.onColorMapChange();})
-    self.colorMapPicker2 = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps2.csv", function() {self.onColorMapChange();})
+    self.colorMapPicker2 = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps2.csv", function() {self.redrawBackground();})
 }
 
 LineSpace.prototype.setPixelValue = function(context, x, y, r, g, b, a) {
@@ -621,16 +641,14 @@ LineSpace.prototype.update = function() {
 	self.lenses = [];
 	self.currentLenseIndex = -1;
 
+	self.updateBackground();
+
 	self.redraw();
 }
 
-LineSpace.prototype.redraw = function() {
+LineSpace.prototype.updateBackground = function() {
 	var self = this;
-	this.context.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
-
-	//console.log(colorValue);
-
-/*	var points = [
+	/*	var points = [
   {x: 1, y: 2},
   {x: 3, y: 4},
   {x: 5, y: 6},
@@ -650,33 +668,65 @@ LineSpace.prototype.redraw = function() {
 
 
 //console.log(nearest);
-	var colorValue = null;
-	for (var f = 0; f < self.parentRect.width - self.instanceWidth; f++) {
-		for (var i = 0; i < self.parentRect.height - self.instanceHeight; i++) {
-			/*var pSet = [self.dimensions[0], self.dimensions[1]];
-			var tempParams = {};
-			tempParams[self.dimensions[0]] = self.paramX.invert(i);
-			tempParams[self.dimensions[1]] = self.paramY.invert(f);
-			var tempDs = {params: tempParams};*/
-		   	//var dsDist = calcDistance(tempDs, self.dataSet, pSet, function(item) { return 1.0/self.paramInfo[item].variance; }, weightedEclideanDistance, 2);
+	var colorValue = null;	
+	this.bgcontext.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
 
-		   	if ((f % 1 == 0) && (i % 1 == 0)) {
-				var point = {};
-				point[self.dimensions[0]] = self.paramX.invert(f);
-				point[self.dimensions[1]] = self.paramY.invert(i);
-				var nearest = tree.nearest(point, 1);
-				//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
+	var q = d3.queue();
+	for (var sample1 = 0; sample1 < 50; sample1++) {
+		for (var sample2 = 0; sample2 < 50; sample2++) {
 
-				var val = +nearest[0][0][self.dimensions[2]];
-				var pInfo = self.paramInfo[self.dimensions[2]];
+			q.defer(function(callback) {
+				var s1 = sample1;
+				var s2 = sample2;
+				setTimeout(function() {
+					for (var f = s1; f < self.parentRect.width*self.pixelRatio - self.instanceWidth*self.pixelRatio; f+=50) {
+						for (var i = s2; i < self.parentRect.height*self.pixelRatio - self.instanceHeight*self.pixelRatio; i+=50) {
 
-				//console.log(nearest, nearest[0][0], val, pInfo);
+						   	if ((f % 1 == 0) && (i % 1 == 0)) {
+								var point = {};
+								point[self.dimensions[0]] = self.paramX.invert(f);
+								point[self.dimensions[1]] = self.paramY.invert(i);
+								var nearest = tree.nearest(point, 1);
+								//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
 
-				colorValue = self.colorMapPicker2.getColor((val - pInfo.min)/(pInfo.max-pInfo.min));
-		   	}
-			self.setPixelValue(this.context, f+this.margin.left, i+this.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+								var val = +nearest[0][0][self.dimensions[2]];
+								var pInfo = self.paramInfo[self.dimensions[2]];
+
+								//console.log(nearest, nearest[0][0], val, pInfo);
+								self.bgValues[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
+								colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
+						   	}
+							self.setPixelValue(self.bgcontext, f+self.margin.left, i+self.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+						}
+					}
+					callback(null); 
+				}, 200);
+							
+			});
+
 		}
 	}
+	q.awaitAll(function(error) {
+		console.log("done");
+		self.redrawBackground();
+	});
+}
+
+LineSpace.prototype.redrawBackground = function() {
+	var self = this;
+	for (var f = 0; f < self.parentRect.width*self.pixelRatio - self.instanceWidth*self.pixelRatio; f++) {
+		for (var i = 0; i < self.parentRect.height*self.pixelRatio - self.instanceHeight*self.pixelRatio; i++) {
+			var colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
+			self.setPixelValue(self.bgcontext, f+self.margin.left, i+self.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+		}
+	}
+}
+
+LineSpace.prototype.redraw = function() {
+	var self = this;
+	this.context.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
+
+	//console.log(colorValue);
 
 	this.query.forEach(function(item, index) {
 		var ds = self.dataSet[item];
