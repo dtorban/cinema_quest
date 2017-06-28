@@ -54,10 +54,12 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	this.bgcontext.globalCompositeOperation = "difference";
 
 	this.bgValues = [];
+	this.bgValuesTemp = [];
 	this.bgImageWidth = (this.parentRect.width-this.margin.left)*this.pixelRatio;
 	this.bgImageHeight = (this.parentRect.height-this.margin.top)*this.pixelRatio;
 	for (var f = 0; f < this.bgImageWidth*this.bgImageHeight; f++) {
 		this.bgValues.push(0.0);
+		this.bgValuesTemp.push(0.0);
 	}
 
 	// Image data
@@ -671,6 +673,37 @@ LineSpace.prototype.updateBackground = function() {
 	var colorValue = null;	
 	this.bgcontext.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
 
+	for (var f = 0; f < (self.parentRect.width*self.pixelRatio - self.instanceWidth*self.pixelRatio)/4; f+=1) {
+		for (var i = 0; i < (self.parentRect.height*self.pixelRatio - self.instanceHeight*self.pixelRatio)/4; i+=1) {
+
+				var point = {};
+				point[self.dimensions[0]] = self.paramX.invert(f*4);
+				point[self.dimensions[1]] = self.paramY.invert(i*4);
+				var nearest = tree.nearest(point, 1);
+				//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
+
+				var val = +nearest[0][0][self.dimensions[2]];
+				var pInfo = self.paramInfo[self.dimensions[2]];
+
+				//console.log(nearest, nearest[0][0], val, pInfo);
+				self.bgValuesTemp[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
+				//colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
+		   	//}
+			//self.setPixelValue(self.bgcontext, f+self.margin.left, i+self.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+		}
+	}
+
+	for (var f = 0; f < self.parentRect.width*self.pixelRatio - self.instanceWidth*self.pixelRatio; f+=1) {
+		for (var i = 0; i < self.parentRect.height*self.pixelRatio - self.instanceHeight*self.pixelRatio; i+=1) {
+			self.bgValues[f*self.bgImageHeight + i] = self.bgValuesTemp[Math.floor(f/4)*self.bgImageHeight + Math.floor(i/4)];
+			colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
+			self.setPixelValue(self.bgcontext, f+self.margin.left, i+self.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+		}
+	}
+
+	if (!self.bgVersion) { self.bgVersion = 0; }
+	self.bgVersion++;
+
 	var q = d3.queue();
 	for (var sample1 = 0; sample1 < 50; sample1++) {
 		for (var sample2 = 0; sample2 < 50; sample2++) {
@@ -678,11 +711,52 @@ LineSpace.prototype.updateBackground = function() {
 			q.defer(function(callback) {
 				var s1 = sample1;
 				var s2 = sample2;
+				var ver = self.bgVersion;
 				setTimeout(function() {
-					for (var f = s1; f < self.parentRect.width*self.pixelRatio - self.instanceWidth*self.pixelRatio; f+=50) {
-						for (var i = s2; i < self.parentRect.height*self.pixelRatio - self.instanceHeight*self.pixelRatio; i+=50) {
+					if (ver == self.bgVersion) {
+						for (var f = s1; f < (self.parentRect.width*self.pixelRatio - self.instanceWidth*self.pixelRatio); f+=50) {
+							for (var i = s2; i < (self.parentRect.height*self.pixelRatio - self.instanceHeight*self.pixelRatio); i+=50) {
+
+							   	if ((f % 1 == 0) && (i % 1 == 0)) {
+							   	//if ((f*self.bgImageHeight + i) % 5 == 0) {
+									var point = {};
+									point[self.dimensions[0]] = self.paramX.invert(f);
+									point[self.dimensions[1]] = self.paramY.invert(i);
+									var nearest = tree.nearest(point, 1);
+									//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
+
+									var val = +nearest[0][0][self.dimensions[2]];
+									var pInfo = self.paramInfo[self.dimensions[2]];
+
+									//console.log(nearest, nearest[0][0], val, pInfo);
+									self.bgValues[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
+									//colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
+							   	//}
+								//self.setPixelValue(self.bgcontext, f+self.margin.left, i+self.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+								}
+							}
+						}
+					}
+					
+					callback(null); 
+				}, 200);
+							
+			});
+
+		}
+	}
+	/*for (var sample1 = 0; sample1 < 20; sample1++) {
+		for (var sample2 = 0; sample2 < 20; sample2++) {
+
+			q.defer(function(callback) {
+				var s1 = sample1;
+				var s2 = sample2;
+				setTimeout(function() {
+					for (var f = s1; f < (self.parentRect.width*self.pixelRatio - self.instanceWidth*self.pixelRatio); f+=1) {
+						for (var i = s2; i < (self.parentRect.height*self.pixelRatio - self.instanceHeight*self.pixelRatio); i+=1) {
 
 						   	if ((f % 1 == 0) && (i % 1 == 0)) {
+						   	//if ((f*self.bgImageHeight + i) % 5 == 0) {
 								var point = {};
 								point[self.dimensions[0]] = self.paramX.invert(f);
 								point[self.dimensions[1]] = self.paramY.invert(i);
@@ -695,8 +769,9 @@ LineSpace.prototype.updateBackground = function() {
 								//console.log(nearest, nearest[0][0], val, pInfo);
 								self.bgValues[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
 								colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
-						   	}
+						   	//}
 							self.setPixelValue(self.bgcontext, f+self.margin.left, i+self.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+							}
 						}
 					}
 					callback(null); 
@@ -705,7 +780,7 @@ LineSpace.prototype.updateBackground = function() {
 			});
 
 		}
-	}
+	}*/
 	q.awaitAll(function(error) {
 		console.log("done");
 		self.redrawBackground();
