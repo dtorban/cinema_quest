@@ -42,11 +42,11 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	this.margin = {top: this.instanceHeight/2, right: this.instanceWidth/2, bottom: this.instanceHeight/2, left: this.instanceWidth/2};
 
 	this.bgcanvas = parent.append("canvas")
-		.attr('width', this.parentRect.width*this.pixelRatio)
-		.attr('height', this.parentRect.height*this.pixelRatio)
+		.attr('width', this.parentRect.width/2)
+		.attr('height', this.parentRect.height/2)
 		.attr("style", "z-index: 0;position:absolute;left:0px;top:0px;");
 	this.bgcontext = this.bgcanvas.node().getContext("2d");
-    this.bgcontext.scale(self.pixelRatio,self.pixelRatio);
+    //this.bgcontext.scale(2,2);
     this.bgcanvas.style("width", ''+this.parentRect.width +'px');
     this.bgcanvas.style("height", ''+this.parentRect.height +'px');
     this.bgcontext.clearRect(0, 0, this.parentRect.width, this.parentRect.height);
@@ -55,8 +55,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 
 	this.bgValues = [];
 	this.bgValuesTemp = [];
-	this.bgImageWidth = (this.parentRect.width-this.margin.left)*this.pixelRatio;
-	this.bgImageHeight = (this.parentRect.height-this.margin.top)*this.pixelRatio;
+	this.bgImageWidth = (this.parentRect.width-this.instanceWidth)/2;
+	this.bgImageHeight = (this.parentRect.height-this.instanceHeight)/2;
 	for (var f = 0; f < this.bgImageWidth*this.bgImageHeight; f++) {
 		this.bgValues.push(0.0);
 		this.bgValuesTemp.push(0.0);
@@ -673,12 +673,12 @@ LineSpace.prototype.updateBackground = function() {
 	var colorValue = null;	
 	this.bgcontext.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
 
-	for (var f = 0; f < (self.parentRect.width*self.pixelRatio - self.instanceWidth*self.pixelRatio)/4; f+=1) {
-		for (var i = 0; i < (self.parentRect.height*self.pixelRatio - self.instanceHeight*self.pixelRatio)/4; i+=1) {
+	for (var f = 0; f < self.bgImageWidth/4; f+=1) {
+		for (var i = 0; i < self.bgImageHeight/4; i+=1) {
 
 				var point = {};
-				point[self.dimensions[0]] = self.paramX.invert(f*4);
-				point[self.dimensions[1]] = self.paramY.invert(i*4);
+				point[self.dimensions[0]] = self.paramX.invert(f*4*2);
+				point[self.dimensions[1]] = self.paramY.invert(i*4*2);
 				var nearest = tree.nearest(point, 1);
 				//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
 
@@ -693,11 +693,11 @@ LineSpace.prototype.updateBackground = function() {
 		}
 	}
 
-	for (var f = 0; f < self.parentRect.width*self.pixelRatio - self.instanceWidth*self.pixelRatio; f+=1) {
-		for (var i = 0; i < self.parentRect.height*self.pixelRatio - self.instanceHeight*self.pixelRatio; i+=1) {
+	for (var f = 0; f < self.bgImageWidth; f+=1) {
+		for (var i = 0; i < self.bgImageHeight; i+=1) {
 			self.bgValues[f*self.bgImageHeight + i] = self.bgValuesTemp[Math.floor(f/4)*self.bgImageHeight + Math.floor(i/4)];
 			colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
-			self.setPixelValue(self.bgcontext, f+self.margin.left, i+self.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+			self.setPixelValue(self.bgcontext, f+self.margin.left/2, i+self.margin.top/2, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
 		}
 	}
 
@@ -714,14 +714,14 @@ LineSpace.prototype.updateBackground = function() {
 				var ver = self.bgVersion;
 				setTimeout(function() {
 					if (ver == self.bgVersion) {
-						for (var f = s1; f < (self.parentRect.width*self.pixelRatio - self.instanceWidth*self.pixelRatio); f+=50) {
-							for (var i = s2; i < (self.parentRect.height*self.pixelRatio - self.instanceHeight*self.pixelRatio); i+=50) {
+						for (var f = s1; f < self.bgImageWidth; f+=50) {
+							for (var i = s2; i < self.bgImageHeight; i+=50) {
 
 							   	if ((f % 1 == 0) && (i % 1 == 0)) {
 							   	//if ((f*self.bgImageHeight + i) % 5 == 0) {
 									var point = {};
-									point[self.dimensions[0]] = self.paramX.invert(f);
-									point[self.dimensions[1]] = self.paramY.invert(i);
+									point[self.dimensions[0]] = self.paramX.invert(f*2);
+									point[self.dimensions[1]] = self.paramY.invert(i*2);
 									var nearest = tree.nearest(point, 1);
 									//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
 
@@ -789,10 +789,10 @@ LineSpace.prototype.updateBackground = function() {
 
 LineSpace.prototype.redrawBackground = function() {
 	var self = this;
-	for (var f = 0; f < self.parentRect.width*self.pixelRatio - self.instanceWidth*self.pixelRatio; f++) {
-		for (var i = 0; i < self.parentRect.height*self.pixelRatio - self.instanceHeight*self.pixelRatio; i++) {
+	for (var f = 0; f < self.bgImageWidth; f++) {
+		for (var i = 0; i < self.bgImageHeight; i++) {
 			var colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
-			self.setPixelValue(self.bgcontext, f+self.margin.left, i+self.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+			self.setPixelValue(self.bgcontext, f+self.margin.left/2, i+self.margin.top/2, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
 		}
 	}
 }
