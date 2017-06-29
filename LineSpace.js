@@ -335,6 +335,17 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     self.valueSelect.style("float", "left").style("position", "relative");
 
     self.colorMapPicker = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps.csv", function() { self.onColorMapChange();})
+    
+    self.backgroundSelect = selectDiv
+		.append('select')
+  		.attr('class','select')
+  		//.attr("style", "visibility: hidden")
+    	.on('change',function() {
+    		self.dimensions[3] = d3.event.target.value;
+    		self.update();
+    	});
+    self.backgroundSelect.style("float", "left").style("position", "relative");
+
     self.colorMapPicker2 = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps2.csv", function() {self.redrawBackground();})
 }
 
@@ -473,7 +484,7 @@ LineSpace.prototype.data = function(dataSet) {
 	var paramSet = Object.keys(dataSet[0].params).filter(function(d) {
 		return !isNaN(+dataSet[0].params[d]);
 	});
-	self.dimensions = [paramSet[0], paramSet[1], paramSet[2]];
+	self.dimensions = [paramSet[0], paramSet[1], paramSet[2], paramSet[3]];
 
 	var options = self.xSelect
 	 	.selectAll('option')
@@ -632,6 +643,13 @@ LineSpace.prototype.update = function() {
 		.text(function (d) { return d; })
     	.property("selected", function(d){ return d === self.dimensions[2]; });
 
+	var options = self.backgroundSelect
+	 	.selectAll('option')
+		.data(paramSet).enter()
+		.append('option')
+		.text(function (d) { return d; })
+    	.property("selected", function(d){ return d === self.dimensions[3]; });
+
 	self.paramX.domain(d3.extent(paramExtentX, function(d) { return d; }));
 	self.paramY.domain(d3.extent(paramExtentY, function(d) { return d; }));
 	self.x.domain(d3.extent(extentX, function(d) { return d; }));
@@ -682,8 +700,8 @@ LineSpace.prototype.updateBackground = function() {
 				var nearest = tree.nearest(point, 1);
 				//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
 
-				var val = +nearest[0][0][self.dimensions[2]];
-				var pInfo = self.paramInfo[self.dimensions[2]];
+				var val = +nearest[0][0][self.dimensions[3]];
+				var pInfo = self.paramInfo[self.dimensions[3]];
 
 				//console.log(nearest, nearest[0][0], val, pInfo);
 				self.bgValuesTemp[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
@@ -725,8 +743,8 @@ LineSpace.prototype.updateBackground = function() {
 									var nearest = tree.nearest(point, 1);
 									//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
 
-									var val = +nearest[0][0][self.dimensions[2]];
-									var pInfo = self.paramInfo[self.dimensions[2]];
+									var val = +nearest[0][0][self.dimensions[3]];
+									var pInfo = self.paramInfo[self.dimensions[3]];
 
 									//console.log(nearest, nearest[0][0], val, pInfo);
 									self.bgValues[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
