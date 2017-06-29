@@ -430,11 +430,11 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
    	var dsDist = calcDistance(tempDs, self.dataSet, pSet, function(item) { return 1.0/self.paramInfo[item].variance; }, weightedEclideanDistance, 2);
 
 	var weightSum = 0;
-	for (var f = 0; f < 5; f++) {
+	for (var f = 0; f < 10; f++) {
 		weightSum+= dsDist[f].weight;
 	 }
 
-	for (var f = 0; f < 5; f++) {
+	for (var f = 0; f < 10; f++) {
 		context.globalAlpha = dsDist[f].weight/weightSum;
 	 	self.drawLines(lense, self.dataSet[dsDist[f].id], 'black', false, true, 
 	 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
@@ -497,7 +497,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 	var self = this;
 
 	var context = lense.context;
-	var graphProperties = self.getGraphProperties(ds);
+	var graphProperties = self.getGraphProperties(self, ds);
 	if(localCoords) {
 		graphProperties = localCoords;
 	}
@@ -598,7 +598,7 @@ LineSpace.prototype.update = function() {
     this.y = d3.scaleLinear().range([this.instanceHeight, 0]);
 
 	self.dataSet.forEach(function(ds, index) {
-		var graphProperties = self.getGraphProperties(ds);
+		var graphProperties = self.getGraphProperties(self, ds);
 		paramExtentX.push(graphProperties.x);
 		paramExtentY.push(graphProperties.y);
 		ds.extentX = d3.extent(ds.rows, function(d) { return d.x; });

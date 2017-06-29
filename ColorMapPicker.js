@@ -10,7 +10,7 @@ function ColorMapPicker(parent, dataFile, onChange) {
         .attr('id', 'dd')
         .attr('class', 'wrapper-dropdown');
     this.dd.append("span");
-    this.dd.attr("style","float:left;position:relative;width:300px;height:30px;background-size: 300px 30px;background-repeat: no-repeat;box-sizing: border-box;");
+    this.dd.attr("style","float:left;position:relative;width:100px;height:30px;background-size: 100px 30px;background-repeat: no-repeat;box-sizing: border-box;");
     
     self.dd.on('click', function(event){
         $(this).toggleClass('active');
@@ -40,6 +40,7 @@ function ColorMapPicker(parent, dataFile, onChange) {
 			.property('value', function (d) { return d.File; })
 			.style('background-image', function (d) { return "url('"+self.path+d.File+"')"; })
            .style('background-size', '300px 30px')
+           .style('width', '300px')
            .style('height', '30px')
 			.style('background-repeat', 'no-repeat')
            .on('click',function(d) {
