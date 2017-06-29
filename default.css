@@ -18,6 +18,7 @@ body {
 }
 
 #resultsArea {
+	float: left;
 	position: absolute;
 	bottom: 0px;
 	left: 0px;
@@ -29,8 +30,20 @@ body {
 }
 
 #spaceArea {
-	width: 100%;
+	float: left;
+	position: relative;
+	background-color: white;
+	width: 84%;
 	height: 100%;
+	box-shadow: inset 0px 0px 5px black;
+}
+
+#nav {
+	float: left;
+	position: relative;
+	width: 15%;
+	height: 100%;
+	background-color: white;
 }
 
 .parameters {

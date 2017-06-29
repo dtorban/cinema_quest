@@ -23,12 +23,12 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	self.interpolateFunctions = interpolateFunctions;
 
 	this.parent = parent;
-	this.parent.attr("style", "position:relative;left:0px;top:0px;background-color:white");
+	//this.parent.attr("style", "position:relative;left:0px;top:0px;background-color:white");
 	this.parentRect = parent.node().getBoundingClientRect();
 	this.canvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
 		.attr('height', this.parentRect.height*this.pixelRatio)
-		.attr("style", "z-index: 1;position:relative;left:0px;top:0px;");
+		.attr("style", "z-index: 1;position:absolute;left:0px;top:0px;");
 	this.context = this.canvas.node().getContext("2d");
     this.context.scale(self.pixelRatio,self.pixelRatio);
     this.canvas.style("width", ''+this.parentRect.width +'px');
@@ -659,6 +659,31 @@ LineSpace.prototype.update = function() {
 	self.redraw();
 }
 
+LineSpace.prototype.calcBackgroundInterpolate = function(nearest) {
+	var self = this;
+	var val = 0;
+	if (false) { // nearest neighbor
+		val = +nearest[0][0][self.dimensions[3]];
+	}
+	else if (true) { // inverse weighted
+		var w = [];
+		var sum = 0;
+		nearest.forEach(function(item, index) {
+			var weight = 1/(Math.pow(item[1],1));
+			sum += weight;
+			w.push(weight);
+		});
+
+		nearest.forEach(function(item, index) {
+			val += (+item[0][self.dimensions[3]])*w[index];
+		});
+
+		val /= sum;
+	}
+
+	return val;
+}
+
 LineSpace.prototype.updateBackground = function() {
 	var self = this;
 
@@ -690,10 +715,12 @@ LineSpace.prototype.updateBackground = function() {
 				var point = {};
 				point[self.dimensions[0]] = self.paramX.invert(f*4*2);
 				point[self.dimensions[1]] = self.paramY.invert(i*4*2);
-				var nearest = tree.nearest(point, 1);
+				var nearest = tree.nearest(point, 10);
+				nearest.sort(function(a, b){return a[1]-b[1]});
 				//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
 
-				var val = +nearest[0][0][self.dimensions[3]];
+				var val = self.calcBackgroundInterpolate(nearest);
+
 				var pInfo = self.paramInfo[self.dimensions[3]];
 
 				//console.log(nearest, nearest[0][0], val, pInfo);
@@ -733,10 +760,12 @@ LineSpace.prototype.updateBackground = function() {
 									var point = {};
 									point[self.dimensions[0]] = self.paramX.invert(f*2);
 									point[self.dimensions[1]] = self.paramY.invert(i*2);
-									var nearest = tree.nearest(point, 1);
+									var nearest = tree.nearest(point, 10);
+									nearest.sort(function(a, b){return a[1]-b[1]});
 									//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
 
-									var val = +nearest[0][0][self.dimensions[3]];
+									var val = self.calcBackgroundInterpolate(nearest);
+
 									var pInfo = self.paramInfo[self.dimensions[3]];
 
 									//console.log(nearest, nearest[0][0], val, pInfo);
