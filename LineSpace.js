@@ -71,16 +71,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     this.innerWidth = this.parentRect.width - this.instanceWidth;
     this.innerHeight = this.parentRect.height - this.instanceHeight;
 
-   	/*this.overlayCanvas = parent.append("canvas")
-		.attr('width', this.parentRect.width)
-		.attr('height', this.parentRect.width)
-		.attr("style", "z-index: 1;position:absolute;left:0px;top:0px;cursor: default");
-	this.overlayContext = this.overlayCanvas.node().getContext("2d");
-	this.overlayContext.translate(this.margin.right, this.margin.top);
-	this.overlayContext.fillStyle = "green";
-	this.overlayContext.lineWidth = 1.0;
-	this.overlayContext.globalAlpha = 1.0;
-	this.overlayContext.globalCompositeOperation = "difference";*/
 	this.lenses = [];
     this.cursorPosition = [0,0];
     this.currentLenseIndex = -1;
@@ -671,12 +661,7 @@ LineSpace.prototype.update = function() {
 
 LineSpace.prototype.updateBackground = function() {
 	var self = this;
-	/*	var points = [
-  {x: 1, y: 2},
-  {x: 3, y: 4},
-  {x: 5, y: 6},
-  {x: 7, y: 8}
-];*/
+
 	this.bgcontext.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
 
 	if (!(self.dimensions[3] in self.paramInfo)) {
@@ -771,42 +756,7 @@ LineSpace.prototype.updateBackground = function() {
 
 		}
 	}
-	/*for (var sample1 = 0; sample1 < 20; sample1++) {
-		for (var sample2 = 0; sample2 < 20; sample2++) {
 
-			q.defer(function(callback) {
-				var s1 = sample1;
-				var s2 = sample2;
-				setTimeout(function() {
-					for (var f = s1; f < (self.parentRect.width*self.pixelRatio - self.instanceWidth*self.pixelRatio); f+=1) {
-						for (var i = s2; i < (self.parentRect.height*self.pixelRatio - self.instanceHeight*self.pixelRatio); i+=1) {
-
-						   	if ((f % 1 == 0) && (i % 1 == 0)) {
-						   	//if ((f*self.bgImageHeight + i) % 5 == 0) {
-								var point = {};
-								point[self.dimensions[0]] = self.paramX.invert(f);
-								point[self.dimensions[1]] = self.paramY.invert(i);
-								var nearest = tree.nearest(point, 1);
-								//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
-
-								var val = +nearest[0][0][self.dimensions[2]];
-								var pInfo = self.paramInfo[self.dimensions[2]];
-
-								//console.log(nearest, nearest[0][0], val, pInfo);
-								self.bgValues[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
-								colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
-						   	//}
-							self.setPixelValue(self.bgcontext, f+self.margin.left, i+self.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
-							}
-						}
-					}
-					callback(null); 
-				}, 200);
-							
-			});
-
-		}
-	}*/
 	q.awaitAll(function(error) {
 		console.log("done");
 		self.redrawBackground();
