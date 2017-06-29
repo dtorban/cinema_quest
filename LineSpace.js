@@ -484,7 +484,7 @@ LineSpace.prototype.data = function(dataSet) {
 	var paramSet = Object.keys(dataSet[0].params).filter(function(d) {
 		return !isNaN(+dataSet[0].params[d]);
 	});
-	self.dimensions = [paramSet[0], paramSet[1], paramSet[2], paramSet[3]];
+	self.dimensions = [paramSet[0], paramSet[1], paramSet[2], ''];
 
 	var options = self.xSelect
 	 	.selectAll('option')
@@ -643,12 +643,15 @@ LineSpace.prototype.update = function() {
 		.text(function (d) { return d; })
     	.property("selected", function(d){ return d === self.dimensions[2]; });
 
+    var paramSetBackground = paramSet;
+    paramSetBackground.unshift('Select...');
+
 	var options = self.backgroundSelect
 	 	.selectAll('option')
 		.data(paramSet).enter()
 		.append('option')
 		.text(function (d) { return d; })
-    	.property("selected", function(d){ return d === self.dimensions[3]; });
+    	.property("selected", function(d){ return d === 'Select...'; });
 
 	self.paramX.domain(d3.extent(paramExtentX, function(d) { return d; }));
 	self.paramY.domain(d3.extent(paramExtentY, function(d) { return d; }));
@@ -674,6 +677,12 @@ LineSpace.prototype.updateBackground = function() {
   {x: 5, y: 6},
   {x: 7, y: 8}
 ];*/
+	this.bgcontext.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
+
+	if (!(self.dimensions[3] in self.paramInfo)) {
+		return;
+	}
+
 	var points = [];
 	self.dataSet.forEach(function(item, index) {
 		points.push(item.params);
@@ -689,7 +698,6 @@ LineSpace.prototype.updateBackground = function() {
 
 //console.log(nearest);
 	var colorValue = null;	
-	this.bgcontext.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
 
 	for (var f = 0; f < self.bgImageWidth/4; f+=1) {
 		for (var i = 0; i < self.bgImageHeight/4; i+=1) {
@@ -731,7 +739,7 @@ LineSpace.prototype.updateBackground = function() {
 				var s2 = sample2;
 				var ver = self.bgVersion;
 				setTimeout(function() {
-					if (ver == self.bgVersion) {
+					if (ver == self.bgVersion && (self.dimensions[3] in self.paramInfo)) {
 						for (var f = s1; f < self.bgImageWidth; f+=50) {
 							for (var i = s2; i < self.bgImageHeight; i+=50) {
 
@@ -807,6 +815,11 @@ LineSpace.prototype.updateBackground = function() {
 
 LineSpace.prototype.redrawBackground = function() {
 	var self = this;
+
+	if (!(self.dimensions[3] in self.paramInfo)) {
+		return;
+	}
+
 	for (var f = 0; f < self.bgImageWidth; f++) {
 		for (var i = 0; i < self.bgImageHeight; i++) {
 			var colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
