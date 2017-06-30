@@ -334,9 +334,21 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     		self.dimensions[3] = d3.event.target.value;
     		self.update();
     	});
+
     self.backgroundSelect.style("float", "left").style("position", "relative");
 
     self.colorMapPicker2 = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps2.csv", function() {self.redrawBackground();})
+
+    self.opacitySelect = selectDiv
+		.append('select')
+  		.attr('class','select')
+  		//.attr("style", "visibility: hidden")
+    	.on('change',function() {
+    		self.dimensions[4] = d3.event.target.value;
+    		self.redraw();
+    	});
+
+    self.opacitySelect.style("float", "left").style("position", "relative");
 }
 
 LineSpace.prototype.setPixelValue = function(context, x, y, r, g, b, a) {
@@ -474,7 +486,7 @@ LineSpace.prototype.data = function(dataSet) {
 	var paramSet = Object.keys(dataSet[0].params).filter(function(d) {
 		return !isNaN(+dataSet[0].params[d]);
 	});
-	self.dimensions = [paramSet[0], paramSet[1], paramSet[2], ''];
+	self.dimensions = [paramSet[0], paramSet[1], paramSet[2], '', ''];
 
 	var options = self.xSelect
 	 	.selectAll('option')
@@ -549,12 +561,18 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 	}
 
 	if (!noPoint) {
+		var opacityKey = self.dimensions[4];
 		this.context.globalAlpha = 1.0;
+		if (opacityKey in self.paramInfo) {
+			var pInfo = self.paramInfo[opacityKey];
+			this.context.globalAlpha = (+ds.params[opacityKey] - pInfo.min)/(pInfo.max - pInfo.min);
+		}
 		this.context.globalCompositeOperation = "source-over";
 		context.beginPath()
 		context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5, 0, 2 * Math.PI);
 		context.fill();
 		context.closePath();
+		this.context.globalAlpha = 1.0;
 		//context.fillRect(transX+this.instanceWidth/2-1,transY+this.instanceHeight/2-1,3,3);
 		//context.stroke();
 	}
@@ -637,6 +655,13 @@ LineSpace.prototype.update = function() {
     paramSetBackground.unshift('Select...');
 
 	var options = self.backgroundSelect
+	 	.selectAll('option')
+		.data(paramSet).enter()
+		.append('option')
+		.text(function (d) { return d; })
+    	.property("selected", function(d){ return d === 'Select...'; });
+
+	var options = self.opacitySelect
 	 	.selectAll('option')
 		.data(paramSet).enter()
 		.append('option')
