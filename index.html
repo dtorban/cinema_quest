@@ -24,7 +24,11 @@
 					<option value="data/GF-HP/GF-HP.csv,diffraction,columns,\t,0,1">GF-HP-Diffraction</option>
 					<option value="data/simresults/Al.design.1000.numbered.csv,sim,columns, ,1,3,700">Flag Simulation</option>
 				</select>
-				<input type="button" value="Generate PCA" onclick="generatePCA(dataSet, pcc.query, true);"></input>
+				<select id="view" onchange="changeView(true)">
+					<option value="pca_in1,pca_in2,0,Select...,Select...|pca_out1,pca_out2,0,Select...,Select...">PCA</option>
+					<option value="1,2,0,5,Select...|3,4,0,5,Select...">Overview</option>
+				</select>
+				<input type="button" value="Generate Feature" onclick="generateFeature('pca', dataSet, pcc.query, true);"></input>
 			</div>
 			<div id="svgArea">
 				<div id="svgContainer"></div>
@@ -90,6 +94,31 @@
 				loadDatabase(dbString, dataLoaded);
 	   		}
 
+	   		function changeView(update) {
+				var paramSet = Object.keys(dataSet[0].params).filter(function(d) {
+					return !isNaN(+dataSet[0].params[d]);
+				});
+
+	   			var views = d3.select('#view').node().value.split('|');
+	   			views[0] = views[0].split(',');
+	   			views[1] = views[1].split(',');
+
+	   			views.forEach(function(view, index) {
+	   				view.forEach(function(item, index) {
+	   					if (!isNaN(item)) {
+	   						view[index] = paramSet[item];
+	   					}
+	   				});
+	   			});
+
+	   			lineSpace.changeView(views[0]);
+	   			lineSpace2.changeView(views[1]);
+	   			if (update) {
+	   				lineSpace.update();
+	   				lineSpace2.update();
+	   			}
+	   		}
+
 	   		function doneLoading() {
 
    			 	pcc.overlayPathData.push({data: {}, style: "stroke: green; stroke-width: 2px;"});
@@ -106,9 +135,9 @@
 	   			lineSpace2.onSelectionChange(query);
 	   		}
 
-	   		function generatePCA(data, query, update) {
+	   		function generateFeature(prefix, data, query, update) {
 	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
-					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith("pca_");
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_');
 				});
 
 				console.log(query);
@@ -150,10 +179,10 @@
 				var outPrediction = pca.predict(points);
 
 	   			data.forEach(function(item, index) {
-	   				item.params["pca_in1"] = inPrediction[index][0];
-	   				item.params["pca_in2"] = inPrediction[index][1];
-	   				item.params["pca_out1"] = outPrediction[index][0];
-	   				item.params["pca_out2"] = outPrediction[index][1];
+	   				item.params[prefix + "_in1"] = inPrediction[index][0];
+	   				item.params[prefix + "_in2"] = inPrediction[index][1];
+	   				item.params[prefix + "_out1"] = outPrediction[index][0];
+	   				item.params[prefix + "_out2"] = outPrediction[index][1];
 	   			});
 
 	   			if (update) {
@@ -167,7 +196,7 @@
 	   			//testSet = [];
 	   			dataSet = data;
 
-	   			generatePCA(data, pcc.query);
+	   			generateFeature('pca', data, pcc.query);
 
 				data.forEach(function(item, index) {
 					for (var f = 0; f < item.rows.length; f++) {
@@ -193,8 +222,14 @@
 					return !isNaN(+data[0].params[d]);
 				});
 
-	   			lineSpace.data(testSet, ['pca_in1', 'pca_in2', paramSet[0], '', '']);
-	   			lineSpace2.data(testSet, ['pca_out1', 'pca_out2', paramSet[0], '', '']);
+		   		changeView();
+
+	   			lineSpace.data(testSet);//, ['pca_in1', 'pca_in2', paramSet[0], 'Select...', 'Select...']);
+	   			lineSpace2.data(testSet);//, ['pca_out1', 'pca_out2', paramSet[0], 'Select...', 'Select...']);
+
+
+	   			//lineSpace.data(testSet, [paramSet[0], paramSet[1], paramSet[2], paramSet[3], 'Select...']);
+	   			//lineSpace2.data(testSet, [paramSet[4], paramSet[5], paramSet[6], paramSet[7], 'Select...']);
 
 	   		}
 

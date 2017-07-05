@@ -474,7 +474,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	self.colorMapPicker.getColor(0.5);
 }
 
-LineSpace.prototype.data = function(dataSet, dimensions) {
+LineSpace.prototype.data = function(dataSet) {
 	var self = this;
 
 	this.dataSet = dataSet;
@@ -487,21 +487,7 @@ LineSpace.prototype.data = function(dataSet, dimensions) {
 		return !isNaN(+dataSet[0].params[d]);
 	});
 	//self.dimensions = [paramSet[0], paramSet[1], paramSet[2], '', ''];
-	self.dimensions = dimensions;
-
-	var options = self.xSelect
-	 	.selectAll('option')
-		.data(paramSet).enter()
-		.append('option')
-		.text(function (d) { return d; })
-    	.property("selected", function(d){ return d === self.dimensions[0]; });
-
-	var options = self.ySelect
-	 	.selectAll('option')
-		.data(paramSet).enter()
-		.append('option')
-		.text(function (d) { return d; })
-    	.property("selected", function(d){ return d === self.dimensions[1]; });
+	//self.dimensions = dimensions;
 
     self.update();
 }
@@ -648,29 +634,42 @@ LineSpace.prototype.update = function() {
 		return !isNaN(+self.dataSet[0].params[d]);
 	});
 
+    paramSet.unshift('Select...');
+
+	var options = self.xSelect
+	 	.selectAll('option')
+		.data(paramSet).enter()
+		.append('option')
+		.text(function (d) { return d; })
+    self.xSelect.property('value', self.dimensions[0]);
+
+	var options = self.ySelect
+	 	.selectAll('option')
+		.data(paramSet).enter()
+		.append('option')
+		.text(function (d) { return d; })
+    self.ySelect.property('value', self.dimensions[1]);
+
 	var options = self.valueSelect
 	 	.selectAll('option')
 		.data(paramSet).enter()
 		.append('option')
 		.text(function (d) { return d; })
-    	.property("selected", function(d){ return d === self.dimensions[2]; });
-
-    var paramSetBackground = paramSet;
-    paramSetBackground.unshift('Select...');
+    self.valueSelect.property('value', self.dimensions[2]);
 
 	var options = self.backgroundSelect
 	 	.selectAll('option')
 		.data(paramSet).enter()
 		.append('option')
 		.text(function (d) { return d; })
-    	.property("selected", function(d){ return d === 'Select...'; });
+    self.backgroundSelect.property('value', self.dimensions[3]);
 
 	var options = self.opacitySelect
 	 	.selectAll('option')
 		.data(paramSet).enter()
 		.append('option')
 		.text(function (d) { return d; })
-    	.property("selected", function(d){ return d === 'Select...'; });
+    self.opacitySelect.property('value', self.dimensions[4]);
 
 	self.paramX.domain(d3.extent(paramExtentX, function(d) { return d; }));
 	self.paramY.domain(d3.extent(paramExtentY, function(d) { return d; }));
@@ -686,6 +685,11 @@ LineSpace.prototype.update = function() {
 	self.updateBackground();
 
 	self.redraw();
+}
+
+LineSpace.prototype.changeView = function(dimensions) {
+	var self = this;
+	self.dimensions = dimensions;
 }
 
 LineSpace.prototype.calcBackgroundInterpolate = function(nearest) {
