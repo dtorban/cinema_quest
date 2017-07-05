@@ -6,6 +6,7 @@
 	<link rel='stylesheet' href='css/parallelCoordinates.css'>
 	<script src="lib/jquery-3.2.1.min.js"></script>
 	<script src="lib/kdTree-min.js"></script>
+    <script src="lib/ml.min.js"></script>
     <script src="d3.v4.min.js"></script>
     <script src="Simularity.js"></script>
     <script src="ColorMapPicker.js"></script>
@@ -67,6 +68,11 @@
 			}
 
 			function load() {
+				/*var points = [[1,2], [3,4], [2,3], [1,5], [7,12], [1.5,3]];
+				const pca = new ML.Stat.PCA(points);
+				console.log(pca.getExplainedVariance());
+				console.log(pca.predict(points));*/
+
 				$('#svgContainer').html('');
 				d3.selectAll('.spaceContainer').html('');
 				var dbString = d3.select('#database').node().value;

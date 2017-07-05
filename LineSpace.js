@@ -562,11 +562,14 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 
 	if (!noPoint) {
 		var opacityKey = self.dimensions[4];
-		this.context.globalAlpha = 1.0;
+		var opacity = 1.0;
 		if (opacityKey in self.paramInfo) {
 			var pInfo = self.paramInfo[opacityKey];
-			this.context.globalAlpha = (+ds.params[opacityKey] - pInfo.min)/(pInfo.max - pInfo.min);
+			opacity = (+ds.params[opacityKey] - pInfo.min)/(pInfo.max - pInfo.min);		
 		}
+
+		this.context.globalAlpha = opacity;	
+		$('.pCoordChart .resultPaths path[index="'+graphProperties.index+'"]').css('stroke-opacity', '' + (opacity*0.4));
 		this.context.globalCompositeOperation = "source-over";
 		context.beginPath()
 		context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5, 0, 2 * Math.PI);
