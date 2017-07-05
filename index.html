@@ -128,11 +128,23 @@
 
    			 	//pcc.updateOverlayPaths();
 	   			pcc.dispatch.on('selectionchange', onSelectionChange);
+				pcc.dispatch.on('mouseover', onMouseOverChange);
 	   		}
 
 	   		function onSelectionChange(query) {
 	   			lineSpace.onSelectionChange(query);
 	   			lineSpace2.onSelectionChange(query);
+	   		}
+
+	   		function onMouseOverChange(i, event) {
+	   			if (i) {
+	   				lineSpace.select([i]);
+	   				lineSpace2.select([i]);
+	   			}
+	   			else {
+	   				lineSpace.select([]);
+	   				lineSpace2.select([]);
+	   			}
 	   		}
 
 	   		function generateFeature(prefix, data, query, update) {

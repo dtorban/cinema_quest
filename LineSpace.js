@@ -37,6 +37,18 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 	this.context.globalAlpha = 0.4;
 	this.context.globalCompositeOperation = "difference";
 
+	this.selectCanvas = parent.append("canvas")
+		.attr('width', this.parentRect.width*this.pixelRatio)
+		.attr('height', this.parentRect.height*this.pixelRatio)
+		.attr("style", "z-index: 2;position:absolute;left:0px;top:0px;");
+	this.selectContext = this.selectCanvas.node().getContext("2d");
+    this.selectContext.scale(self.pixelRatio,self.pixelRatio);
+    this.selectCanvas.style("width", ''+this.parentRect.width +'px');
+    this.selectCanvas.style("height", ''+this.parentRect.height +'px');
+    this.selectContext.clearRect(0, 0, this.parentRect.width, this.parentRect.height);
+	this.selectContext.globalAlpha = 1.0;
+	//this.selectContext.globalCompositeOperation = "source-over";
+
     this.instanceWidth = self.parentRect.width/8;
     this.instanceHeight = self.parentRect.height/8;
 	this.margin = {top: this.instanceHeight/2, right: this.instanceWidth/2, bottom: this.instanceHeight/2, left: this.instanceWidth/2};
@@ -68,6 +80,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 
 
     this.context.translate(this.margin.right, this.margin.top);
+    this.selectContext.translate(this.margin.right, this.margin.top);
     this.innerWidth = this.parentRect.width - this.instanceWidth;
     this.innerHeight = this.parentRect.height - this.instanceHeight;
 
@@ -88,7 +101,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     this.actionCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
 		.attr('height', this.parentRect.height*this.pixelRatio)
-		.attr("style", "z-index: 3;position:absolute;left:0px;top:0px;cursor: default");
+		.attr("style", "z-index: 4;position:absolute;left:0px;top:0px;cursor: default");
     this.actionCanvas.style("width", ''+this.parentRect.width +'px');
     this.actionCanvas.style("height", ''+this.parentRect.height +'px');
 
@@ -112,7 +125,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 				.attr('width', self.parentRect.width*self.pixelRatio)
 				.attr('height', self.parentRect.height*self.pixelRatio)
 				.attr('class', 'lense')
-				.attr("style", "z-index: 2;position:absolute;left:0px;top:0px;cursor: default");
+				.attr("style", "z-index: 3;position:absolute;left:0px;top:0px;cursor: default");
 			var context = canvas.node().getContext("2d");
             context.scale(self.pixelRatio,self.pixelRatio);
             canvas.style("width", ''+self.parentRect.width +'px');
@@ -351,6 +364,29 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     self.opacitySelect.style("float", "left").style("position", "relative");
 }
 
+LineSpace.prototype.select = function(query) {
+	var self = this;
+
+	if (query.length > 0) {
+		self.selected = [];
+		query.forEach(function(item, index) {
+			self.selected.push(item);
+			var ds = self.dataSet[item];
+			self.drawLines({context: self.selectContext, scale: 1.0, prevScale: 1.0}, ds, 'red');
+		});
+	}
+	else {
+		self.selected.forEach(function(item, index) {
+			self.selected.push(item);
+			var ds = self.dataSet[item];
+			self.drawLines({context: self.selectContext, scale: 1.0, prevScale: 1.0}, ds, 'clear');
+		});
+
+		self.selected = [];
+	}
+	
+}
+
 LineSpace.prototype.setPixelValue = function(context, x, y, r, g, b, a) {
 	var self = this;
 	self.imageDataVal[0] = r;
@@ -507,6 +543,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 
 	if (color) {
 		context.strokeStyle = color;
+		context.fillStyle = color;
 	}
 	else if (graphProperties.show) {
 		//context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';//color;
@@ -539,7 +576,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 
 
 	//context.strokeRect(this.instanceWidth/2,this.instanceHeight/2,1,1);
-	if (!graphProperties.show) {
+	if (!graphProperties.show && !color) {
 		var colorValue = self.colorMapPicker.getColor(graphProperties.value);
 		var c = 'rgba('+colorValue[0]+','+colorValue[1]+','+colorValue[2]+','+colorValue[3]+')';
 		context.fillStyle = c;
@@ -548,21 +585,36 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 	}
 
 	if (!noPoint) {
-		var opacityKey = self.dimensions[4];
-		var opacity = 1.0;
-		if (opacityKey in self.paramInfo) {
-			var pInfo = self.paramInfo[opacityKey];
-			opacity = (+ds.params[opacityKey] - pInfo.min)/(pInfo.max - pInfo.min);		
+		if (color == 'clear') {
+			context.save();
+			context.beginPath();
+			var xClear = transX+lense.scale*this.instanceWidth/2;
+			var yClear = transY+lense.scale*this.instanceHeight/2;
+			var clearRadius = 6;
+		
+			context.arc(xClear, yClear, clearRadius, 0, 2*Math.PI, true);
+			context.clip();
+			context.clearRect(xClear-clearRadius,yClear-clearRadius,clearRadius*2,clearRadius*2);
+			context.restore();
 		}
+		else {
+			var opacityKey = self.dimensions[4];
+			var opacity = 1.0;
+			if (opacityKey in self.paramInfo) {
+				var pInfo = self.paramInfo[opacityKey];
+				opacity = (+ds.params[opacityKey] - pInfo.min)/(pInfo.max - pInfo.min);		
+			}
 
-		this.context.globalAlpha = opacity;	
-		$('.pCoordChart .resultPaths path[index="'+graphProperties.index+'"]').css('stroke-opacity', '' + (opacity*0.4));
-		this.context.globalCompositeOperation = "source-over";
-		context.beginPath()
-		context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5, 0, 2 * Math.PI);
-		context.fill();
-		context.closePath();
-		this.context.globalAlpha = 1.0;
+			this.context.globalAlpha = opacity;	
+			$('.pCoordChart .resultPaths path[index="'+graphProperties.index+'"]').css('stroke-opacity', '' + (opacity*0.4));
+			this.context.globalCompositeOperation = "source-over";
+			context.beginPath()
+			context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5, 0, 2 * Math.PI);
+			context.fill();
+			context.closePath();
+			this.context.globalAlpha = 1.0;
+		}
+		
 		//context.fillRect(transX+this.instanceWidth/2-1,transY+this.instanceHeight/2-1,3,3);
 		//context.stroke();
 	}
