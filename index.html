@@ -24,6 +24,7 @@
 					<option value="data/GF-HP/GF-HP.csv,diffraction,columns,\t,0,1">GF-HP-Diffraction</option>
 					<option value="data/simresults/Al.design.1000.numbered.csv,sim,columns, ,1,3,700">Flag Simulation</option>
 				</select>
+				<input type="button" value="Generate PCA" onclick="generatePCA(dataSet, pcc.query, true);"></input>
 			</div>
 			<div id="svgArea">
 				<div id="svgContainer"></div>
@@ -54,6 +55,7 @@
 			var testSet = null;
 			var fullSet = null;
 			var pcc = null;
+			var dataSet = null;
 
    			updateResultsArea();
 
@@ -104,9 +106,68 @@
 	   			lineSpace2.onSelectionChange(query);
 	   		}
 
+	   		function generatePCA(data, query, update) {
+	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith("pca_");
+				});
+
+				console.log(query);
+
+	   			var points = [];
+	   			data.forEach(function(item, index) {
+	   				var point = [];
+	   				paramSet.forEach(function(param, index) {
+	   					point.push(+item.params[param]);
+					});
+					points.push(point);
+	   			});
+
+	   			var trainingPoints = [];
+	   			query.forEach(function(item, index) {
+	   				trainingPoints.push(points[item]);
+	   			});
+
+				var pca = new ML.Stat.PCA(trainingPoints);
+				console.log(pca.getExplainedVariance());
+				var inPrediction = pca.predict(points);
+
+	   			points = [];
+				data.forEach(function(item, index) {
+	   				var point = [];
+					for (var f = 0; f < item.rows.length; f++) {
+						point.push(item.rows[f].y);
+					}
+					points.push(point);
+				});
+
+				trainingPoints = [];
+	   			query.forEach(function(item, index) {
+	   				trainingPoints.push(points[item]);
+	   			});
+
+				pca = new ML.Stat.PCA(trainingPoints);
+				console.log(pca.getExplainedVariance());
+				var outPrediction = pca.predict(points);
+
+	   			data.forEach(function(item, index) {
+	   				item.params["pca_in1"] = inPrediction[index][0];
+	   				item.params["pca_in2"] = inPrediction[index][1];
+	   				item.params["pca_out1"] = outPrediction[index][0];
+	   				item.params["pca_out2"] = outPrediction[index][1];
+	   			});
+
+	   			if (update) {
+	   				lineSpace.update();
+	   				lineSpace2.update();
+	   			}
+	   		}
+
 	   		function dataLoaded(data) {
 	   			//trainingSet = [];
 	   			//testSet = [];
+	   			dataSet = data;
+
+	   			generatePCA(data, pcc.query);
 
 				data.forEach(function(item, index) {
 					for (var f = 0; f < item.rows.length; f++) {
@@ -128,8 +189,12 @@
 	   			*/
 		   		paramInfo = calcParamInfo(trainingSet);
 
-	   			lineSpace.data(testSet);
-	   			lineSpace2.data(testSet);
+		   		var paramSet = Object.keys(data[0].params).filter(function(d) {
+					return !isNaN(+data[0].params[d]);
+				});
+
+	   			lineSpace.data(testSet, ['pca_in1', 'pca_in2', paramSet[0], '', '']);
+	   			lineSpace2.data(testSet, ['pca_out1', 'pca_out2', paramSet[0], '', '']);
 
 	   		}
 

@@ -474,7 +474,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	self.colorMapPicker.getColor(0.5);
 }
 
-LineSpace.prototype.data = function(dataSet) {
+LineSpace.prototype.data = function(dataSet, dimensions) {
 	var self = this;
 
 	this.dataSet = dataSet;
@@ -486,7 +486,8 @@ LineSpace.prototype.data = function(dataSet) {
 	var paramSet = Object.keys(dataSet[0].params).filter(function(d) {
 		return !isNaN(+dataSet[0].params[d]);
 	});
-	self.dimensions = [paramSet[0], paramSet[1], paramSet[2], '', ''];
+	//self.dimensions = [paramSet[0], paramSet[1], paramSet[2], '', ''];
+	self.dimensions = dimensions;
 
 	var options = self.xSelect
 	 	.selectAll('option')
