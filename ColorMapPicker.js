@@ -70,6 +70,12 @@ function ColorMapPicker(parent, dataFile, onChange) {
 }
 ColorMapPicker.prototype.getColor = function(value) {
 	var self = this;
+  if (value < 0.00001) {
+    value = 0.01;
+  }
+  if (value > 0.999999) {
+    value = 0.99
+  }
   self.output[0] = self.imageData[Math.floor(self.img.node().width*value)*4];
   self.output[1] = self.imageData[Math.floor(self.img.node().width*value)*4+1];
   self.output[2] = self.imageData[Math.floor(self.img.node().width*value)*4+2];

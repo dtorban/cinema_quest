@@ -25,7 +25,7 @@
 					<option value="data/simresults/Al.design.1000.numbered.csv,sim,columns, ,1,3,700">Flag Simulation</option>
 				</select>
 				<select id="view" onchange="changeView(true)">
-					<option value="pca_in1,pca_in2,0,Select...,Select...|pca_out1,pca_out2,0,Select...,Select...">PCA</option>
+					<option value="pca_in1,pca_in2,kmeans_5_in,Select...,Select...|pca_out1,pca_out2,kmeans_5_in,Select...,Select...">PCA</option>
 					<option value="1,2,0,5,Select...|3,4,0,5,Select...">Overview</option>
 				</select>
 				<input type="button" value="Generate Feature" onclick="generateFeature('pca', dataSet, pcc.query, true);"></input>
@@ -74,6 +74,13 @@
 			}
 
 			function load() {
+
+				/*let data = [[1, 1, 1], [1, 2, 1], [-1, -1, -1], [-1, -1, -1.5]];
+				let centers = [[1, 2, 1], [-1, -1, -1]];
+				 
+				let ans = ML.Clust.kmeans(data, 2, {initialization: centers});
+				console.log(ans);*/
+
 				/*var points = [[1,2], [3,4], [2,3], [1,5], [7,12], [1.5,3]];
 				const pca = new ML.Stat.PCA(points);
 				console.log(pca.getExplainedVariance());
@@ -87,8 +94,8 @@
 												dbString.split(',')[0],
 												['sim','visar','diffraction'],
 												doneLoading);
-   			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, [interpolate1, interpolate3, interpolate4]);
-   			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, [interpolate1, interpolate3, interpolate4]);
+   			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, [interpolate1, interpolate3, interpolate4], onSelect);
+   			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, [interpolate1, interpolate3, interpolate4], onSelect);
 
 
 				loadDatabase(dbString, dataLoaded);
@@ -147,12 +154,17 @@
 	   			}
 	   		}
 
+	   		function onSelect(query) {
+	   			lineSpace.select(query, true);
+	   			lineSpace2.select(query, true);
+	   		}
+
 	   		function generateFeature(prefix, data, query, update) {
 	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
-					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_');
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_');
 				});
 
-				console.log(query);
+				//console.log(query);
 
 	   			var points = [];
 	   			data.forEach(function(item, index) {
@@ -203,12 +215,77 @@
 	   			}
 	   		}
 
+	   		function generateKMeans(prefix, data, query, k, update) {
+	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_');
+				});
+
+				//console.log(query);
+
+	   			var points = [];
+	   			data.forEach(function(item, index) {
+	   				var point = [];
+	   				paramSet.forEach(function(param, index) {
+	   					point.push(+item.params[param]*Math.pow(paramInfo[param].variance,2));
+					});
+					points.push(point);
+	   			});
+
+	   			var trainingPoints = [];
+	   			query.forEach(function(item, index) {
+	   				trainingPoints.push(points[item]);
+	   			});
+
+				var centers = [];
+				for (var f = 0; f < k; f++) {
+					centers.push(trainingPoints[Math.floor(Math.random()*trainingPoints.length)]);
+				}
+
+				var kmeansIn = new ML.Clust.kmeans(trainingPoints, k, {initialization: centers});
+
+	   			points = [];
+				data.forEach(function(item, index) {
+	   				var point = [];
+					for (var f = 0; f < item.rows.length; f++) {
+						point.push(item.rows[f].y);
+					}
+					points.push(point);
+				});
+
+				trainingPoints = [];
+	   			query.forEach(function(item, index) {
+	   				trainingPoints.push(points[item]);
+	   			});
+
+	   			centers = [];
+				for (var f = 0; f < k; f++) {
+					centers.push(trainingPoints[Math.floor(Math.random()*trainingPoints.length)]);
+				}
+
+	   			var kmeansOut = new ML.Clust.kmeans(trainingPoints, k, {initialization: centers});
+
+	   			data.forEach(function(item, index) {
+	   				item.params[prefix + "_" + k + "_in"] = kmeansIn.clusters[index];
+	   				item.params[prefix + "_" + k + "_out"] = kmeansOut.clusters[index];
+	   			});
+
+
+	   			if (update) {
+	   				lineSpace.update();
+	   				lineSpace2.update();
+	   			}
+	   		}
+
 	   		function dataLoaded(data) {
 	   			//trainingSet = [];
 	   			//testSet = [];
 	   			dataSet = data;
 
+		   		paramInfo = calcParamInfo(dataSet);
 	   			generateFeature('pca', data, pcc.query);
+		   		generateKMeans('kmeans', data, pcc.query, 5);
+		   		generateKMeans('kmeans', data, pcc.query, 10);
+
 
 				data.forEach(function(item, index) {
 					for (var f = 0; f < item.rows.length; f++) {
@@ -228,6 +305,7 @@
 		   			}
 	   			});
 	   			*/
+
 		   		paramInfo = calcParamInfo(trainingSet);
 
 		   		var paramSet = Object.keys(data[0].params).filter(function(d) {

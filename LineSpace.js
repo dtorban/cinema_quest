@@ -1,6 +1,6 @@
 'use strict'
 
-function LineSpace(parent, getGraphProperties, interpolateFunctions) {
+function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 	var self = this;
     
     //Determine screen DPI to rescale canvas contexts
@@ -21,6 +21,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
 
 	self.getGraphProperties = getGraphProperties;
 	self.interpolateFunctions = interpolateFunctions;
+	self.onSelect = onSelect;
 
 	this.parent = parent;
 	//this.parent.attr("style", "position:relative;left:0px;top:0px;background-color:white");
@@ -47,7 +48,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     this.selectCanvas.style("height", ''+this.parentRect.height +'px');
     this.selectContext.clearRect(0, 0, this.parentRect.width, this.parentRect.height);
 	this.selectContext.globalAlpha = 1.0;
-	//this.selectContext.globalCompositeOperation = "source-over";
+	this.selectContext.globalCompositeOperation = "source-over";
 
     this.instanceWidth = self.parentRect.width/8;
     this.instanceHeight = self.parentRect.height/8;
@@ -94,6 +95,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     this.resizing = false;
     this.canManipulate = false;
     this.manipulating = false;
+    this.selecting = false;
     this.manipInterpIndex = -1;
     this.manipOutputIndex = -1;
     this.query = [];
@@ -106,6 +108,18 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     this.actionCanvas.style("height", ''+this.parentRect.height +'px');
 
 	this.actionCanvas.on("mousedown", function() {
+		if (self.selectable) {
+			self.selecting = true;
+			self.selectContext.fillStyle = 'red';
+			self.selectContext.globalAlpha = 0.1;
+			self.selectContext.globalCompositeOperation = "source-over";
+			self.selectContext.beginPath();
+			self.selectContext.clearRect(-self.margin.left,-self.margin.top,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
+			self.selectContext.stroke();
+			self.selectContext.closePath();
+			return;
+		}
+
 		self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
 
 		self.currentLenseIndex = -1;
@@ -177,6 +191,45 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     });
 
     this.actionCanvas.on("mouseup", function() {
+    	if (self.selecting) {
+    		self.selecting = false;
+			self.selectContext.globalAlpha = 1.0;
+
+			var selected = [];
+
+			self.query.forEach(function(item, index) {
+				var ds = self.dataSet[item];
+				var imgData = self.selectContext.getImageData(self.paramX(+ds.params[self.dimensions[0]])+self.margin.left, self.paramY(+ds.params[self.dimensions[1]])+self.margin.top, 1, 1).data;
+				//console.log(imgData, ds);
+				if (imgData[0] > 0) {
+					selected.push(ds.id);
+					$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
+				}
+				else {
+					$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '0px');
+				}
+				//self.drawLines({context: self.context, scale: 1.0, prevScale: 1.0}, ds);
+			});
+
+			if (selected.length == 0) {
+				self.query.forEach(function(item, index) {
+					var ds = self.dataSet[item];
+					$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
+					//self.drawLines({context: self.context, scale: 1.0, prevScale: 1.0}, ds);
+				});
+			}
+			
+
+			self.selectContext.beginPath();
+			self.selectContext.clearRect(-self.margin.left,-self.margin.top,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
+			self.selectContext.stroke();
+			self.selectContext.closePath();
+
+			self.onSelect(selected);
+			//self.selectContext.globalCompositeOperation = "source-over";
+    		return;
+    	}
+
     	if (self.interpolating) {
 		    self.handleInterpolate(d3.event);
 		    self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
@@ -194,6 +247,21 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     });
 
     this.actionCanvas.on("mousemove", function() {
+    	if (self.selectable) {
+    		if (self.selecting) {
+    			var cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
+    			var x = self.paramX.invert(cursorPosition[0]);
+				var y = self.paramY.invert(cursorPosition[1]);
+				var context = self.selectContext;
+				context.beginPath();
+				context.arc(self.paramX(x), self.paramY(y), 10, 0, 2*Math.PI, true);
+				context.fill();
+				context.closePath();
+				//console.log(x,y);
+    		}
+    		return;
+    	}
+
     	if (self.dataSet) {
     		if (self.interpolating) {
 	    		self.interpolate(d3.event.offsetX, d3.event.offsetY, self.lenses[self.currentLenseIndex]);
@@ -285,6 +353,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     });
 
     this.showAll = false;
+    this.selectable = false;
 
     var selectDiv = self.parent
 		.append('div')
@@ -362,10 +431,28 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions) {
     	});
 
     self.opacitySelect.style("float", "left").style("position", "relative");
+
+    var checkbox = selectDiv.append("input")
+	    .attr("type", "checkbox")
+	    .on('click',function() {
+	    	self.selectable = d3.event.target.checked;
+    		//self.update();
+    	});
+    if (self.selectable) {
+    	checkbox.attr("checked", self.selectable);
+    }
+    checkbox.style("float", "left").style("position", "relative");
 }
 
-LineSpace.prototype.select = function(query) {
+LineSpace.prototype.select = function(query, clear) {
 	var self = this;
+
+	if (clear) {
+		self.selectContext.beginPath();
+		self.selectContext.clearRect(-self.margin.left,-self.margin.top,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
+		self.selectContext.stroke();
+		self.selectContext.closePath();
+	}
 
 	if (query.length > 0) {
 		self.selected = [];
