@@ -145,7 +145,7 @@
 												dbString.split(',')[0],
 												['sim','visar','diffraction'],
 												doneLoading);
-				interpFunctions = [interpolate1, interpolate3, interpolate4];
+				interpFunctions = [interpolate1, interpolate2, interpolate3, interpolate4];
    			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect);
    			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect);
 
@@ -385,7 +385,23 @@
 			   		});
 		   		});
 
+		   		var errorParamSet = Object.keys(data[0].params).filter(function(d) {
+					return d.startsWith('error_');
+				});
+
 				data.forEach(function(item, index) {
+					var sum = 0;
+					errorParamSet.forEach(function(param, index) {
+						sum += item.params[param];
+					});
+					var average = sum/errorParamSet.length;
+					item.params["error_average"] = average;
+					/*errorParamSet.forEach(function(param, index) {
+						item.params[param + '_diff'] = Math.abs(item.params[param]-average);
+					});*/
+				});
+
+		   		data.forEach(function(item, index) {
 					for (var f = 0; f < item.rows.length; f++) {
 						item.params["output_" + f] = item.rows[f].y;
 					}
@@ -406,6 +422,10 @@
 
 		   		paramInfo = calcParamInfo(dataSet);
 
+		   		errorParamSet.forEach(function(param, index) {
+					paramInfo[param] = paramInfo["error_average"]
+				});
+
 		   		var paramSet = Object.keys(data[0].params).filter(function(d) {
 					return !isNaN(+data[0].params[d]);
 				});
@@ -415,6 +435,12 @@
 	   			lineSpace.data(testSet);//, ['pca_in1', 'pca_in2', paramSet[0], 'Select...', 'Select...']);
 	   			lineSpace2.data(testSet);//, ['pca_out1', 'pca_out2', paramSet[0], 'Select...', 'Select...']);
 
+	   			errorParamSet.forEach(function(param, index) {
+					lineSpace.paramInfo[param] = paramInfo["error_average"]
+				});
+				errorParamSet.forEach(function(param, index) {
+					lineSpace2.paramInfo[param] = paramInfo["error_average"]
+				});
 
 	   			//lineSpace.data(testSet, [paramSet[0], paramSet[1], paramSet[2], paramSet[3], 'Select...']);
 	   			//lineSpace2.data(testSet, [paramSet[4], paramSet[5], paramSet[6], paramSet[7], 'Select...']);
