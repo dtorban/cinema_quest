@@ -52,14 +52,58 @@
 			</div>
 		</div>
    		<script>
+   			class LeaveOneOutCrossValidation {
+	   			constructor(dataSize) {
+	   				this.set = [];
+
+	   				for (var f = 0; f < dataSize; f++) {
+	   					this.set.push(f);
+	   				}
+	   			}
+
+	   			getTrainingSet(i) {
+	   				return this.set.slice(0,i).concat(this.set.slice(i+1));
+	   			}
+	   		}
+
+	   		class KFoldCrossValidation {
+	   			constructor(k, dataSize) {
+	   				this.sets = [];
+	   				this.setMapping = {};
+
+	   				for (var f = 0; f < k; f++) {
+	   					this.sets.push([]);
+	   				}
+
+	   				for (var f = 0; f < dataSize; f++) {
+	   					var setNum = Math.floor(Math.random()*k);
+	   					this.setMapping[f] = setNum;
+	   					this.sets[setNum].push(f);
+	   				}
+	   			}
+
+	   			getTrainingSet(i) {
+	   				var testSet = [];
+	   				var validationSet = this.setMapping[i];
+	   				for (var f = 0; f < this.sets.length; f++) {
+	   					if (validationSet != f) {
+	   						testSet = testSet.concat(this.sets[f]);
+	   					}
+	   				}
+
+	   				return testSet;
+	   			}
+	   		}
+
 			var lineSpace = null;
 			var lineSpace2 = null;
-			var trainingSet = null;
+			//var trainingSet = null;
 			var paramInfo = null;
 			var testSet = null;
 			var fullSet = null;
 			var pcc = null;
 			var dataSet = null;
+			var interpFunctions = null;
 
    			updateResultsArea();
 
@@ -73,7 +117,14 @@
 			  return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
 			}
 
+
+
 			function load() {
+
+				/*var fold10 = new KFoldCrossValidation(10,100);
+				console.log(fold10.getTestSet(50));
+				var loocv = new LeaveOneOutCrossValidation(100);
+				console.log(loocv.getTestSet(50));*/
 
 				/*let data = [[1, 1, 1], [1, 2, 1], [-1, -1, -1], [-1, -1, -1.5]];
 				let centers = [[1, 2, 1], [-1, -1, -1]];
@@ -94,8 +145,9 @@
 												dbString.split(',')[0],
 												['sim','visar','diffraction'],
 												doneLoading);
-   			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, [interpolate1, interpolate3, interpolate4], onSelect);
-   			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, [interpolate1, interpolate3, interpolate4], onSelect);
+				interpFunctions = [interpolate1, interpolate3, interpolate4];
+   			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect);
+   			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect);
 
 
 				loadDatabase(dbString, dataLoaded);
@@ -163,7 +215,7 @@
 
 	   		function generateFeature(prefix, data, query, update) {
 	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
-					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_');
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
 				});
 
 				//console.log(query);
@@ -225,7 +277,7 @@
 
 	   		function generateKMeans(prefix, data, query, k, update) {
 	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
-					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_');
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
 				});
 
 				//console.log(query);
@@ -284,6 +336,35 @@
 	   			}
 	   		}
 
+
+	   		function generateInterpolationError(suffix, data, interpolationFunction, validator) {
+	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
+					return !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
+				});
+
+	   			data.forEach(function(ds, index) {
+	   				var trainingSet = validator.getTrainingSet(index);
+	   				trainingSet.forEach(function(item, index) {
+	   					var ds = data[item];
+	   					trainingSet[index] = {id: index, params: ds.params, rows: ds.rows};
+	   				});
+
+	   				var query = {};
+	   				paramSet.forEach(function(param, index) {
+	   					query[param] = ds.params[param];
+	   				});
+
+	   				var interp = interpolationFunction(query, trainingSet);
+
+					var interpError = weightedEclideanDistance(null, 
+						Array.from(ds.rows, x => x.y),
+						Array.from(interp.ds.rows, x => x.y));
+					//console.log(validator.getTrainingSet(index), index, interpError);
+
+	   				ds.params["error_" + suffix] = interpError;
+	   			});
+	   		}
+
 	   		function dataLoaded(data) {
 	   			//trainingSet = [];
 	   			//testSet = [];
@@ -293,7 +374,16 @@
 	   			generateFeature('pca', data, pcc.query);
 		   		generateKMeans('kmeans', data, pcc.query, 5);
 		   		generateKMeans('kmeans', data, pcc.query, 10);
-
+		   		var fold3 = new KFoldCrossValidation(3, dataSet.length);
+		   		var fold10 = new KFoldCrossValidation(10, dataSet.length);
+		   		var leaveOneOut = new LeaveOneOutCrossValidation(dataSet.length);
+		   		var validators = [{name: '3Fold', validator: fold3}, {name: '10Fold', validator: fold10}, {name: 'LeaveOneOut', validator: leaveOneOut}];
+		   		validators.forEach(function(validator, index) {
+			   		interpFunctions.forEach(function(interpFunction, index) {
+			   			var name = validator.name + '_i' + index;
+			   			generateInterpolationError(name, dataSet, interpFunction, validator.validator);
+			   		});
+		   		});
 
 				data.forEach(function(item, index) {
 					for (var f = 0; f < item.rows.length; f++) {
@@ -302,7 +392,7 @@
 				});
 
 	   			fullSet = data;
-	   			trainingSet = data;
+	   			//trainingSet = data;
 	   			testSet = data;
 	   			/*data.forEach(function(item, index) {
 		   			if (Math.random() < 0.5) {
@@ -314,7 +404,7 @@
 	   			});
 	   			*/
 
-		   		paramInfo = calcParamInfo(trainingSet);
+		   		paramInfo = calcParamInfo(dataSet);
 
 		   		var paramSet = Object.keys(data[0].params).filter(function(d) {
 					return !isNaN(+data[0].params[d]);
@@ -336,9 +426,9 @@
    				return {x: +ds.params[space.dimensions[0]], y: +ds.params[space.dimensions[1]], value: (+ds.params[space.dimensions[2]]-pInfo.min)/(pInfo.max - pInfo.min), show: ds.id < 0, index: ds.id};
    			}
 
-   			function interpolate1(query) {
+   			function interpolate1(query, trainingSet) {
    				d3.select('#interp1').text("Eclidean Distance (k=5, p=1)");
-   				var interp = interpolate(query, 5, 1, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, null, true);
+   				var interp = interpolate(query, 5, 1, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet);
    				interp.color = 'green';
    				d3.select('#interp1').style("color","green");
    				pcc.overlayPathData[0].data = interp.ds.params;
@@ -346,17 +436,17 @@
    				return interp;
    			}
 
-   			function interpolate2(query) {
+   			function interpolate2(query, trainingSet) {
    				d3.select('#interp2').text("Manhattan Distance (k=10, p=2)");
-   				var interp = interpolate(query, 10, 2, function(index) { return 1.0/paramInfo[index].variance; }, manhattanDistance, null);
+   				var interp = interpolate(query, 10, 2, function(index) { return 1.0/paramInfo[index].variance; }, manhattanDistance, trainingSet);
    				interp.color = 'blue';
    				d3.select('#interp2').style("color","blue");
    				return interp;
    			}
 
-   			function interpolate3(query) {
+   			function interpolate3(query, trainingSet) {
    				d3.select('#interp3').text("Eclidean Distance (k=10, p=4)");
-   				var interp = interpolate(query, 10, 4, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, null);
+   				var interp = interpolate(query, 10, 4, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet);
    				interp.color = 'red';
    				d3.select('#interp3').style("color","red");
    				pcc.overlayPathData[1].data = interp.ds.params;
@@ -364,9 +454,9 @@
    				return interp;
    			}
 
-   			function interpolate4(query) {
+   			function interpolate4(query, trainingSet) {
    				d3.select('#interp4').text("Centered Cosine (k=10, p=4)");
-   				var interp = interpolate(query, 10, 4, function(index) { return -paramInfo[index].mean; }, centeredCosineSimularity, null);
+   				var interp = interpolate(query, 10, 4, function(index) { return -paramInfo[index].mean; }, centeredCosineSimularity, trainingSet);
    				interp.color = 'cyan';
    				d3.select('#interp4').style("color","cyan");
    				pcc.overlayPathData[2].data = interp.ds.params;
@@ -374,7 +464,7 @@
    				return interp;
    			}
 
-   			function interpolate(query, k, p, weightFunction, distanceFunction, div) {
+   			function interpolate(query, k, p, weightFunction, distanceFunction, trainingSet) {
    				var paramSet = Object.keys(paramInfo);
    				var querySet = Object.keys(query);
    				var params = {}
@@ -429,27 +519,13 @@
 				newDs.extentX = d3.extent(newDs.rows, function(d) { return d.x; });
 				newDs.extentY = d3.extent(newDs.rows, function(d) { return d.y; });
 
-				var dsTestDist = calcDistance(newDs, testSet, querySet, weightFunction, distanceFunction, p);
+				/*var dsTestDist = calcDistance(newDs, testSet, querySet, weightFunction, distanceFunction, p);
 
 				var interpError = weightedEclideanDistance(null, 
 					Array.from(testSet[dsTestDist[0].id].rows, x => x.y),
-					Array.from(newDs.rows, x => x.y));
+					Array.from(newDs.rows, x => x.y));*/
 
-   				//console.log(dsDist[0].distance, dsDist[0].weight, dsDist[0].id, lineSpace.dataSet[dsDist[0].id].params.run, weightSum);
-
-   				//newDs.rows = lineSpace.dataSet[Math.floor(Math.random()*lineSpace.dataSet.length)].rows;
-   				var text = "\n";
-   				paramSet.forEach(function(item, index) {
-   					//text += '    ' + item + ": " + newDs.params[item].toPrecision(4) + '\n';
-   				});
-
-   				text += '    error: ' + interpError.toPrecision(4) + '\n';
-
-   				if (div) {
-   					div.text(div.text() + text);
-   				}
-
-   				return {ds: newDs, neighbors: dsDist, error: interpError};
+   				return {ds: newDs, neighbors: dsDist};//, error: interpError};
    			}
 
    			function updateResultsArea() {

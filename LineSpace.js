@@ -585,7 +585,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 			query[item] = lense.interpParameters[functionIndex][item];
 		});
 		//query["output"] = 483;
-	 	var interp = item(query);
+	 	var interp = item(query, self.dataSet);
 	 	interpResults.push(interp);
 	});
 	context.globalAlpha = 1.0;
