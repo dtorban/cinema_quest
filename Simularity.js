@@ -64,6 +64,8 @@
    			}
 
    			function manhattanDistance(w, a, b) {
+               a = vectorAdd(a, w);
+               b = vectorAdd(b, w);
    				var sum = 0;
    				for (var f = 0; f < a.length && f < b.length && f < w.length; f++) {
    					sum += Math.abs(a[f]-b[f]);

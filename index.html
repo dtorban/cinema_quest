@@ -464,7 +464,7 @@
 
    			function interpolate2(query, trainingSet) {
    				d3.select('#interp2').text("Manhattan Distance (k=10, p=2)");
-   				var interp = interpolate(query, 10, 2, function(index) { return 1.0/paramInfo[index].variance; }, manhattanDistance, trainingSet);
+   				var interp = interpolate(query, 10, 2, function(index) { return -paramInfo[index].mean; }, manhattanDistance, trainingSet);
    				interp.color = 'blue';
    				d3.select('#interp2').style("color","blue");
    				return interp;
