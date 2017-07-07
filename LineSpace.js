@@ -63,8 +63,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
     this.bgcanvas.style("width", ''+this.parentRect.width +'px');
     this.bgcanvas.style("height", ''+this.parentRect.height +'px');
     this.bgcontext.clearRect(0, 0, this.parentRect.width, this.parentRect.height);
-	this.bgcontext.globalAlpha = 0.4;
-	this.bgcontext.globalCompositeOperation = "difference";
+	this.bgcontext.globalAlpha = 1.0;
+	//this.bgcontext.globalCompositeOperation = "difference";
 
 	this.bgValues = [];
 	this.bgValuesTemp = [];
@@ -82,6 +82,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 
     this.context.translate(this.margin.right, this.margin.top);
     this.selectContext.translate(this.margin.right, this.margin.top);
+    //this.bgcontext.translate(this.margin.right, this.margin.top);
     this.innerWidth = this.parentRect.width - this.instanceWidth;
     this.innerHeight = this.parentRect.height - this.instanceHeight;
 
@@ -911,6 +912,7 @@ LineSpace.prototype.updateBackground = function() {
 			self.setPixelValue(self.bgcontext, f+self.margin.left/2, i+self.margin.top/2, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
 		}
 	}
+	self.drawBackgroundFeatures();
 
 	if (!self.bgVersion) { self.bgVersion = 0; }
 	self.bgVersion++;
@@ -978,6 +980,35 @@ LineSpace.prototype.redrawBackground = function() {
 			self.setPixelValue(self.bgcontext, f+self.margin.left/2, i+self.margin.top/2, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
 		}
 	}
+
+	self.drawBackgroundFeatures();
+}
+
+LineSpace.prototype.drawBackgroundFeatures = function() {
+	var self = this;
+
+	tracking.Fast.THRESHOLD = 10;
+
+	//var size = 400;//Math.max(self.bgImageWidth, self.bgImageHeight);
+	var width = Math.floor(1+self.bgImageWidth/16)*16;
+	var height = Math.floor(1+self.bgImageHeight/16)*16;
+	//console.log(width,height);
+	var imageData = self.bgcontext.getImageData(self.margin.left/2, self.margin.top/2, width, height);
+	var gray = tracking.Image.grayscale(imageData.data, width, height);
+	var corners = tracking.Fast.findCorners(gray, width, height);
+
+	//console.log(corners.length);
+	for (var i = 0; i < corners.length; i += 2) {
+		if (corners[i] <= self.bgImageWidth && corners[i+1] <= self.bgImageHeight) {
+	        self.bgcontext.lineWidth = 1;
+	        self.bgcontext.strokeStyle = '#f00';
+	        self.bgcontext.beginPath();
+	        //console.log(corners[i], corners[i+1]);
+	        //self.bgcontext.fillRect(corners[i]+self.margin.left/2, corners[i + 1]+self.margin.top/2, 3, 3);
+	        self.bgcontext.strokeRect(corners[i]+self.margin.left/2, corners[i + 1]+self.margin.top/2, 1, 1);
+	        self.bgcontext.stroke();
+		}
+    }
 }
 
 LineSpace.prototype.redraw = function() {

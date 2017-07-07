@@ -6,6 +6,7 @@
 	<link rel='stylesheet' href='css/parallelCoordinates.css'>
 	<script src="lib/jquery-3.2.1.min.js"></script>
 	<script src="lib/kdTree-min.js"></script>
+	<script src="lib/tracking-min.js"></script>
     <script src="lib/ml.min.js"></script>
     <script src="d3.v4.min.js"></script>
     <script src="Simularity.js"></script>
@@ -260,13 +261,13 @@
 	   				item.params[prefix + "_in1"] = inPrediction[index][0];
 	   				item.params[prefix + "_in2"] = inPrediction[index][1];
 	   				item.params[prefix + "_in3"] = inPrediction[index][2];
-	   				item.params[prefix + "_in4"] = inPrediction[index][3];
-	   				item.params[prefix + "_in5"] = inPrediction[index][4];
+	   				//item.params[prefix + "_in4"] = inPrediction[index][3];
+	   				//item.params[prefix + "_in5"] = inPrediction[index][4];
 	   				item.params[prefix + "_out1"] = outPrediction[index][0];
 	   				item.params[prefix + "_out2"] = outPrediction[index][1];
 	   				item.params[prefix + "_out3"] = outPrediction[index][2];
-	   				item.params[prefix + "_out4"] = outPrediction[index][3];
-	   				item.params[prefix + "_out5"] = outPrediction[index][4];
+	   				//item.params[prefix + "_out4"] = outPrediction[index][3];
+	   				//item.params[prefix + "_out5"] = outPrediction[index][4];
 	   			});
 
 	   			if (update) {
@@ -377,7 +378,8 @@
 		   		var fold3 = new KFoldCrossValidation(3, dataSet.length);
 		   		var fold10 = new KFoldCrossValidation(10, dataSet.length);
 		   		var leaveOneOut = new LeaveOneOutCrossValidation(dataSet.length);
-		   		var validators = [{name: '3Fold', validator: fold3}, {name: '10Fold', validator: fold10}, {name: 'LeaveOneOut', validator: leaveOneOut}];
+		   		//var validators = [{name: '3Fold', validator: fold3}, {name: '10Fold', validator: fold10}, {name: 'LeaveOneOut', validator: leaveOneOut}];
+		   		var validators = [{name: '10Fold', validator: fold10}];
 		   		validators.forEach(function(validator, index) {
 			   		interpFunctions.forEach(function(interpFunction, index) {
 			   			var name = validator.name + '_i' + index;
