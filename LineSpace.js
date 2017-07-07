@@ -468,6 +468,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 	    	self.showFeatures = d3.event.target.checked;
 	    	self.featureCanvas.style("visibility", self.showFeatures ? 'visible' : 'hidden');
     		//self.update();
+    		self.redraw();
     	});
     if (self.showFeatures) {
     	checkbox.attr("checked", self.showFeatures);
@@ -607,6 +608,12 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	var tempDs = {params: tempParams};
    	var dsDist = calcDistance(tempDs, self.dataSet, pSet, function(item) { return 1.0/self.paramInfo[item].variance; }, weightedEclideanDistance, 2);
 
+   	if (self.dataSet[dsDist[0].id].image) {
+   		self.drawLines(lense, self.dataSet[dsDist[0].id], 'black', true, true, 
+	 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
+   		return;
+   	}
+
 	var weightSum = 0;
 	for (var f = 0; f < 10; f++) {
 		weightSum+= dsDist[f].weight;
@@ -687,7 +694,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 	}
 
 	//console.log(graphProperties.show, graphProperties.value);
-	if (self.showAll || graphProperties.show || forceShow) {
+	if ((self.showAll || graphProperties.show || forceShow) && !ds.image) {
 		context.beginPath();
 		ds.rows.forEach(function(item, index) {
 			if (index == 0) {
@@ -704,6 +711,46 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 
 	context.translate(-transX, -transY);
 
+	if (ds.image && (self.showAll || graphProperties.show || forceShow)) {
+		context.globalAlpha = 0.7;
+		context.globalCompositeOperation = "source-over";
+		context.drawImage(ds.image, transX,transY,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
+	}
+
+	if (self.showFeatures && (self.showAll || graphProperties.show || forceShow)) {
+
+		context.globalAlpha = 1.0;
+		tracking.Fast.THRESHOLD = 10;
+
+		//var size = 400;//Math.max(self.bgImageWidth, self.bgImageHeight);
+		var width = Math.floor(1+this.instanceWidth*lense.scale/16)*16;
+		var height = Math.floor(1+this.instanceHeight*lense.scale/16)*16;
+		//console.log(width,height);
+		var imageData = context.getImageData(transX+self.margin.left*self.pixelRatio,transY+self.margin.top*self.pixelRatio, width, height);
+		var gray = tracking.Image.grayscale(imageData.data, width, height);
+		var corners = tracking.Fast.findCorners(gray, width, height);
+
+		//self.featureContext.putImageData(imageData, 0, 0);
+
+		//console.log(corners.length);
+		//self.featureContext.beginPath();
+		//self.featureContext.clearRect(0,0,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
+		//self.featureContext.stroke();
+
+		for (var i = 0; i < corners.length; i += 2) {
+			if (corners[i] <= this.instanceWidth*lense.scale && corners[i+1] <= this.instanceHeight*lense.scale) {
+		        context.lineWidth = 1;
+		        context.strokeStyle = 'darkred';//'#f00';
+		        //self.featureContext.fillStyle = 'red';//'#f00';
+		        context.beginPath();
+		        //console.log(corners[i], corners[i+1]);
+		        //self.featureContext.fillRect(corners[i]+self.margin.left/2, corners[i + 1]+self.margin.top/2, 1, 1);
+		        context.strokeRect(transX + corners[i]*self.pixelRatio, transY+ corners[i + 1]*self.pixelRatio, 3, 3);
+		        context.stroke();
+		        //self.featureContext.fill();
+			}
+	    }
+	}
 
 	//context.strokeRect(this.instanceWidth/2,this.instanceHeight/2,1,1);
 	if (!graphProperties.show && !color) {

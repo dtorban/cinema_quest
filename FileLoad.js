@@ -7,63 +7,98 @@ function loadDatabase(dbString, callback) {
 	   				var params = results;
 	   				console.log(results[0]);
 			         	var q = d3.queue();
-			         	results.forEach(function(item, index) {
-			            	q.defer(d3.text, item[dbInfo[1]]);
-			   			});
-			            q.awaitAll(function(error, results) {
-			            	//if (!error) {
-				            	var data = [];
-					        	results.forEach(function(text, index) {
-					        		if (text) {
-										// correct for white space delemited
-						    			if (dbInfo[3] == " ") {
-						    				var lines = text.split('\n');
-						    				text = '';
-							    			lines = lines.slice(dbInfo[6], lines.length);
-							    			lines.forEach(function(item, index) {
-							    				if (index == 0) {
-							    					text = lines[index].trim();
-							    				}
-							    				else {
-							    					if (index % 10 == 0) {
-							    						text = text + "\n" + lines[index].trim();
-							    					}
-							    				}
-							    			});
-							    			text = replaceAll(text,"  ","\t");
-						    			}
-							    
 
-					        			var rows = d3.tsvParseRows(text).map(function(row) {
-						            		return row.map(function(value) {
-						            			return +value;
-						               		});
-						            	});
+			         	if (dbInfo[2] == "image") {
+			         		var data = [];
+			         		var numProcessed = 0;
+			         		results.forEach(function(item, index) {
+			         			var img = new Image;
+			         			var ds = {id: index, params: params[index], rows: [{x:1,y:2},{x:1,y:2},{x:1,y:2}], image: img};
+			         			img.src = item[dbInfo[1]];
+								var canvas = document.createElement('canvas');
+			         			var context = canvas.getContext("2d");
 
-							            var rows2 = [];
-							            var count = 0;
-							            rows.forEach(function(item, index) {
-							                if (dbInfo[2] == 'column') {
-							               		rows2.push({x : count, y : item[dbInfo[4]]});
-							               		count++;
-							                }
-							                else if (dbInfo[2] == 'columns') {
-							                	rows2.push({x : item[dbInfo[4]], y : item[dbInfo[5]]});
-							                }
-							                else {
-							               		//rows2.push({x : item[0], y : item[column]});
-							                }
-							            });
+			         			img.onload = function() {
+					                canvas.width = img.width/100;
+					                canvas.height = img.height/100;
+					                context.drawImage(img, 0, 0, canvas.width, canvas.height);
+									console.log(ds.id, "loaded");
 
-							            var ds = {id: index, params: params[index], rows: rows2};
-							            data.push(ds);
-						        	}
-				               		
-				           		});
+									ds.rows = [];
+									var imageData = context.getImageData(0,0,canvas.width, canvas.height);
+									for (var f = 0; f < canvas.width*canvas.height*4; f++) {
+										ds.rows.push({x:f, y:imageData.data[f]});
+									}
 
-					            //lineSpace.data(data);
-					            callback(data);
-				           // }
-			            });
+									numProcessed++;
+									if (numProcessed == results.length) {
+										console.log("done loading");
+						    			callback(data);
+									}
+								}
+			         			//URL.revokeObjectURL(img.src)
+			         			data.push(ds);
+				   			});
+						}
+						else {
+							results.forEach(function(item, index) {
+				            	q.defer(d3.text, item[dbInfo[1]]);
+				   			});
+				   			q.awaitAll(function(error, results) {
+				            	//if (!error) {
+					            	var data = [];
+						        	results.forEach(function(text, index) {
+						        		if (text) {
+											// correct for white space delemited
+							    			if (dbInfo[3] == " ") {
+							    				var lines = text.split('\n');
+							    				text = '';
+								    			lines = lines.slice(dbInfo[6], lines.length);
+								    			lines.forEach(function(item, index) {
+								    				if (index == 0) {
+								    					text = lines[index].trim();
+								    				}
+								    				else {
+								    					if (index % 10 == 0) {
+								    						text = text + "\n" + lines[index].trim();
+								    					}
+								    				}
+								    			});
+								    			text = replaceAll(text,"  ","\t");
+							    			}
+								    
+
+						        			var rows = d3.tsvParseRows(text).map(function(row) {
+							            		return row.map(function(value) {
+							            			return +value;
+							               		});
+							            	});
+
+								            var rows2 = [];
+								            var count = 0;
+								            rows.forEach(function(item, index) {
+								                if (dbInfo[2] == 'column') {
+								               		rows2.push({x : count, y : item[dbInfo[4]]});
+								               		count++;
+								                }
+								                else if (dbInfo[2] == 'columns') {
+								                	rows2.push({x : item[dbInfo[4]], y : item[dbInfo[5]]});
+								                }
+								                else {
+								               		//rows2.push({x : item[0], y : item[column]});
+								                }
+								            });
+
+								            var ds = {id: index, params: params[index], rows: rows2};
+								            data.push(ds);
+							        	}
+					               		
+					           		});
+
+						            //lineSpace.data(data);
+						            callback(data);
+					           // }
+				            });
+						}
 				});
 }
