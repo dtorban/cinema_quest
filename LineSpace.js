@@ -29,7 +29,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 	this.canvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
 		.attr('height', this.parentRect.height*this.pixelRatio)
-		.attr("style", "z-index: 1;position:absolute;left:0px;top:0px;");
+		.attr("style", "z-index: 2;position:absolute;left:0px;top:0px;");
 	this.context = this.canvas.node().getContext("2d");
     this.context.scale(self.pixelRatio,self.pixelRatio);
     this.canvas.style("width", ''+this.parentRect.width +'px');
@@ -41,7 +41,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 	this.selectCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
 		.attr('height', this.parentRect.height*this.pixelRatio)
-		.attr("style", "z-index: 2;position:absolute;left:0px;top:0px;");
+		.attr("style", "z-index: 3;position:absolute;left:0px;top:0px;");
 	this.selectContext = this.selectCanvas.node().getContext("2d");
     this.selectContext.scale(self.pixelRatio,self.pixelRatio);
     this.selectCanvas.style("width", ''+this.parentRect.width +'px');
@@ -49,6 +49,18 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
     this.selectContext.clearRect(0, 0, this.parentRect.width, this.parentRect.height);
 	this.selectContext.globalAlpha = 1.0;
 	this.selectContext.globalCompositeOperation = "source-over";
+
+	this.featureCanvas = parent.append("canvas")
+		.attr('width', this.parentRect.width*this.pixelRatio)
+		.attr('height', this.parentRect.height*this.pixelRatio)
+		.attr("style", "z-index: 1;position:absolute;left:0px;top:0px;");
+	this.featureContext = this.featureCanvas.node().getContext("2d");
+    this.featureContext.scale(self.pixelRatio,self.pixelRatio);
+    this.featureCanvas.style("width", ''+this.parentRect.width +'px');
+    this.featureCanvas.style("height", ''+this.parentRect.height +'px');
+    this.featureContext.clearRect(0, 0, this.parentRect.width, this.parentRect.height);
+	this.featureContext.globalAlpha = 1.0;
+	this.featureContext.globalCompositeOperation = "source-over";
 
     this.instanceWidth = self.parentRect.width/8;
     this.instanceHeight = self.parentRect.height/8;
@@ -82,6 +94,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 
     this.context.translate(this.margin.right, this.margin.top);
     this.selectContext.translate(this.margin.right, this.margin.top);
+    this.featureContext.translate(this.margin.right, this.margin.top);
     //this.bgcontext.translate(this.margin.right, this.margin.top);
     this.innerWidth = this.parentRect.width - this.instanceWidth;
     this.innerHeight = this.parentRect.height - this.instanceHeight;
@@ -104,7 +117,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
     this.actionCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
 		.attr('height', this.parentRect.height*this.pixelRatio)
-		.attr("style", "z-index: 4;position:absolute;left:0px;top:0px;cursor: default");
+		.attr("style", "z-index: 5;position:absolute;left:0px;top:0px;cursor: default");
     this.actionCanvas.style("width", ''+this.parentRect.width +'px');
     this.actionCanvas.style("height", ''+this.parentRect.height +'px');
 
@@ -140,7 +153,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 				.attr('width', self.parentRect.width*self.pixelRatio)
 				.attr('height', self.parentRect.height*self.pixelRatio)
 				.attr('class', 'lense')
-				.attr("style", "z-index: 3;position:absolute;left:0px;top:0px;cursor: default");
+				.attr("style", "z-index: 4;position:absolute;left:0px;top:0px;cursor: default");
 			var context = canvas.node().getContext("2d");
             context.scale(self.pixelRatio,self.pixelRatio);
             canvas.style("width", ''+self.parentRect.width +'px');
@@ -354,7 +367,9 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
     });
 
     this.showAll = false;
+    this.showFeatures = false;
     this.selectable = false;
+    this.showBackground = false;
 
     var selectDiv = self.parent
 		.append('div')
@@ -432,6 +447,33 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
     	});
 
     self.opacitySelect.style("float", "left").style("position", "relative");
+
+	var checkbox = selectDiv.append("input")
+	    .attr("type", "checkbox")
+	    .on('click',function() {
+	    	self.showBackground = d3.event.target.checked;
+	    	self.bgcanvas.style("visibility", self.showBackground ? 'visible' : 'hidden');
+    		//self.update();
+    	});
+    if (self.showBackground) {
+    	checkbox.attr("checked", self.showBackground);
+    }
+    self.bgcanvas.style("visibility", self.showBackground ? 'visible' : 'hidden');
+    checkbox.style("float", "left").style("position", "relative");
+
+
+	var checkbox = selectDiv.append("input")
+	    .attr("type", "checkbox")
+	    .on('click',function() {
+	    	self.showFeatures = d3.event.target.checked;
+	    	self.featureCanvas.style("visibility", self.showFeatures ? 'visible' : 'hidden');
+    		//self.update();
+    	});
+    if (self.showFeatures) {
+    	checkbox.attr("checked", self.showFeatures);
+    }
+    self.featureCanvas.style("visibility", self.showFeatures ? 'visible' : 'hidden');
+    checkbox.style("float", "left").style("position", "relative");
 
     var checkbox = selectDiv.append("input")
 	    .attr("type", "checkbox")
@@ -971,6 +1013,9 @@ LineSpace.prototype.redrawBackground = function() {
 	var self = this;
 
 	if (!(self.dimensions[3] in self.paramInfo)) {
+		self.featureContext.beginPath();
+		self.featureContext.clearRect(0,0,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
+		self.featureContext.stroke();
 		return;
 	}
 
@@ -987,7 +1032,7 @@ LineSpace.prototype.redrawBackground = function() {
 LineSpace.prototype.drawBackgroundFeatures = function() {
 	var self = this;
 
-	tracking.Fast.THRESHOLD = 10;
+	tracking.Fast.THRESHOLD = 5;
 
 	//var size = 400;//Math.max(self.bgImageWidth, self.bgImageHeight);
 	var width = Math.floor(1+self.bgImageWidth/16)*16;
@@ -998,15 +1043,21 @@ LineSpace.prototype.drawBackgroundFeatures = function() {
 	var corners = tracking.Fast.findCorners(gray, width, height);
 
 	//console.log(corners.length);
+	self.featureContext.beginPath();
+	self.featureContext.clearRect(0,0,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
+	self.featureContext.stroke();
+
 	for (var i = 0; i < corners.length; i += 2) {
 		if (corners[i] <= self.bgImageWidth && corners[i+1] <= self.bgImageHeight) {
-	        self.bgcontext.lineWidth = 1;
-	        self.bgcontext.strokeStyle = '#f00';
-	        self.bgcontext.beginPath();
+	        self.featureContext.lineWidth = 1;
+	        self.featureContext.strokeStyle = 'darkred';//'#f00';
+	        //self.featureContext.fillStyle = 'red';//'#f00';
+	        self.featureContext.beginPath();
 	        //console.log(corners[i], corners[i+1]);
-	        //self.bgcontext.fillRect(corners[i]+self.margin.left/2, corners[i + 1]+self.margin.top/2, 3, 3);
-	        self.bgcontext.strokeRect(corners[i]+self.margin.left/2, corners[i + 1]+self.margin.top/2, 1, 1);
-	        self.bgcontext.stroke();
+	        //self.featureContext.fillRect(corners[i]+self.margin.left/2, corners[i + 1]+self.margin.top/2, 1, 1);
+	        self.featureContext.strokeRect(corners[i]*2*self.pixelRatio, corners[i + 1]*2*self.pixelRatio, 3, 3);
+	        self.featureContext.stroke();
+	        //self.featureContext.fill();
 		}
     }
 }
