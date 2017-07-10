@@ -365,7 +365,7 @@
 		   		var fold10 = new KFoldCrossValidation(10, dataSet.length);
 		   		var leaveOneOut = new LeaveOneOutCrossValidation(dataSet.length);
 		   		//var validators = [{name: '3Fold', validator: fold3}, {name: '10Fold', validator: fold10}, {name: 'LeaveOneOut', validator: leaveOneOut}];
-		   		var validators = [{name: '10Fold', validator: fold10}];
+		   		var validators = [{name: '10Fold', validator: fold10}, {name: 'LeaveOneOut', validator: leaveOneOut}];
 		   		validators.forEach(function(validator, index) {
 			   		interpFunctions.forEach(function(interpFunction, index) {
 			   			var name = validator.name + '_i' + index;
