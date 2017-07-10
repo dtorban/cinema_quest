@@ -360,7 +360,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     this.showFeatures = false;
     this.selectable = false;
     this.showBackground = true;
-    this.showInterpolation = false;
+    this.showInterpolation = true;
 
     var selectDiv = self.parent
 		.append('div')
@@ -538,11 +538,24 @@ LineSpace.prototype.updateLense = function(lense, space) {
 		selectedLense = self.lenses[lense.id];
 	}
 
+	var x = 0;
+	var y = 0;
+
 	selectedLense.interpParameters = lense.interpParameters;
 	selectedLense.tempInterpParameters.forEach(function(item, index) {
-		item[space.dimensions[0]] = lense.interpResults[index][space.dimensions[0]];
-		item[space.dimensions[1]] = lense.interpResults[index][space.dimensions[1]];
+		item[space.dimensions[0]] = lense.interpResults[index].ds.params[space.dimensions[0]];
+		item[space.dimensions[1]] = lense.interpResults[index].ds.params[space.dimensions[1]];
+		x += lense.interpResults[index].ds.params[self.dimensions[0]];
+		y += lense.interpResults[index].ds.params[self.dimensions[1]];
 	});
+
+	x /= selectedLense.tempInterpParameters.length;
+	y /= selectedLense.tempInterpParameters.length;
+	x = self.paramX.invert(x);
+	y = self.paramY.invert(y);
+
+	selectedLense.prevPosition = selectedLense.position;
+	selectedLense.position = [x, y];
 
 	self.redrawLense(selectedLense);
 }
@@ -653,7 +666,6 @@ LineSpace.prototype.handleManipulate = function(event) {
 LineSpace.prototype.interpolate = function(x, y, lense) {
 	var self = this;
 
-
 	var context = lense.context;
 	var prevPosition = lense.position;
 	context.beginPath();
@@ -690,6 +702,8 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		lenseQueryParams.forEach(function(item, index) {
 			query[item] = lense.tempInterpParameters[functionIndex][item];
 		});
+
+		//console.log(query);
 		//query["output"] = 483;
 	 	var interp = item(query, self.dataSet);
 	 	interpResults.push(interp);
