@@ -370,6 +370,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
     this.showFeatures = false;
     this.selectable = false;
     this.showBackground = true;
+    this.showInterpolation = false;
 
     var selectDiv = self.parent
 		.append('div')
@@ -484,6 +485,17 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
     	});
     if (self.selectable) {
     	checkbox.attr("checked", self.selectable);
+    }
+    checkbox.style("float", "left").style("position", "relative");
+
+    var checkbox = selectDiv.append("input")
+	    .attr("type", "checkbox")
+	    .on('click',function() {
+	    	self.showInterpolation = d3.event.target.checked;
+    		self.redrawLenses();
+    	});
+    if (self.showInterpolation) {
+    	checkbox.attr("checked", self.showInterpolation);
     }
     checkbox.style("float", "left").style("position", "relative");
 }
