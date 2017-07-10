@@ -369,7 +369,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
     this.showAll = false;
     this.showFeatures = false;
     this.selectable = false;
-    this.showBackground = false;
+    this.showBackground = true;
 
     var selectDiv = self.parent
 		.append('div')
@@ -424,6 +424,19 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 
     self.colorMapPicker = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps.csv", function() { self.onColorMapChange();})
     
+	var checkbox = selectDiv.append("input")
+	    .attr("type", "checkbox")
+	    .on('click',function() {
+	    	self.showBackground = d3.event.target.checked;
+	    	self.bgcanvas.style("visibility", self.showBackground ? 'visible' : 'hidden');
+    		//self.update();
+    	});
+    if (self.showBackground) {
+    	checkbox.attr("checked", self.showBackground);
+    }
+    self.bgcanvas.style("visibility", self.showBackground ? 'visible' : 'hidden');
+    checkbox.style("float", "left").style("position", "relative");
+
     self.backgroundSelect = selectDiv
 		.append('select')
   		.attr('class','select')
@@ -451,24 +464,11 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 	var checkbox = selectDiv.append("input")
 	    .attr("type", "checkbox")
 	    .on('click',function() {
-	    	self.showBackground = d3.event.target.checked;
-	    	self.bgcanvas.style("visibility", self.showBackground ? 'visible' : 'hidden');
-    		//self.update();
-    	});
-    if (self.showBackground) {
-    	checkbox.attr("checked", self.showBackground);
-    }
-    self.bgcanvas.style("visibility", self.showBackground ? 'visible' : 'hidden');
-    checkbox.style("float", "left").style("position", "relative");
-
-
-	var checkbox = selectDiv.append("input")
-	    .attr("type", "checkbox")
-	    .on('click',function() {
 	    	self.showFeatures = d3.event.target.checked;
 	    	self.featureCanvas.style("visibility", self.showFeatures ? 'visible' : 'hidden');
     		//self.update();
     		self.redraw();
+    		self.redrawLenses();
     	});
     if (self.showFeatures) {
     	checkbox.attr("checked", self.showFeatures);
@@ -1125,6 +1125,15 @@ LineSpace.prototype.redraw = function() {
 	
 	self.xAxis(this.context);
 	self.yAxis(this.context);
+}
+
+LineSpace.prototype.redrawLenses = function() {
+	var self = this;
+	self.lenses.forEach(function(lense, index) {
+		var x = lense.position[0] + self.margin.left;
+		var y = lense.position[1] + self.margin.top;
+		self.interpolate(x, y, lense);
+	});
 }
 
 // This draws the xAxis
