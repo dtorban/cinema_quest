@@ -608,7 +608,25 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	var tempDs = {params: tempParams};
    	var dsDist = calcDistance(tempDs, self.dataSet, pSet, function(item) { return 1.0/self.paramInfo[item].variance; }, weightedEclideanDistance, 2);
 
+	var interpResults = [];
+	self.interpolateFunctions.forEach(function(item, functionIndex) {
+		var query = {};
+		query[self.dimensions[0]] = self.paramX.invert(x-self.margin.right);
+		query[self.dimensions[1]] = self.paramY.invert(y-self.margin.top);
+		var lenseQueryParams = Object.keys(lense.interpParameters[functionIndex]);
+		lenseQueryParams.forEach(function(item, index) {
+			query[item] = lense.interpParameters[functionIndex][item];
+		});
+		//query["output"] = 483;
+	 	var interp = item(query, self.dataSet);
+	 	interpResults.push(interp);
+	});
+
    	if (self.dataSet[dsDist[0].id].image) {
+		/*var query = {};
+		query[self.dimensions[0]] = self.paramX.invert(x-self.margin.right);
+		query[self.dimensions[1]] = self.paramY.invert(y-self.margin.top);
+   		self.interpolateFunctions[0](query, self.dataSet);*/
    		self.drawLines(lense, self.dataSet[dsDist[0].id], 'black', true, true, 
 	 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
    		return;
@@ -625,19 +643,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
 	}
 
-	var interpResults = [];
-	self.interpolateFunctions.forEach(function(item, functionIndex) {
-		var query = {};
-		query[self.dimensions[0]] = self.paramX.invert(x-self.margin.right);
-		query[self.dimensions[1]] = self.paramY.invert(y-self.margin.top);
-		var lenseQueryParams = Object.keys(lense.interpParameters[functionIndex]);
-		lenseQueryParams.forEach(function(item, index) {
-			query[item] = lense.interpParameters[functionIndex][item];
-		});
-		//query["output"] = 483;
-	 	var interp = item(query, self.dataSet);
-	 	interpResults.push(interp);
-	});
+
 	context.globalAlpha = 1.0;
 	lense.interpResults = interpResults;
 	interpResults.forEach(function(interp, index) {
