@@ -170,6 +170,7 @@
 	   		function doneLoading() {
 
    			 	pcc.overlayPathData.push({data: {}, style: "stroke: green; stroke-width: 2px;"});
+   			 	pcc.overlayPathData.push({data: {}, style: "stroke: blue; stroke-width: 2px;"});
    			 	pcc.overlayPathData.push({data: {}, style: "stroke: red; stroke-width: 2px;"});
    			 	pcc.overlayPathData.push({data: {}, style: "stroke: cyan; stroke-width: 2px;"});
 	   			//$('.pCoordChart .resultPaths path[index="'+30+'"]').css('stroke', 'blue');
@@ -188,7 +189,7 @@
 				//console.log(space.id, lense.id);
 				spaces.forEach(function(item, index) {
 					if (space.id != item.id) {
-						item.updateLense(lense);
+						item.updateLense(lense, space);
 					}
 				});
 			}
@@ -474,6 +475,8 @@
    				var interp = interpolate(query, 10, 2, function(index) { return -paramInfo[index].mean; }, manhattanDistance, trainingSet);
    				interp.color = 'blue';
    				d3.select('#interp2').style("color","blue");
+   				pcc.overlayPathData[1].data = interp.ds.params;
+   				pcc.updateOverlayPaths(true);
    				return interp;
    			}
 
@@ -482,7 +485,7 @@
    				var interp = interpolate(query, 10, 4, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet);
    				interp.color = 'red';
    				d3.select('#interp3').style("color","red");
-   				pcc.overlayPathData[1].data = interp.ds.params;
+   				pcc.overlayPathData[2].data = interp.ds.params;
    				pcc.updateOverlayPaths(true);
    				return interp;
    			}
@@ -492,7 +495,7 @@
    				var interp = interpolate(query, 10, 4, function(index) { return -paramInfo[index].mean; }, centeredCosineSimularity, trainingSet);
    				interp.color = 'cyan';
    				d3.select('#interp4').style("color","cyan");
-   				pcc.overlayPathData[2].data = interp.ds.params;
+   				pcc.overlayPathData[3].data = interp.ds.params;
    				pcc.updateOverlayPaths(true);
    				return interp;
    			}

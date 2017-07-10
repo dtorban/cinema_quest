@@ -515,8 +515,10 @@ LineSpace.prototype.createLense = function(x,y) {
 	lense.position = [x,y];
 	lense.interpResults = [];
 	lense.interpParameters = [];
+	lense.tempInterpParameters = [];
 	self.interpolateFunctions.forEach(function(item, index) {
 		lense.interpParameters.push({});
+		lense.tempInterpParameters.push({});
 	});
 	self.lenses.push(lense);
 	self.currentLenseIndex = self.lenses.length-1;
@@ -525,7 +527,7 @@ LineSpace.prototype.createLense = function(x,y) {
 	return lense;
 }
 
-LineSpace.prototype.updateLense = function(lense, interpParams) {
+LineSpace.prototype.updateLense = function(lense, space) {
 	var self = this;
 	var selectedLense = null;
 
@@ -535,6 +537,12 @@ LineSpace.prototype.updateLense = function(lense, interpParams) {
 	else {
 		selectedLense = self.lenses[lense.id];
 	}
+
+	selectedLense.interpParameters = lense.interpParameters;
+	selectedLense.tempInterpParameters.forEach(function(item, index) {
+		item[space.dimensions[0]] = lense.interpResults[index][space.dimensions[0]];
+		item[space.dimensions[1]] = lense.interpResults[index][space.dimensions[1]];
+	});
 
 	self.redrawLense(selectedLense);
 }
@@ -676,6 +684,11 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		var lenseQueryParams = Object.keys(lense.interpParameters[functionIndex]);
 		lenseQueryParams.forEach(function(item, index) {
 			query[item] = lense.interpParameters[functionIndex][item];
+		});
+
+		lenseQueryParams = Object.keys(lense.tempInterpParameters[functionIndex]);
+		lenseQueryParams.forEach(function(item, index) {
+			query[item] = lense.tempInterpParameters[functionIndex][item];
 		});
 		//query["output"] = 483;
 	 	var interp = item(query, self.dataSet);
