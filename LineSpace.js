@@ -213,7 +213,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 
 			self.query.forEach(function(item, index) {
 				var ds = self.dataSet[item];
-				var imgData = self.selectContext.getImageData(self.paramX(+ds.params[self.dimensions[0]])+self.margin.left, self.paramY(+ds.params[self.dimensions[1]])+self.margin.top, 1, 1).data;
+				var imgData = self.selectContext.getImageData(self.paramX(+ds.params[self.dimensions[0]])*self.pixelRatio+self.margin.left*self.pixelRatio, self.paramY(+ds.params[self.dimensions[1]])*self.pixelRatio+self.margin.top*self.pixelRatio, 1, 1).data;
 				//console.log(imgData, ds);
 				if (imgData[0] > 0) {
 					selected.push(ds.id);
