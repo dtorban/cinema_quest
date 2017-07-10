@@ -1,8 +1,13 @@
 'use strict'
 
-function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
+var id = 0;
+
+function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, onUpdateLense, onRemoveLense) {
 	var self = this;
-    
+
+    self.id = id;
+	id++;
+
     //Determine screen DPI to rescale canvas contexts
     //(prevents artifacts and blurring on some displays)
     //https://stackoverflow.com/a/15666143/2827258
@@ -23,6 +28,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 	self.getGraphProperties = getGraphProperties;
 	self.interpolateFunctions = interpolateFunctions;
 	self.onSelect = onSelect;
+	self.onUpdateLense = onUpdateLense;
+	self.onRemoveLense = onRemoveLense;
 
 	this.parent = parent;
 	//this.parent.attr("style", "position:relative;left:0px;top:0px;background-color:white");
@@ -149,38 +156,12 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 		}
 
 		if (self.currentLenseIndex < 0) {
-			lense = {width: self.instanceWidth, height: self.instanceHeight};
-			var canvas = parent.append("canvas")
-				.attr('width', self.parentRect.width*self.pixelRatio)
-				.attr('height', self.parentRect.height*self.pixelRatio)
-				.attr('class', 'lense')
-				.attr("style", "z-index: 4;position:absolute;left:0px;top:0px;cursor: default");
-			var context = canvas.node().getContext("2d");
-            context.scale(self.pixelRatio,self.pixelRatio);
-            canvas.style("width", ''+self.parentRect.width +'px');
-            canvas.style("height", ''+self.parentRect.height +'px');
-			context.translate(self.margin.right, self.margin.top);
-			context.fillStyle = "green";
-			context.lineWidth = 1.1;
-			context.globalAlpha = 1.0;
-			context.globalCompositeOperation = "difference";
-			lense.canvas = canvas;
-			lense.context = context;
-			lense.prevScale = 1.0;
-			lense.scale = 1.0;
-			lense.position = [self.cursorPosition[0],self.cursorPosition[1]];
-			lense.interpResults = [];
-			lense.interpParameters = [];
-			self.interpolateFunctions.forEach(function(item, index) {
-				lense.interpParameters.push({});
-			});
-			self.lenses.push(lense);
-			self.currentLenseIndex = self.lenses.length-1;
+			lense = self.createLense(self.cursorPosition[0],self.cursorPosition[1]);
 		}
 
 		if (self.removeable) {
-			lense.canvas.remove();
-			self.lenses.splice(self.currentLenseIndex,1);
+			self.removeLense(self.currentLenseIndex);
+			self.onRemoveLense(self, self.currentLenseIndex);
 			return;
 		}
 
@@ -203,6 +184,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 				Math.abs(self.cursorPosition[1] - lense.position[1]) < lense.height/15) {
 	    	self.handleInterpolate(d3.event);
 		}
+
+		self.onUpdateLense(self, lense);
     });
 
     this.actionCanvas.on("mouseup", function() {
@@ -249,15 +232,18 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 		    self.handleInterpolate(d3.event);
 		    self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
 			self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];
+			self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
 		}
 		else if (self.resizing) {
 			self.handleResize(d3.event);
 			self.resizing = false;
+			self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
 		}
 		else if (self.manipulating) {
 			self.handleManipulate(d3.event);
 			//self.lenses[self.currentLenseIndex].interpParameters[self.manipInterpIndex] = {};
 			self.manipulating = false;
+			self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
 		}
     });
 
@@ -283,13 +269,16 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
 		    	//self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
 		    	self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
 
-				self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];
+				self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];		
+				self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
 	    	}
 	    	else if (self.resizing) {
 	    		self.handleResize(d3.event);
+	    		self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
 	    	}
 	    	else if (self.manipulating) {
 	    		self.handleManipulate(d3.event);
+				self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
 	    	}
 	    	else {
 				self.resizable = false;
@@ -499,6 +488,64 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
     	checkbox.attr("checked", self.showInterpolation);
     }
     checkbox.style("float", "left").style("position", "relative");
+}
+
+LineSpace.prototype.createLense = function(x,y) {
+	var self = this;
+
+	var lense = {width: self.instanceWidth, height: self.instanceHeight};
+	var canvas = self.parent.append("canvas")
+		.attr('width', self.parentRect.width*self.pixelRatio)
+		.attr('height', self.parentRect.height*self.pixelRatio)
+		.attr('class', 'lense')
+		.attr("style", "z-index: 4;position:absolute;left:0px;top:0px;cursor: default");
+	var context = canvas.node().getContext("2d");
+    context.scale(self.pixelRatio,self.pixelRatio);
+    canvas.style("width", ''+self.parentRect.width +'px');
+    canvas.style("height", ''+self.parentRect.height +'px');
+	context.translate(self.margin.right, self.margin.top);
+	context.fillStyle = "green";
+	context.lineWidth = 1.1;
+	context.globalAlpha = 1.0;
+	context.globalCompositeOperation = "difference";
+	lense.canvas = canvas;
+	lense.context = context;
+	lense.prevScale = 1.0;
+	lense.scale = 1.0;
+	lense.position = [x,y];
+	lense.interpResults = [];
+	lense.interpParameters = [];
+	self.interpolateFunctions.forEach(function(item, index) {
+		lense.interpParameters.push({});
+	});
+	self.lenses.push(lense);
+	self.currentLenseIndex = self.lenses.length-1;
+	lense.id = self.currentLenseIndex;
+
+	return lense;
+}
+
+LineSpace.prototype.updateLense = function(lense, interpParams) {
+	var self = this;
+	var selectedLense = null;
+
+	if (lense.id > self.lenses.length-1) {
+		selectedLense = self.createLense(lense.position[0], lense.position[1]);
+	}
+	else {
+		selectedLense = self.lenses[lense.id];
+	}
+
+	self.redrawLense(selectedLense);
+}
+
+LineSpace.prototype.removeLense = function(lenseId) {
+	var self = this;
+	for (var f = lenseId+1; f < self.lenses.length; f++) {
+		self.lenses[lenseId].id--;
+	}
+	self.lenses[lenseId].canvas.remove();
+	self.lenses.splice(lenseId,1);
 }
 
 LineSpace.prototype.select = function(query, clear) {
@@ -1149,10 +1196,15 @@ LineSpace.prototype.redraw = function() {
 LineSpace.prototype.redrawLenses = function() {
 	var self = this;
 	self.lenses.forEach(function(lense, index) {
-		var x = lense.position[0] + self.margin.left;
-		var y = lense.position[1] + self.margin.top;
-		self.interpolate(x, y, lense);
+		self.redrawLense(lense);
 	});
+}
+
+LineSpace.prototype.redrawLense = function(lense) {
+	var self = this;
+	var x = lense.position[0] + self.margin.left;
+	var y = lense.position[1] + self.margin.top;
+	self.interpolate(x, y, lense);
 }
 
 // This draws the xAxis

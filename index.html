@@ -107,6 +107,7 @@
 			var pcc = null;
 			var dataSet = null;
 			var interpFunctions = null;
+			var spaces = [];
 
    			updateResultsArea();
 
@@ -121,7 +122,6 @@
 			}
 
 
-
 			function load() {
 
 				$('#svgContainer').html('');
@@ -133,9 +133,11 @@
 												['sim','visar','diffraction','image','output'],
 												doneLoading);
 				interpFunctions = [interpolate1, interpolate2, interpolate3, interpolate4];
-   			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect);
-   			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect);
+   			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
+   			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
 
+   			 	spaces.push(lineSpace);
+   			 	spaces.push(lineSpace2);
 
 				loadDatabase(dbString, dataLoaded);
 	   		}
@@ -181,6 +183,23 @@
 	   			lineSpace.onSelectionChange(query);
 	   			lineSpace2.onSelectionChange(query);
 	   		}
+
+			function onUpdateLense(space, lense) {
+				//console.log(space.id, lense.id);
+				spaces.forEach(function(item, index) {
+					if (space.id != item.id) {
+						item.updateLense(lense);
+					}
+				});
+			}
+
+			function onRemoveLense(space, id) {
+				spaces.forEach(function(item, index) {
+					if (space.id != item.id) {
+						item.removeLense(id);
+					}
+				});
+			}
 
 	   		function onMouseOverChange(i, event) {
 	   			if (!lineSpace.selectable && !lineSpace2.selectable) {
