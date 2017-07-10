@@ -17,6 +17,8 @@ function loadDatabase(dbString, callback) {
 			         			img.src = item[dbInfo[1]];
 								var canvas = document.createElement('canvas');
 			         			var context = canvas.getContext("2d");
+								var featureCanvas = document.createElement('canvas');
+			         			var featureContext = featureCanvas.getContext("2d");
 
 			         			img.onload = function() {
 					                canvas.width = img.width/100;
@@ -28,6 +30,24 @@ function loadDatabase(dbString, callback) {
 									var imageData = context.getImageData(0,0,canvas.width, canvas.height);
 									for (var f = 0; f < canvas.width*canvas.height*4; f++) {
 										ds.rows.push({x:f, y:imageData.data[f]});
+									}
+
+
+									tracking.Fast.THRESHOLD = 40;
+									var width = Math.floor(1+img.width/16)*16;
+									var height = Math.floor(1+img.height/16)*16;
+									featureCanvas.width = width;
+									featureCanvas.height = height;
+					                featureContext.drawImage(img, 0, 0, width, height);
+
+									//console.log(width,height);
+									imageData = featureContext.getImageData(0, 0, width, height);
+									var gray = tracking.Image.grayscale(imageData.data, width, height);
+									ds.features = tracking.Fast.findCorners(gray, width, height);
+
+									for (var f = 0; f < ds.features.length; f+=2) {
+										ds.features[f] = 1.0*ds.features[f]/width;
+										ds.features[f+1] = 1.0*ds.features[f+1]/height;
 									}
 
 									numProcessed++;

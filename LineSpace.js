@@ -717,18 +717,18 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		context.drawImage(ds.image, transX,transY,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
 	}
 
-	if (self.showFeatures && (self.showAll || graphProperties.show || forceShow)) {
+	if (self.showFeatures && (self.showAll || graphProperties.show || forceShow) && ds.features) {
 
 		context.globalAlpha = 1.0;
-		tracking.Fast.THRESHOLD = 10;
+		//tracking.Fast.THRESHOLD = 10;
 
 		//var size = 400;//Math.max(self.bgImageWidth, self.bgImageHeight);
-		var width = Math.floor(1+this.instanceWidth*lense.scale/16)*16;
+		/*var width = Math.floor(1+this.instanceWidth*lense.scale/16)*16;
 		var height = Math.floor(1+this.instanceHeight*lense.scale/16)*16;
 		//console.log(width,height);
 		var imageData = context.getImageData(transX+self.margin.left*self.pixelRatio,transY+self.margin.top*self.pixelRatio, width, height);
 		var gray = tracking.Image.grayscale(imageData.data, width, height);
-		var corners = tracking.Fast.findCorners(gray, width, height);
+		var corners = tracking.Fast.findCorners(gray, width, height);*/
 
 		//self.featureContext.putImageData(imageData, 0, 0);
 
@@ -737,15 +737,17 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		//self.featureContext.clearRect(0,0,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
 		//self.featureContext.stroke();
 
+		var corners = ds.features;
+
 		for (var i = 0; i < corners.length; i += 2) {
-			if (corners[i] <= this.instanceWidth*lense.scale && corners[i+1] <= this.instanceHeight*lense.scale) {
+			if (corners[i]*this.instanceWidth*lense.scale <= this.instanceWidth*lense.scale && corners[i+1]*this.instanceHeight*lense.scale <= this.instanceHeight*lense.scale) {
 		        context.lineWidth = 1;
 		        context.strokeStyle = 'darkred';//'#f00';
 		        //self.featureContext.fillStyle = 'red';//'#f00';
 		        context.beginPath();
 		        //console.log(corners[i], corners[i+1]);
 		        //self.featureContext.fillRect(corners[i]+self.margin.left/2, corners[i + 1]+self.margin.top/2, 1, 1);
-		        context.strokeRect(transX + corners[i]*self.pixelRatio, transY+ corners[i + 1]*self.pixelRatio, 3, 3);
+		        context.strokeRect(transX + corners[i]*this.instanceWidth*lense.scale, transY+ corners[i + 1]*this.instanceHeight*lense.scale, 3, 3);
 		        context.stroke();
 		        //self.featureContext.fill();
 			}
@@ -1102,7 +1104,7 @@ LineSpace.prototype.drawBackgroundFeatures = function() {
 	        self.featureContext.beginPath();
 	        //console.log(corners[i], corners[i+1]);
 	        //self.featureContext.fillRect(corners[i]+self.margin.left/2, corners[i + 1]+self.margin.top/2, 1, 1);
-	        self.featureContext.strokeRect(corners[i]*2*self.pixelRatio, corners[i + 1]*2*self.pixelRatio, 3, 3);
+	        self.featureContext.strokeRect(corners[i]*2, corners[i + 1]*2, 3, 3);
 	        self.featureContext.stroke();
 	        //self.featureContext.fill();
 		}
