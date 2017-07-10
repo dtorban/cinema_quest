@@ -17,6 +17,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect) {
                        return dpr / bsr;
                        })();
     
+    //this.pixelRatio = 2;
     //console.log(this.pixelRatio);
 
 	self.getGraphProperties = getGraphProperties;
