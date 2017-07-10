@@ -33,7 +33,7 @@ function loadDatabase(dbString, callback) {
 									}
 
 
-									tracking.Fast.THRESHOLD = 40;
+									tracking.Fast.THRESHOLD = 20;
 									var width = Math.floor(1+img.width/16)*16;
 									var height = Math.floor(1+img.height/16)*16;
 									featureCanvas.width = width;
