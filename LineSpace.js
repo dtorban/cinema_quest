@@ -937,6 +937,9 @@ LineSpace.prototype.update = function() {
     this.x = d3.scaleLinear().range([0, this.instanceWidth]);
     this.y = d3.scaleLinear().range([this.instanceHeight, 0]);
 
+	var fold10 = new KFoldCrossValidation(10, self.dataSet.length);
+	var validator = fold10;
+
 	self.dataSet.forEach(function(ds, index) {
 		var graphProperties = self.getGraphProperties(self, ds);
 		paramExtentX.push(graphProperties.x);
@@ -946,18 +949,55 @@ LineSpace.prototype.update = function() {
 		extentX.push.apply(extentX, ds.extentX);
 		extentY.push.apply(extentY, ds.extentY);
 
-		/*var interpResults = [];
-		self.interpolateFunctions.forEach(function(item, index) {
+		/*self.interpolateFunctions.forEach(function(interpolateFunction, interpIndex) {
+			var trainingSet = validator.getTrainingSet(index);
 			var query = {};
 			query[self.dimensions[0]] = graphProperties.x;
 			query[self.dimensions[1]] = graphProperties.y;
-		 	var interp = item(query);
-		 	interpResults.push(interp.error);
-		});
 
-		var averageError = average(interpResults);
-		ds.params["Error"] = averageError;*/
+			trainingSet.forEach(function(item, index) {
+	   			var ds2 = self.dataSet[item];
+	   			//console.log(item, ds);
+	   			trainingSet[index] = {id: index, params: ds2.params, rows: ds2.rows};
+	   		});
+
+			var interp = interpolateFunction(query, trainingSet);
+
+			var interpErrorIn = weightedEclideanDistance(null, 
+						Array.from(ds.rows, x => x.y),
+						Array.from(interp.ds.rows, x => x.y));
+
+			var paramSet = Object.keys(self.dataSet[0].params).filter(function(d) {
+					return !isNaN(+self.dataSet[0].params[d]) 
+						&& !d.startsWith("output_") 
+						&& !d.startsWith('pca_')
+					 	&& !d.startsWith('kmeans_') 
+					 	&& !d.startsWith('error_');
+				});
+
+			var interpErrorIn = weightedEclideanDistance(
+						Array.from(paramSet, x => 1.0/(+paramInfo[x].variance)), 
+						Array.from(paramSet, x => +ds.params[x]),
+						Array.from(paramSet, x => +interp.ds.params[x]));
+
+			var interpErrorOut = weightedEclideanDistance(null, 
+						Array.from(ds.rows, x => x.y),
+						Array.from(interp.ds.rows, x => x.y));
+
+			ds.params["error_view_"+self.id+"_in_i" + interpIndex] = interpErrorIn;
+			ds.params["error_view_"+self.id+"_out_i" + interpIndex] = interpErrorOut;
+		});*/
+
 	});
+
+
+	/*var paramSet = Object.keys(self.dataSet[0].params).filter(function(d) {
+		return d.startsWith("error_view_");
+	});
+
+	paramSet.forEach(function(item, index) {
+		self.paramInfo[item] = calcStatistics(self.dataSet, function(d) { return +d.params[item]; });
+	});*/
 
 	//self.paramInfo["Error"] = calcStatistics(self.dataSet, function(d) { return d.params.Error; });
 	//self.paramInfo["Error"].dynamic = true;
