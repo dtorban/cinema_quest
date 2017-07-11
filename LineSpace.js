@@ -530,9 +530,11 @@ LineSpace.prototype.createLense = function(x,y) {
 LineSpace.prototype.updateLense = function(lense, space) {
 	var self = this;
 	var selectedLense = null;
+	var created = false;
 
 	if (lense.id > self.lenses.length-1) {
 		selectedLense = self.createLense(lense.position[0], lense.position[1]);
+		created = true;
 	}
 	else {
 		selectedLense = self.lenses[lense.id];
@@ -543,21 +545,27 @@ LineSpace.prototype.updateLense = function(lense, space) {
 
 	selectedLense.interpParameters = lense.interpParameters;
 	selectedLense.tempInterpParameters.forEach(function(item, index) {
-		item[space.dimensions[0]] = lense.interpResults[index].ds.params[space.dimensions[0]];
-		item[space.dimensions[1]] = lense.interpResults[index].ds.params[space.dimensions[1]];
-		x += lense.interpResults[index].ds.params[self.dimensions[0]];
-		y += lense.interpResults[index].ds.params[self.dimensions[1]];
+		//item[space.dimensions[0]] = +lense.interpResults[index].ds.params[space.dimensions[0]];
+		//item[space.dimensions[1]] = +lense.interpResults[index].ds.params[space.dimensions[1]];
+		//if (index > 0) {return;}
+		x += +lense.interpResults[index].ds.params[self.dimensions[0]];
+		y += +lense.interpResults[index].ds.params[self.dimensions[1]];
 	});
 
 	x /= selectedLense.tempInterpParameters.length;
 	y /= selectedLense.tempInterpParameters.length;
-	x = self.paramX.invert(x);
-	y = self.paramY.invert(y);
+	x = self.paramX(x);// - self.margin.left*self.pixelRatio;// - self.instanceWidth*self.pixelRatio;
+	y = self.paramY(y);// - self.margin.top*self.pixelRatio;// - self.instanceHeight*self.pixelRatio;
 
-	selectedLense.prevPosition = selectedLense.position;
-	selectedLense.position = [x, y];
+	if (created) {
+		selectedLense.position = [x, y];
+	}
+
+	selectedLense.x = x+self.margin.left*self.pixelRatio;
+	selectedLense.y = y+self.margin.top*self.pixelRatio;
 
 	self.redrawLense(selectedLense);
+	selectedLense.position = [x, y];
 }
 
 LineSpace.prototype.removeLense = function(lenseId) {
@@ -686,7 +694,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	tempParams[self.dimensions[0]] = self.paramX.invert(x-self.margin.right);
 	tempParams[self.dimensions[1]] = self.paramY.invert(y-self.margin.top);
 	var tempDs = {params: tempParams};
-   	var dsDist = calcDistance(tempDs, self.dataSet, pSet, function(item) { return 1.0/self.paramInfo[item].variance; }, weightedEclideanDistance, 2);
+   	var dsDist = calcDistance(tempDs, self.dataSet, pSet, function(item) { return 1.0/self.paramInfo[item].variance; }, weightedEclideanDistance, 1);
 
 	var interpResults = [];
 	self.interpolateFunctions.forEach(function(item, functionIndex) {
@@ -1229,8 +1237,8 @@ LineSpace.prototype.redrawLenses = function() {
 
 LineSpace.prototype.redrawLense = function(lense) {
 	var self = this;
-	var x = lense.position[0] + self.margin.left;
-	var y = lense.position[1] + self.margin.top;
+	var x = lense.x ? lense.x : lense.position[0] + self.margin.left;
+	var y = lense.y ? lense.y : lense.position[1] + self.margin.top;
 	self.interpolate(x, y, lense);
 }
 
