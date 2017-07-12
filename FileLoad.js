@@ -109,7 +109,7 @@ function loadDatabase(dbString, callback) {
 								                }
 								            });
 
-								            var ds = {id: index, params: params[index], rows: rows2};
+								            var ds = {id: index, params: params[index], rows: rows2, image: null};
 								            data.push(ds);
 							        	}
 					               		
