@@ -561,8 +561,8 @@ LineSpace.prototype.updateLense = function(lense, space) {
 		selectedLense.position = [x, y];
 	}
 
-	selectedLense.x = x+self.margin.left*self.pixelRatio;
-	selectedLense.y = y+self.margin.top*self.pixelRatio;
+	selectedLense.x = x+self.margin.left;
+	selectedLense.y = y+self.margin.top;
 
 	self.redrawLense(selectedLense);
 	selectedLense.position = [x, y];
@@ -717,6 +717,8 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	 	interpResults.push(interp);
 	});
 
+	lense.interpResults = interpResults;
+
    	if (self.dataSet[dsDist[0].id].image) {
 		/*var query = {};
 		query[self.dimensions[0]] = self.paramX.invert(x-self.margin.right);
@@ -740,7 +742,6 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 
 
 	context.globalAlpha = 1.0;
-	lense.interpResults = interpResults;
 	interpResults.forEach(function(interp, index) {
 		self.drawLines(lense, interp.ds, interp.color, index == 0, false, null, true);
 	});
