@@ -1050,6 +1050,7 @@ LineSpace.prototype.update = function() {
 
 	self.lenses.forEach(function(item, index) {
 		item.canvas.remove();
+		self.onRemoveLense(self, 0);
 	});
 	self.lenses = [];
 	self.currentLenseIndex = -1;

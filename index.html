@@ -53,6 +53,8 @@
 			<div class="spaceArea">
 				<div id="spaceContainer1" class="spaceContainer"></div>
 			</div>
+			<div style="position:absolute;top:25%;left:49%;text-align:center;z-index:10">
+			<input type="checkbox" checked="true" id="linkSpace"></div>
 			<div class="spaceArea">
 				<div id="spaceContainer2" class="spaceContainer"></div>
 			</div>
@@ -70,6 +72,7 @@
 			var dataSet = null;
 			var interpFunctions = null;
 			var spaces = [];
+			var linked = true;
 
    			updateResultsArea();
 
@@ -100,6 +103,17 @@
 
    			 	spaces.push(lineSpace);
    			 	spaces.push(lineSpace2);
+
+   			 	d3.select('#linkSpace')
+	    			.on('click',function() {
+	    				if (!linked) {
+		    				spaces.forEach(function(item, index) {
+		    					item.update();
+		    				});
+	    				}
+	    				linked = d3.event.target.checked;
+	    			});
+	    		d3.select('#linkSpace').attr("checked", linked);
 
 				loadDatabase(dbString, dataLoaded);
 	   		}
@@ -149,19 +163,23 @@
 
 			function onUpdateLense(space, lense) {
 				//console.log(space.id, lense.id);
-				spaces.forEach(function(item, index) {
-					if (space.id != item.id) {
-						item.updateLense(lense, space);
-					}
-				});
+				if (linked) {
+					spaces.forEach(function(item, index) {
+						if (space.id != item.id) {
+							item.updateLense(lense, space);
+						}
+					});
+				}
 			}
 
 			function onRemoveLense(space, id) {
-				spaces.forEach(function(item, index) {
-					if (space.id != item.id) {
-						item.removeLense(id);
-					}
-				});
+				if (linked) {
+					spaces.forEach(function(item, index) {
+						if (space.id != item.id) {
+							item.removeLense(id);
+						}
+					});
+				}
 			}
 
 	   		function onMouseOverChange(i, event) {
