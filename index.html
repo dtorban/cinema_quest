@@ -171,6 +171,11 @@
 						}
 					});
 				}
+
+				lense.interpResults.forEach(function(interp, index) {
+					pcc.overlayPathData[index].data = interp.ds.params;
+				});
+   				pcc.updateOverlayPaths(true);
 			}
 
 			function onRemoveLense(space, id) {
@@ -446,8 +451,8 @@
    				var interp = interpolate(query, 5, 1, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet);
    				interp.color = 'green';
    				d3.select('#interp1').style("color","green");
-   				pcc.overlayPathData[0].data = interp.ds.params;
-   				pcc.updateOverlayPaths(true);
+   				//pcc.overlayPathData[0].data = interp.ds.params;
+   				//pcc.updateOverlayPaths(true);
    				return interp;
    			}
 
@@ -456,8 +461,8 @@
    				var interp = interpolate(query, 10, 2, function(index) { return -paramInfo[index].mean; }, manhattanDistance, trainingSet);
    				interp.color = 'blue';
    				d3.select('#interp2').style("color","blue");
-   				pcc.overlayPathData[1].data = interp.ds.params;
-   				pcc.updateOverlayPaths(true);
+   				//pcc.overlayPathData[1].data = interp.ds.params;
+   				//pcc.updateOverlayPaths(true);
    				return interp;
    			}
 
@@ -466,8 +471,8 @@
    				var interp = interpolate(query, 10, 4, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet);
    				interp.color = 'red';
    				d3.select('#interp3').style("color","red");
-   				pcc.overlayPathData[2].data = interp.ds.params;
-   				pcc.updateOverlayPaths(true);
+   				//pcc.overlayPathData[2].data = interp.ds.params;
+   				//pcc.updateOverlayPaths(true);
    				return interp;
    			}
 
@@ -476,8 +481,8 @@
    				var interp = interpolate(query, 10, 4, function(index) { return -paramInfo[index].mean; }, centeredCosineSimularity, trainingSet);
    				interp.color = 'cyan';
    				d3.select('#interp4').style("color","cyan");
-   				pcc.overlayPathData[3].data = interp.ds.params;
-   				pcc.updateOverlayPaths(true);
+   				//pcc.overlayPathData[3].data = interp.ds.params;
+   				//pcc.updateOverlayPaths(true);
    				return interp;
    			}
 
