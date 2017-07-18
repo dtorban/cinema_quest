@@ -86,7 +86,7 @@ body {
 	background-color: #163463;
 }
 #resizeBar:hover {
-	background-color: #355fa3;
+	background-color: #355fdrfa3;
 }
 #resizeBar[mode="dragging"],
 #resizeBar[mode="dragging"]:hover {
@@ -220,7 +220,7 @@ body {
     right: 0; /* Size */
     
     /* Styles */
-    background: #fff;
+    /*background: #fff;*/
     font-weight: normal; /* Overwrites previous font-weight: bold; */
     
     /* Hiding */

@@ -416,7 +416,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     	});
     self.valueSelect.style("float", "left").style("position", "relative");
 
-    self.colorMapPicker = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps.csv", function() { self.onColorMapChange();})
+    self.colorMapPicker = new ColorMapPicker(selectDiv, "images/colormoves/ColorMaps.csv", function() { self.onColorMapChange();})
     
 	var checkbox = selectDiv.append("input")
 	    .attr("type", "checkbox")
@@ -442,7 +442,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 
     self.backgroundSelect.style("float", "left").style("position", "relative");
 
-    self.colorMapPicker2 = new ColorMapPicker(selectDiv, "images/color_maps/ColorMaps2.csv", function() {self.redrawBackground();})
+    self.colorMapPicker2 = new ColorMapPicker(selectDiv, "images/colormoves/ColorMaps2.csv", function() {self.redrawBackground();})
 
     self.opacitySelect = selectDiv
 		.append('select')

@@ -344,7 +344,7 @@
 
 	   				var query = {};
 	   				paramSet.forEach(function(param, index) {
-	   					query[param] = ds.params[param];
+	   					query[param] = {val: ds.params[param], weight:1.0, interpWeight:1.0};
 	   				});
 
 	   				var interp = interpolationFunction(query, trainingSet);

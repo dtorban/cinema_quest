@@ -4,7 +4,6 @@ function ColorMapPicker(parent, dataFile, onChange) {
 	var self = this;
 	this.parent = parent;
 	this.path = dataFile.substring(0,dataFile.lastIndexOf("/")+1);
-	console.log(this.path);
 
     this.dd = this.parent.append("div")
         .attr('id', 'dd')
@@ -26,33 +25,35 @@ function ColorMapPicker(parent, dataFile, onChange) {
 	this.colorMapSelect =  this.dd
 		.append('ul')
   		.attr('class','dropdown')
+      .style('columns','2')
+      .style('column-gap','220px');
 
     d3.csv(dataFile, function(error, results) {
-    	console.log(error);
     	var colorMaps = results;
-    	console.log(results[0]);
            
-		var options = self.colorMapSelect
-		 	.selectAll('li')
-			.data(colorMaps).enter()
-			.append('li')
-            //.text(function (d) { return d.File; })
-			.property('value', function (d) { return d.File; })
-			.style('background-image', function (d) { return "url('"+self.path+d.File+"')"; })
-           .style('background-size', '300px 30px')
-           .style('width', '300px')
-           .style('height', '30px')
-			.style('background-repeat', 'no-repeat')
-           .on('click',function(d) {
-               self.dd.style('background-image', "url('"+self.path+d.File+"')")
-               self.img.property('src', self.path+d.File);
-               self.canvas
-                 .attr('width', self.img.node().width)
-                 .attr('height', self.img.node().height);
-               self.context.drawImage(self.img.node(), 0, 0, self.img.node().width, self.img.node().height);
-               self.imageData = self.context.getImageData(0, Math.floor(self.img.node().height/2), self.img.node().width, 1).data;
-               onChange();
-            });
+		  var options = self.colorMapSelect
+  		 	.selectAll('li')
+  			.data(colorMaps).enter()
+  			.append('li')
+              //.text(function (d) { return d.File; })
+  			.property('value', function (d) { return d.File; })
+  			.style('background-image', function (d) { return "url('"+self.path+d.File+"')"; })
+             .style('background-size', '200px 30px')
+             .style('width', '200px')
+             .style('height', '30px')
+             .style('padding', '3px')
+             .style('display','inline-block')
+  			.style('background-repeat', 'no-repeat')
+             .on('click',function(d, index) {
+                 self.dd.style('background-image', "url('"+self.path+d.File+"')")
+                 self.img.property('src', self.path+d.File);
+                 self.canvas
+                   .attr('width', self.img.node().width)
+                   .attr('height', self.img.node().height);
+                 self.context.drawImage(self.img.node(), 0, 0, self.img.node().width, self.img.node().height);
+                 self.imageData = self.context.getImageData(0, Math.floor(self.img.node().height/2), self.img.node().width, 1).data;
+                 onChange();
+              });
 
 		self.dd.style('background-image', "url('"+self.path+colorMaps[0].File+"')")
 
