@@ -62,10 +62,14 @@ function loadDatabase(dbString, callback) {
 						}
 						else {
 							results.forEach(function(item, index) {
-				            	q.defer(d3.text, item[dbInfo[1]]);
+								//if (index > 500) {
+									//console.log(item[dbInfo[1]]);
+					            	q.defer(d3.text, item[dbInfo[1]]);
+								//}
 				   			});
 				   			q.awaitAll(function(error, results) {
 				            	//if (!error) {
+				            		//console.log(error);
 					            	var data = [];
 						        	results.forEach(function(text, index) {
 						        		if (text) {
@@ -73,13 +77,13 @@ function loadDatabase(dbString, callback) {
 							    			if (dbInfo[3] == " ") {
 							    				var lines = text.split('\n');
 							    				text = '';
-								    			lines = lines.slice(dbInfo[6], lines.length);
+								    			lines = lines.slice(dbInfo[6], (dbInfo[7] > 0) ? dbInfo[7] : lines.length);
 								    			lines.forEach(function(item, index) {
 								    				if (index == 0) {
 								    					text = lines[index].trim();
 								    				}
 								    				else {
-								    					if (index % 10 == 0) {
+								    					if (index % (dbInfo[8] > 0 ? dbInfo[8]: 10) == 0) {
 								    						text = text + "\n" + lines[index].trim();
 								    					}
 								    				}
