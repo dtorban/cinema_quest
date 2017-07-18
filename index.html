@@ -490,21 +490,29 @@
    				var paramSet = Object.keys(paramInfo);
    				var querySet = Object.keys(query);
    				var params = {}
+   				//console.log(query);
+   				/*console.log(query, paramSet);
    				paramSet.forEach(function(item, index) {
    					if (item in paramInfo) {
    						params[item] = paramInfo[item].mean;
    					}
-   				});
+   				});*/
 
 		    	var ds = {params: params, id: 0};
    				var newDs = ds;
    				newDs.id = -1;
-   				paramSet.forEach(function(item, index) {
-   					newDs.params[item] = query[item];
+   				querySet.forEach(function(item, index) {
+   					newDs.params[item] = query[item].val;
    				});
    				//console.log();
 
-   				var dsDist = calcDistance(newDs, trainingSet, querySet, weightFunction, distanceFunction, p);
+   				var weightedParamFunction = function(index) { return query[index].weight*weightFunction(index); }
+
+   				var dsDist = calcDistance(newDs, trainingSet, querySet, weightedParamFunction, distanceFunction, p);
+
+   				querySet.forEach(function(item, index) {
+   					newDs.params[item] = query[item].val*query[item].interpWeight;
+   				});
 
 				var weightSum = 0;
 				for (var f = 0; f < k; f++) {
@@ -519,7 +527,9 @@
 								params[item] = 0;
 							}
 
-							params[item] += trainingSet[dsDist[f].id].params[item]*dsDist[f].weight/weightSum;
+							var interpWeight = (item in query) ? (1.0 - query[item].interpWeight) : 1.0;
+
+							params[item] += interpWeight*trainingSet[dsDist[f].id].params[item]*dsDist[f].weight/weightSum;
 						}
 					}
    				});
