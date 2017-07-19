@@ -739,6 +739,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 
 	for (var f = 0; f < 10; f++) {
 		context.globalAlpha = dsDist[f].weight/weightSum;
+		context.lineWidth = 1.0;
 	 	self.drawLines(lense, self.dataSet[dsDist[f].id], 'black', false, true, 
 	 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
 	}
@@ -746,6 +747,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 
 	context.globalAlpha = 1.0;
 	interpResults.forEach(function(interp, index) {
+		context.lineWidth = 2.0;
 		self.drawLines(lense, interp.ds, interp.color, index == 0, false, null, true);
 	});
 

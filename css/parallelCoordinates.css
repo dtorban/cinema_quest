@@ -17,13 +17,14 @@
 .pCoordChart .highlightPath { 
 	pointer-events: none;
 	stroke-width: 4px;
-	stroke: lightskyblue;
+	stroke: black;
 	stroke-opacity: 1;
 }
 
 .pCoordChart .overlayPath {
 	pointer-events: none;
-	stroke-dasharray: 20, 10;
+	/*stroke-dasharray: 20, 10;*/
+	stroke-width: 4px;
 	stroke: crimson;
 	stroke-opacity: 1;
 }
