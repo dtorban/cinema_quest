@@ -22,6 +22,7 @@
 				<h1>Output Explorer</h1>
 				<select id="database" onchange="load()">
 					<option value="data/GF-HP/GF-HP.csv,visar,column,\t,0">GF-HP-Visar1</option>
+					<option value="data/cinema/GF-HP.json">GF-HP-Visar1.5</option>
 					<option value="data/GF-HP/GF-HP.csv,visar,column,\t,1">GF-HP-Visar2</option>
 					<option value="data/GF-HP/GF-HP.csv,diffraction,columns,\t,0,1">GF-HP-Diffraction</option>
 					<option value="data/GF-HP/GF-HP.csv,output,image">GF-HP-Output</option>
@@ -207,6 +208,12 @@
 	   			lineSpace2.select(query, true);
 	   		}
 
+	   		function paramNormalize(ds, param) {
+	   			var pInfo = paramInfo[param];
+	   			var val = +ds.params[param];
+	   			return (val - pInfo.min)/(pInfo.max - pInfo.min);
+	   		}
+
 	   		function generateFeature(prefix, data, query, update) {
 	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
 					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
@@ -218,7 +225,7 @@
 	   			data.forEach(function(item, index) {
 	   				var point = [];
 	   				paramSet.forEach(function(param, index) {
-	   					point.push(+item.params[param]);
+	   					point.push(paramNormalize(item, param));
 					});
 					points.push(point);
 	   			});
@@ -269,6 +276,37 @@
 	   			}
 	   		}
 
+	   		function generatePCA(prefix, data, query, paramSet, update) {
+	   			var points = [];
+	   			data.forEach(function(item, index) {
+	   				var point = [];
+	   				paramSet.forEach(function(param, index) {
+	   					point.push(paramNormalize(item, param));
+					});
+					points.push(point);
+	   			});
+
+	   			var trainingPoints = [];
+	   			query.forEach(function(item, index) {
+	   				trainingPoints.push(points[item]);
+	   			});
+
+				var pca = new ML.Stat.PCA(trainingPoints);
+				console.log(pca.getExplainedVariance());
+				var prediction = pca.predict(points);
+
+	   			data.forEach(function(item, index) {
+	   				item.params[prefix + "1"] = prediction[index][0];
+	   				item.params[prefix + "2"] = prediction[index][1];
+	   				item.params[prefix + "3"] = prediction[index][2];
+	   			});
+
+	   			if (update) {
+	   				lineSpace.update();
+	   				lineSpace2.update();
+	   			}
+	   		}
+
 	   		function generateKMeans(prefix, data, query, k, update) {
 	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
 					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
@@ -280,7 +318,7 @@
 	   			data.forEach(function(item, index) {
 	   				var point = [];
 	   				paramSet.forEach(function(param, index) {
-	   					point.push(+item.params[param]*Math.pow(paramInfo[param].variance,2));
+	   					point.push(paramNormalize(item, param));
 					});
 					points.push(point);
 	   			});
@@ -396,11 +434,31 @@
 					});*/
 				});
 
+				paramInfo = calcParamInfo(dataSet);
+
+		   		errorParamSet.forEach(function(param, index) {
+					paramInfo[param] = paramInfo["error_average"]
+				});
+
+				var pcaParamSet = Object.keys(data[0].params).filter(function(d) {
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('kmeans_') && !d.startsWith('error_');
+				});
+
+	   			generatePCA('pca_all', data, pcc.query, pcaParamSet);
+
+		   		pcaParamSet = Object.keys(data[0].params).filter(function(d) {
+					return d.startsWith('error_') && !d.startsWith('error_average');
+				});
+
+	   			generatePCA('pca_error', data, pcc.query, pcaParamSet);
+
 		   		data.forEach(function(item, index) {
 					for (var f = 0; f < item.rows.length; f++) {
 						item.params["output_" + f] = item.rows[f].y;
 					}
 				});
+
+		   		paramInfo = calcParamInfo(dataSet);
 
 	   			fullSet = data;
 	   			//trainingSet = data;
@@ -415,11 +473,7 @@
 	   			});
 	   			*/
 
-		   		paramInfo = calcParamInfo(dataSet);
 
-		   		errorParamSet.forEach(function(param, index) {
-					paramInfo[param] = paramInfo["error_average"]
-				});
 
 		   		var paramSet = Object.keys(data[0].params).filter(function(d) {
 					return !isNaN(+data[0].params[d]);

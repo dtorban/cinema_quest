@@ -1,6 +1,27 @@
 'use strict'
 
+function readTextFile(file, callback) {
+    var rawFile = new XMLHttpRequest();
+    rawFile.overrideMimeType("application/json");
+    rawFile.open("GET", file, true);
+    rawFile.onreadystatechange = function() {
+        if (rawFile.readyState === 4 && rawFile.status == "200") {
+            callback(rawFile.responseText);
+        }
+    }
+    rawFile.send(null);
+}
+
 function loadDatabase(dbString, callback) {
+	if (dbString.endsWith(".json")) {
+		readTextFile(dbString, function(text) {
+			var data = JSON.parse(text);
+			//console.log(data);
+		});
+		
+		return;
+	}
+
 	var dbInfo = dbString.split(',')
 
 	d3.csv(dbInfo[0], function(error, results) {
