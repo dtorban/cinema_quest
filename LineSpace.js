@@ -1112,7 +1112,7 @@ LineSpace.prototype.updateBackground = function() {
 
 
 	var distance = function(a, b){
-		return (1.0/self.paramInfo[self.dimensions[0]].variance)*Math.pow(+a[self.dimensions[0]] - b[self.dimensions[0]], 2) +  (1.0/self.paramInfo[self.dimensions[1]].variance)*Math.pow(+a[self.dimensions[1]] - b[self.dimensions[1]], 2);
+		return (1.0/self.paramInfo[self.dimensions[0]].variance)*Math.sqrt(Math.pow(+a[self.dimensions[0]] - b[self.dimensions[0]], 2) +  Math.pow(+a[self.dimensions[1]] - b[self.dimensions[1]], 2));
 	  //return Math.pow(+a[self.dimensions[0]] - b[self.dimensions[0]], 2) +  Math.pow(+a[self.dimensions[1]] - b[self.dimensions[1]], 2);
 	}
 
