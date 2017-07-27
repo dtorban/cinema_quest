@@ -418,7 +418,7 @@
 						Array.from(outParamSet, x => +interp.ds.params[x]));
 
 					if (suffix.startsWith("in") && index == 15) {
-						console.log("error_" + suffix, interpError, outParamSet[2], interp.ds.params[outParamSet[2]], ds.params[outParamSet[2]]);
+						console.log("error_" + suffix, interpError, outParamSet[0], interp.ds.params[outParamSet[0]], ds.params[outParamSet[0]]);
 					}
 
 	   				ds.params["error_" + suffix] = interpError;
@@ -453,10 +453,23 @@
 				   			if (type == "out") {
 				   				generateInterpolationError(name, dataSet, interpFunction, validator.validator);
 				   			}
-				   			else {
+				   			else if (type == "in") {
 			   					generateInterpolationParamError(name , dataSet, interpFunction, validator.validator, initialParamSet, initialParamSet);
 				   			}
 
+				   		});
+				   	});
+		   		});
+
+		   		paramInfo = calcParamInfo(dataSet);
+
+		   		validators = [{name: '10Fold', validator: fold10_2}, {name: 'LeaveOneOut', validator: leaveOneOut_2}];
+		   		validators.forEach(function(validator, index) {
+		   			["interr"].forEach(function(type, index) {
+				   		interpFunctions.forEach(function(interpFunction, index) {
+				   			var name = type + "_" +validator.name + '_i' + index;
+				   			var errorName = "error_out_" +validator.name + '_i' + index;
+			   				generateInterpolationParamError(name, dataSet, interpFunction, validator.validator, initialParamSet, [errorName]);
 				   		});
 				   	});
 		   		});
@@ -487,7 +500,7 @@
 
 	   			generatePCA('pca_all', data, pcc.query, pcaParamSet);
 
-		   		["out", "in"].forEach(function(type, index) {
+		   		["out", "in", "interr"].forEach(function(type, index) {
 			   		var errorParamSet = Object.keys(data[0].params).filter(function(d) {
 						return d.startsWith('error_'+ type);
 					});
@@ -526,7 +539,7 @@
 
 		   		paramInfo = calcParamInfo(dataSet);
 
-		   		["out", "in"].forEach(function(type, index) {
+		   		["out", "in", "interr"].forEach(function(type, index) {
 			   		var errorParamSet = Object.keys(data[0].params).filter(function(d) {
 						return d.startsWith('error_'+ type);
 					});
@@ -559,7 +572,7 @@
 
 		   		spaces.forEach(function(space, index) {
 	   				space.data(testSet);//, ['pca_in1', 'pca_in2', paramSet[0], 'Select...', 'Select...']);
-	   				["out", "in"].forEach(function(type, index) {
+	   				["out", "in", "interr"].forEach(function(type, index) {
 	   					var errorParamSet = Object.keys(data[0].params).filter(function(d) {
 							return d.startsWith('error_'+ type);
 						});
