@@ -748,10 +748,8 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	context.globalAlpha = 1.0;
 	interpResults.forEach(function(interp, index) {
 		context.lineWidth = 2.0;
-		self.drawLines(lense, interp.ds, interp.color, index == 0, false, null, true);
+		self.drawLines(lense, interp.ds, interp.color, index == 0, false, {x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
 	});
-
-	self.colorMapPicker.getColor(0.5);
 }
 
 LineSpace.prototype.data = function(dataSet) {

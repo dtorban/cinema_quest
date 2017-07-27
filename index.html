@@ -371,7 +371,7 @@
 
 	   		function generateInterpolationError(suffix, data, interpolationFunction, validator) {
 	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
-					return !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
 				});
 
 	   			data.forEach(function(ds, index) {
@@ -397,10 +397,42 @@
 	   			});
 	   		}
 
+	   		function generateInterpolationParamError(suffix, data, interpolationFunction, validator, inParamSet, outParamSet) {
+	   			data.forEach(function(ds, index) {
+	   				var trainingSet = validator.getTrainingSet(index);
+	   				trainingSet.forEach(function(item, index) {
+	   					var ds = data[item];
+	   					trainingSet[index] = {id: index, params: ds.params, rows: ds.rows};
+	   				});
+
+	   				var query = {};
+	   				inParamSet.forEach(function(param, index) {
+	   					query[param] = {val: ds.params[param], weight:1.0, interpWeight:0.0};
+	   				});
+
+	   				var interp = interpolationFunction(query, trainingSet);
+
+					var interpError = weightedEclideanDistance(
+						Array.from(outParamSet, x => 1.0/paramInfo[x].variance), 
+						Array.from(outParamSet, x => +ds.params[x]),
+						Array.from(outParamSet, x => +interp.ds.params[x]));
+
+					if (suffix.startsWith("in") && index == 15) {
+						console.log("error_" + suffix, interpError, outParamSet[2], interp.ds.params[outParamSet[2]], ds.params[outParamSet[2]]);
+					}
+
+	   				ds.params["error_" + suffix] = interpError;
+	   			});
+	   		}
+
 	   		function dataLoaded(data) {
 	   			//trainingSet = [];
 	   			//testSet = [];
 	   			dataSet = data;
+
+	   			var initialParamSet = Object.keys(data[0].params).filter(function(d) {
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]);
+				});
 
 		   		paramInfo = calcParamInfo(dataSet);
 	   			generateFeature('pca', data, pcc.query);
@@ -409,56 +441,100 @@
 		   		var fold3 = new KFoldCrossValidation(3, dataSet.length);
 		   		var fold10 = new KFoldCrossValidation(10, dataSet.length);
 		   		var leaveOneOut = new LeaveOneOutCrossValidation(dataSet.length);
+		   		var fold3_2 = new KFoldCrossValidation(3, dataSet.length);
+		   		var fold10_2 = new KFoldCrossValidation(10, dataSet.length);
+		   		var leaveOneOut_2 = new LeaveOneOutCrossValidation(dataSet.length);
 		   		//var validators = [{name: '3Fold', validator: fold3}, {name: '10Fold', validator: fold10}, {name: 'LeaveOneOut', validator: leaveOneOut}];
 		   		var validators = [{name: '10Fold', validator: fold10}, {name: 'LeaveOneOut', validator: leaveOneOut}];
 		   		validators.forEach(function(validator, index) {
+		   			["out", "in"].forEach(function(type, index) {
+				   		interpFunctions.forEach(function(interpFunction, index) {
+				   			var name = type + "_" +validator.name + '_i' + index;
+				   			if (type == "out") {
+				   				generateInterpolationError(name, dataSet, interpFunction, validator.validator);
+				   			}
+				   			else {
+			   					generateInterpolationParamError(name , dataSet, interpFunction, validator.validator, initialParamSet, initialParamSet);
+				   			}
+
+				   		});
+				   	});
+		   		});
+
+		   		paramInfo = calcParamInfo(dataSet);
+
+		   		/*validators = [{name: '10Fold', validator: fold10_2}, {name: 'LeaveOneOut', validator: leaveOneOut_2}];
+		   		validators.forEach(function(validator, index) {
 			   		interpFunctions.forEach(function(interpFunction, index) {
-			   			var name = validator.name + '_i' + index;
-			   			generateInterpolationError(name, dataSet, interpFunction, validator.validator);
+			   			var name = "out_" + validator.name + '_i' + index;
+			   			generateInterpolationParamError(name + "_error", dataSet, interpFunction, validator.validator, initialParamSet, ["error_" + name]);
+
 			   		});
 		   		});
 
-		   		var errorParamSet = Object.keys(data[0].params).filter(function(d) {
-					return d.startsWith('error_');
-				});
+		   		validators = [{name: '10Fold', validator: fold10_2}, {name: 'LeaveOneOut', validator: leaveOneOut_2}];
+		   		validators.forEach(function(validator, index) {
+			   		interpFunctions.forEach(function(interpFunction, index) {
+			   			var name = "in_" + validator.name + '_i' + index;
+			   			generateInterpolationParamError(name + "_error", dataSet, interpFunction, validator.validator, initialParamSet, ["error_" + name]);
 
-				data.forEach(function(item, index) {
-					var sum = 0;
-					errorParamSet.forEach(function(param, index) {
-						sum += item.params[param];
-					});
-					var average = sum/errorParamSet.length;
-					item.params["error_average"] = average;
-					/*errorParamSet.forEach(function(param, index) {
-						item.params[param + '_diff'] = Math.abs(item.params[param]-average);
-					});*/
-				});
+			   		});
+		   		});*/
 
-				paramInfo = calcParamInfo(dataSet);
-
-		   		errorParamSet.forEach(function(param, index) {
-					paramInfo[param] = paramInfo["error_average"]
-				});
-
-				var pcaParamSet = Object.keys(data[0].params).filter(function(d) {
+		   		var pcaParamSet = Object.keys(data[0].params).filter(function(d) {
 					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('kmeans_') && !d.startsWith('error_');
 				});
 
 	   			generatePCA('pca_all', data, pcc.query, pcaParamSet);
 
-		   		pcaParamSet = Object.keys(data[0].params).filter(function(d) {
-					return d.startsWith('error_') && !d.startsWith('error_average');
-				});
+		   		["out", "in"].forEach(function(type, index) {
+			   		var errorParamSet = Object.keys(data[0].params).filter(function(d) {
+						return d.startsWith('error_'+ type);
+					});
 
-	   			generatePCA('pca_error', data, pcc.query, pcaParamSet);
+					data.forEach(function(item, index) {
+						var sum = 0;
+						errorParamSet.forEach(function(param, index) {
+							sum += item.params[param];
+						});
+						var average = sum/errorParamSet.length;
+						item.params["error_average_" + type] = average;
+						/*errorParamSet.forEach(function(param, index) {
+							item.params[param + '_diff'] = Math.abs(item.params[param]-average);
+						});*/
+					});
 
-		   		data.forEach(function(item, index) {
+					paramInfo = calcParamInfo(dataSet);
+
+					errorParamSet.forEach(function(param, index) {
+						paramInfo[param] = paramInfo["error_average_" + type]
+					});
+
+			   		pcaParamSet = Object.keys(data[0].params).filter(function(d) {
+						return d.startsWith('error_'+type+'_');
+					});
+
+		   			generatePCA('pca_'+type+'_error', data, pcc.query, pcaParamSet);
+
+		   		});
+
+			   	data.forEach(function(item, index) {
 					for (var f = 0; f < item.rows.length; f++) {
 						item.params["output_" + f] = item.rows[f].y;
 					}
 				});
 
 		   		paramInfo = calcParamInfo(dataSet);
+
+		   		["out", "in"].forEach(function(type, index) {
+			   		var errorParamSet = Object.keys(data[0].params).filter(function(d) {
+						return d.startsWith('error_'+ type);
+					});
+
+					errorParamSet.forEach(function(param, index) {
+						paramInfo[param] = paramInfo["error_average_" + type]
+					});
+			   	});
 
 	   			fullSet = data;
 	   			//trainingSet = data;
@@ -481,15 +557,19 @@
 
 		   		changeView();
 
-	   			lineSpace.data(testSet);//, ['pca_in1', 'pca_in2', paramSet[0], 'Select...', 'Select...']);
-	   			lineSpace2.data(testSet);//, ['pca_out1', 'pca_out2', paramSet[0], 'Select...', 'Select...']);
+		   		spaces.forEach(function(space, index) {
+	   				space.data(testSet);//, ['pca_in1', 'pca_in2', paramSet[0], 'Select...', 'Select...']);
+	   				["out", "in"].forEach(function(type, index) {
+	   					var errorParamSet = Object.keys(data[0].params).filter(function(d) {
+							return d.startsWith('error_'+ type);
+						});
 
-	   			errorParamSet.forEach(function(param, index) {
-					lineSpace.paramInfo[param] = paramInfo["error_average"]
-				});
-				errorParamSet.forEach(function(param, index) {
-					lineSpace2.paramInfo[param] = paramInfo["error_average"]
-				});
+	   					errorParamSet.forEach(function(param, index) {
+	   						space.paramInfo[param] = paramInfo["error_average_" + type];
+	   					});
+		   				
+	   				});
+		   		});
 
 	   			//lineSpace.data(testSet, [paramSet[0], paramSet[1], paramSet[2], paramSet[3], 'Select...']);
 	   			//lineSpace2.data(testSet, [paramSet[4], paramSet[5], paramSet[6], paramSet[7], 'Select...']);
@@ -575,7 +655,7 @@
 				}
 
 				paramSet.forEach(function(item, index) {
-					if (!(item in query) && !item.startsWith("output_")) {
+					if (!item.startsWith("output_")) {
 						for (var f = 0; f < k; f++) {
 
 							if (f == 0) {
