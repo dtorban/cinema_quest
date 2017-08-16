@@ -32,7 +32,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 	self.onRemoveLense = onRemoveLense;
 
 	this.parent = parent;
-	//this.parent.attr("style", "position:relative;left:0px;top:0px;background-color:white");
 	this.parentRect = parent.node().getBoundingClientRect();
 	this.canvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
@@ -84,7 +83,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     this.bgcanvas.style("height", ''+this.parentRect.height +'px');
     this.bgcontext.clearRect(0, 0, this.parentRect.width, this.parentRect.height);
 	this.bgcontext.globalAlpha = 1.0;
-	//this.bgcontext.globalCompositeOperation = "difference";
 
 	this.bgValues = [];
 	this.bgValuesTemp = [];
@@ -103,7 +101,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     this.context.translate(this.margin.right, this.margin.top);
     this.selectContext.translate(this.margin.right, this.margin.top);
     this.featureContext.translate(this.margin.right, this.margin.top);
-    //this.bgcontext.translate(this.margin.right, this.margin.top);
     this.innerWidth = this.parentRect.width - this.instanceWidth;
     this.innerHeight = this.parentRect.height - this.instanceHeight;
 
@@ -201,7 +198,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 			self.query.forEach(function(item, index) {
 				var ds = self.dataSet[item];
 				var imgData = self.selectContext.getImageData(self.paramX(+ds.params[self.dimensions[0]])*self.pixelRatio+self.margin.left*self.pixelRatio, self.paramY(+ds.params[self.dimensions[1]])*self.pixelRatio+self.margin.top*self.pixelRatio, 1, 1).data;
-				//console.log(imgData, ds);
 				if (imgData[0] > 0) {
 					selected.push(ds.id);
 					$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
@@ -209,14 +205,12 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 				else {
 					$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '0px');
 				}
-				//self.drawLines({context: self.context, scale: 1.0, prevScale: 1.0}, ds);
 			});
 
 			if (selected.length == 0) {
 				self.query.forEach(function(item, index) {
 					var ds = self.dataSet[item];
 					$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
-					//self.drawLines({context: self.context, scale: 1.0, prevScale: 1.0}, ds);
 				});
 			}
 			
@@ -227,7 +221,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 			self.selectContext.closePath();
 
 			self.onSelect(selected);
-			//self.selectContext.globalCompositeOperation = "source-over";
     		return;
     	}
 
@@ -244,7 +237,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 		}
 		else if (self.manipulating) {
 			self.handleManipulate(d3.event);
-			//self.lenses[self.currentLenseIndex].interpParameters[self.manipInterpIndex] = {};
 			self.manipulating = false;
 			self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
 		}
@@ -261,7 +253,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 				context.arc(self.paramX(x), self.paramY(y), 10, 0, 2*Math.PI, true);
 				context.fill();
 				context.closePath();
-				//console.log(x,y);
     		}
     		return;
     	}
@@ -269,7 +260,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     	if (self.dataSet) {
     		if (self.interpolating) {
 	    		self.interpolate(d3.event.offsetX, d3.event.offsetY, self.lenses[self.currentLenseIndex]);
-		    	//self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
 		    	self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
 
 				self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];		
@@ -300,7 +290,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 							Math.abs(x) > lense.scale*lense.width/2-10) ||
 							(Math.abs(y) < lense.scale*lense.height/2 &&
 							Math.abs(y) > lense.scale*lense.height/2-10)) {
-							//self.actionCanvas.style("cursor", "nesw-resize");
 							if (x < -lense.scale*lense.width/2+15 && y < -lense.scale*lense.height/2+15) {
 								self.actionCanvas.style("cursor", "url(css/delete.png) 16 16, not-allowed");
    								self.removeable = true;
@@ -334,7 +323,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 									}
 								}
 
-								//console.log(xVal, item.ds.rows[i].x, item.ds.rows[i].y, yVal);
 								var foundY = item.ds.rows[i].y;
 
 								if (Math.abs(yVal - foundY) < (self.y.domain()[1]-self.y.domain()[0])*0.02) {
@@ -345,7 +333,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 									self.canManipulate = true;
 								}
 							});
-							//console.log(self.x.domain(),self.y.domain(),self.x.invert(x/lense.scale+transX), self.y.invert(y/lense.scale+transY), lense.interpResults[0].ds.rows.length);
 						}
 
 						break;
@@ -444,10 +431,21 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 
     self.colorMapPicker2 = new ColorMapPicker(selectDiv, "images/colormoves/ColorMaps2.csv", function() {self.redrawBackground();})
 
+    var checkbox = selectDiv.append("input")
+	    .attr("type", "checkbox")
+	    .on('click',function() {
+	    	self.selectable = d3.event.target.checked;
+    		//self.update();
+    	});
+    if (self.selectable) {
+    	checkbox.attr("checked", self.selectable);
+    }
+    checkbox.style("float", "left").style("position", "relative");
+
     self.opacitySelect = selectDiv
 		.append('select')
   		.attr('class','select')
-  		//.attr("style", "visibility: hidden")
+  		.attr("style", "visibility: hidden")
     	.on('change',function() {
     		self.dimensions[4] = d3.event.target.value;
     		self.redraw();
@@ -457,6 +455,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 
 	var checkbox = selectDiv.append("input")
 	    .attr("type", "checkbox")
+	    .attr("style", "visibility: hidden")
 	    .on('click',function() {
 	    	self.showFeatures = d3.event.target.checked;
 	    	self.featureCanvas.style("visibility", self.showFeatures ? 'visible' : 'hidden');
@@ -472,17 +471,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 
     var checkbox = selectDiv.append("input")
 	    .attr("type", "checkbox")
-	    .on('click',function() {
-	    	self.selectable = d3.event.target.checked;
-    		//self.update();
-    	});
-    if (self.selectable) {
-    	checkbox.attr("checked", self.selectable);
-    }
-    checkbox.style("float", "left").style("position", "relative");
-
-    var checkbox = selectDiv.append("input")
-	    .attr("type", "checkbox")
+	    .attr("style", "visibility: hidden")
 	    .on('click',function() {
 	    	self.showInterpolation = d3.event.target.checked;
     		self.redrawLenses();
@@ -557,8 +546,8 @@ LineSpace.prototype.updateLense = function(lense, space) {
 
 	x /= selectedLense.tempInterpParameters.length;
 	y /= selectedLense.tempInterpParameters.length;
-	x = self.paramX(x);// - self.margin.left*self.pixelRatio;// - self.instanceWidth*self.pixelRatio;
-	y = self.paramY(y);// - self.margin.top*self.pixelRatio;// - self.instanceHeight*self.pixelRatio;
+	x = self.paramX(x);
+	y = self.paramY(y);
 
 	if (created) {
 		selectedLense.position = [x, y];
@@ -639,7 +628,6 @@ LineSpace.prototype.handleInterpolate = function(event) {
 	    self.interpolate(d3.event.offsetX, d3.event.offsetY, self.lenses[self.currentLenseIndex]);
 	}
 	self.actionCanvas.style("cursor", self.interpolating ? "crosshair" : "default");
-	//self.overlayCanvas.style("cursor", self.interpolating ? "none" : "default");
 } 
 
 LineSpace.prototype.handleResize = function(event) {
@@ -670,7 +658,6 @@ LineSpace.prototype.handleManipulate = function(event) {
 	var xVal = self.x.invert(xPos/lense.scale+transX);
 	var yVal = self.y.invert(yPos/lense.scale+transY);
 	lense.interpParameters[self.manipInterpIndex]["output_" + self.manipOutputIndex] = {val: yVal, weight:1.0, interpWeight:0.0};
-	//console.log(self.manipOutputIndex, xVal, yVal);
 	self.interpolate(x, y, lense);
 }
 
@@ -714,8 +701,6 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 			query[item] = lense.tempInterpParameters[functionIndex][item];
 		});
 
-		//console.log(query);
-		//query["output"] = 483;
 	 	var interp = item(query, self.dataSet);
 	 	interpResults.push(interp);
 	});
@@ -723,10 +708,6 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	lense.interpResults = interpResults;
 
    	if (self.dataSet[dsDist[0].id].image) {
-		/*var query = {};
-		query[self.dimensions[0]] = self.paramX.invert(x-self.margin.right);
-		query[self.dimensions[1]] = self.paramY.invert(y-self.margin.top);
-   		self.interpolateFunctions[0](query, self.dataSet);*/
    		self.drawLines(lense, self.dataSet[dsDist[0].id], 'black', true, true, 
 	 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
    		return;
@@ -758,14 +739,11 @@ LineSpace.prototype.data = function(dataSet) {
 	this.dataSet = dataSet;
 
    	self.paramInfo = calcParamInfo(self.dataSet);
-	//self.paramInfo["output"] = calcStatistics(self.dataSet, function(d) { return d.rows[512].y; });
 
 
 	var paramSet = Object.keys(dataSet[0].params).filter(function(d) {
 		return !isNaN(+dataSet[0].params[d]);
 	});
-	//self.dimensions = [paramSet[0], paramSet[1], paramSet[2], '', ''];
-	//self.dimensions = dimensions;
 
     self.update();
 }
@@ -788,17 +766,13 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		context.fillStyle = color;
 	}
 	else if (graphProperties.show) {
-		//context.strokeStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';//color;
 		context.strokeStyle = 'black'
-		//context.lineWidth = 2;
 		this.context.globalAlpha = 1;
-		//context.strokeStyle = 'black';//color;
 	}
 	else {
-		context.strokeStyle = 'grey';//'#f1f9fa';
+		context.strokeStyle = 'grey';
 	}
 
-	//console.log(graphProperties.show, graphProperties.value);
 	if ((self.showAll || graphProperties.show || forceShow) && !ds.image) {
 		context.beginPath();
 		ds.rows.forEach(function(item, index) {
@@ -825,46 +799,24 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 	if (self.showFeatures && (self.showAll || graphProperties.show || forceShow) && ds.features) {
 
 		context.globalAlpha = 1.0;
-		//tracking.Fast.THRESHOLD = 10;
-
-		//var size = 400;//Math.max(self.bgImageWidth, self.bgImageHeight);
-		/*var width = Math.floor(1+this.instanceWidth*lense.scale/16)*16;
-		var height = Math.floor(1+this.instanceHeight*lense.scale/16)*16;
-		//console.log(width,height);
-		var imageData = context.getImageData(transX+self.margin.left*self.pixelRatio,transY+self.margin.top*self.pixelRatio, width, height);
-		var gray = tracking.Image.grayscale(imageData.data, width, height);
-		var corners = tracking.Fast.findCorners(gray, width, height);*/
-
-		//self.featureContext.putImageData(imageData, 0, 0);
-
-		//console.log(corners.length);
-		//self.featureContext.beginPath();
-		//self.featureContext.clearRect(0,0,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
-		//self.featureContext.stroke();
 
 		var corners = ds.features;
 
 		for (var i = 0; i < corners.length; i += 2) {
 			if (corners[i]*this.instanceWidth*lense.scale <= this.instanceWidth*lense.scale && corners[i+1]*this.instanceHeight*lense.scale <= this.instanceHeight*lense.scale) {
 		        context.lineWidth = 1;
-		        context.strokeStyle = 'darkred';//'#f00';
-		        //self.featureContext.fillStyle = 'red';//'#f00';
+		        context.strokeStyle = 'darkred';
 		        context.beginPath();
-		        //console.log(corners[i], corners[i+1]);
-		        //self.featureContext.fillRect(corners[i]+self.margin.left/2, corners[i + 1]+self.margin.top/2, 1, 1);
 		        context.strokeRect(transX + corners[i]*this.instanceWidth*lense.scale, transY+ corners[i + 1]*this.instanceHeight*lense.scale, 3, 3);
 		        context.stroke();
-		        //self.featureContext.fill();
 			}
 	    }
 	}
 
-	//context.strokeRect(this.instanceWidth/2,this.instanceHeight/2,1,1);
 	if (!graphProperties.show && !color) {
 		var colorValue = self.colorMapPicker.getColor(graphProperties.value);
 		var c = 'rgba('+colorValue[0]+','+colorValue[1]+','+colorValue[2]+','+colorValue[3]+')';
 		context.fillStyle = c;
-		//context.fillStyle = 'rgb('+(graphProperties.value*(255))+','+0+','+0+')';//'blue';//color;
 		$('.pCoordChart .resultPaths path[index="'+graphProperties.index+'"]').css('stroke', c);
 	}
 
@@ -898,9 +850,6 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 			context.closePath();
 			this.context.globalAlpha = 1.0;
 		}
-		
-		//context.fillRect(transX+this.instanceWidth/2-1,transY+this.instanceHeight/2-1,3,3);
-		//context.stroke();
 	}
 	else {
 		context.fillStyle = 'black';
@@ -921,7 +870,6 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 	}
 
 	if (graphProperties.show) {
-		//context.lineWidth = 1;
 		this.context.globalAlpha = 0.4;
 		this.context.globalCompositeOperation = "difference";
 	}
@@ -952,59 +900,7 @@ LineSpace.prototype.update = function() {
 		ds.extentY = d3.extent(ds.rows, function(d) { return d.y; });
 		extentX.push.apply(extentX, ds.extentX);
 		extentY.push.apply(extentY, ds.extentY);
-
-		/*self.interpolateFunctions.forEach(function(interpolateFunction, interpIndex) {
-			var trainingSet = validator.getTrainingSet(index);
-			var query = {};
-			query[self.dimensions[0]] = graphProperties.x;
-			query[self.dimensions[1]] = graphProperties.y;
-
-			trainingSet.forEach(function(item, index) {
-	   			var ds2 = self.dataSet[item];
-	   			//console.log(item, ds);
-	   			trainingSet[index] = {id: index, params: ds2.params, rows: ds2.rows};
-	   		});
-
-			var interp = interpolateFunction(query, trainingSet);
-
-			var interpErrorIn = weightedEclideanDistance(null, 
-						Array.from(ds.rows, x => x.y),
-						Array.from(interp.ds.rows, x => x.y));
-
-			var paramSet = Object.keys(self.dataSet[0].params).filter(function(d) {
-					return !isNaN(+self.dataSet[0].params[d]) 
-						&& !d.startsWith("output_") 
-						&& !d.startsWith('pca_')
-					 	&& !d.startsWith('kmeans_') 
-					 	&& !d.startsWith('error_');
-				});
-
-			var interpErrorIn = weightedEclideanDistance(
-						Array.from(paramSet, x => 1.0/(+paramInfo[x].variance)), 
-						Array.from(paramSet, x => +ds.params[x]),
-						Array.from(paramSet, x => +interp.ds.params[x]));
-
-			var interpErrorOut = weightedEclideanDistance(null, 
-						Array.from(ds.rows, x => x.y),
-						Array.from(interp.ds.rows, x => x.y));
-
-			ds.params["error_view_"+self.id+"_in_i" + interpIndex] = interpErrorIn;
-			ds.params["error_view_"+self.id+"_out_i" + interpIndex] = interpErrorOut;
-		});*/
-
 	});
-
-
-	/*var paramSet = Object.keys(self.dataSet[0].params).filter(function(d) {
-		return d.startsWith("error_view_");
-	});
-
-	paramSet.forEach(function(item, index) {
-		self.paramInfo[item] = calcStatistics(self.dataSet, function(d) { return +d.params[item]; });
-	});*/
-
-	//self.paramInfo["Error"] = calcStatistics(self.dataSet, function(d) { return d.params.Error; });
-	//self.paramInfo["Error"].dynamic = true;
 
 	var paramSet = Object.keys(self.dataSet[0].params).filter(function(d) {
 		return !isNaN(+self.dataSet[0].params[d]);
@@ -1111,13 +1007,11 @@ LineSpace.prototype.updateBackground = function() {
 
 	var distance = function(a, b){
 		return Math.sqrt((1.0/self.paramInfo[self.dimensions[0]].variance)*Math.pow(+a[self.dimensions[0]] - b[self.dimensions[0]], 2) +  (1.0/self.paramInfo[self.dimensions[1]].variance)*Math.pow(+a[self.dimensions[1]] - b[self.dimensions[1]], 2));
-	  //return Math.pow(+a[self.dimensions[0]] - b[self.dimensions[0]], 2) +  Math.pow(+a[self.dimensions[1]] - b[self.dimensions[1]], 2);
 	}
 
 	var tree = new kdTree(points, distance, [self.dimensions[0], self.dimensions[1]]);
 
 
-//console.log(nearest);
 	var colorValue = null;	
 
 	for (var f = 0; f < self.bgImageWidth/4; f+=1) {
@@ -1128,17 +1022,12 @@ LineSpace.prototype.updateBackground = function() {
 				point[self.dimensions[1]] = self.paramY.invert(i*4*2);
 				var nearest = tree.nearest(point, 10);
 				nearest.sort(function(a, b){return a[1]-b[1]});
-				//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
 
 				var val = self.calcBackgroundInterpolate(nearest);
 
 				var pInfo = self.paramInfo[self.dimensions[3]];
 
-				//console.log(nearest, nearest[0][0], val, pInfo);
 				self.bgValuesTemp[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
-				//colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
-		   	//}
-			//self.setPixelValue(self.bgcontext, f+self.margin.left, i+self.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
 		}
 	}
 
@@ -1168,23 +1057,17 @@ LineSpace.prototype.updateBackground = function() {
 							for (var i = s2; i < self.bgImageHeight; i+=50) {
 
 							   	if ((f % 1 == 0) && (i % 1 == 0)) {
-							   	//if ((f*self.bgImageHeight + i) % 5 == 0) {
 									var point = {};
 									point[self.dimensions[0]] = self.paramX.invert(f*2);
 									point[self.dimensions[1]] = self.paramY.invert(i*2);
 									var nearest = tree.nearest(point, 10);
 									nearest.sort(function(a, b){return a[1]-b[1]});
-									//console.log(self.parentRect.width - self.instanceWidth, i, f, self.paramX.invert(i), self.paramY.invert(f), nearest[0][0]);
 
 									var val = self.calcBackgroundInterpolate(nearest);
 
 									var pInfo = self.paramInfo[self.dimensions[3]];
 
-									//console.log(nearest, nearest[0][0], val, pInfo);
 									self.bgValues[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
-									//colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
-							   	//}
-								//self.setPixelValue(self.bgcontext, f+self.margin.left, i+self.margin.top, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
 								}
 							}
 						}
@@ -1229,15 +1112,12 @@ LineSpace.prototype.drawBackgroundFeatures = function() {
 
 	tracking.Fast.THRESHOLD = 5;
 
-	//var size = 400;//Math.max(self.bgImageWidth, self.bgImageHeight);
 	var width = Math.floor(1+self.bgImageWidth/16)*16;
 	var height = Math.floor(1+self.bgImageHeight/16)*16;
-	//console.log(width,height);
 	var imageData = self.bgcontext.getImageData(self.margin.left/2, self.margin.top/2, width, height);
 	var gray = tracking.Image.grayscale(imageData.data, width, height);
 	var corners = tracking.Fast.findCorners(gray, width, height);
 
-	//console.log(corners.length);
 	self.featureContext.beginPath();
 	self.featureContext.clearRect(0,0,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
 	self.featureContext.stroke();
@@ -1245,14 +1125,10 @@ LineSpace.prototype.drawBackgroundFeatures = function() {
 	for (var i = 0; i < corners.length; i += 2) {
 		if (corners[i] <= self.bgImageWidth && corners[i+1] <= self.bgImageHeight) {
 	        self.featureContext.lineWidth = 1;
-	        self.featureContext.strokeStyle = 'darkred';//'#f00';
-	        //self.featureContext.fillStyle = 'red';//'#f00';
+	        self.featureContext.strokeStyle = 'darkred';
 	        self.featureContext.beginPath();
-	        //console.log(corners[i], corners[i+1]);
-	        //self.featureContext.fillRect(corners[i]+self.margin.left/2, corners[i + 1]+self.margin.top/2, 1, 1);
 	        self.featureContext.strokeRect(corners[i]*2, corners[i + 1]*2, 3, 3);
 	        self.featureContext.stroke();
-	        //self.featureContext.fill();
 		}
     }
 }
@@ -1261,13 +1137,10 @@ LineSpace.prototype.redraw = function() {
 	var self = this;
 	this.context.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
 
-	//console.log(colorValue);
-
 	this.query.forEach(function(item, index) {
 		var ds = self.dataSet[item];
 		self.drawLines({context: self.context, scale: 1.0, prevScale: 1.0}, ds);
 	});
-	//self.overlayContext.clearRect(self.cursorPosition[0]-self.instanceWidth/2-2, self.cursorPosition[1]-self.instanceHeight/2-2, self.instanceWidth+4, self.instanceHeight+4);
 	
 	self.xAxis(this.context);
 	self.yAxis(this.context);
