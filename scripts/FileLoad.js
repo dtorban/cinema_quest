@@ -22,7 +22,19 @@ function loadDatabase(dbString, callback) {
 		return;
 	}
 
-	var dbInfo = dbString.split(',')
+	var dbInfo = [];
+	var filePath = "";
+
+	if (dbString.endsWith(".cdb")) {
+		filePath = dbString + "/";
+		dbInfo.push(dbString + "/data.csv");
+		dbInfo.push("FILE");
+		dbInfo.push("image");
+	}
+	else {
+		dbInfo = dbString.split(',');
+	}
+
 
 	d3.csv(dbInfo[0], function(error, results) {
 	   				var params = results;
@@ -35,7 +47,7 @@ function loadDatabase(dbString, callback) {
 			         		results.forEach(function(item, index) {
 			         			var img = new Image;
 			         			var ds = {id: index, params: params[index], rows: [{x:1,y:2},{x:1,y:2},{x:1,y:2}], image: img};
-			         			img.src = item[dbInfo[1]];
+			         			img.src = filePath + item[dbInfo[1]];
 								var canvas = document.createElement('canvas');
 			         			var context = canvas.getContext("2d");
 								var featureCanvas = document.createElement('canvas');
