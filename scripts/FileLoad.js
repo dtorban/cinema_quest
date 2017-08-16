@@ -29,16 +29,40 @@ function loadDatabase(dbString, callback) {
 		filePath = dbString + "/";
 		dbInfo.push(dbString + "/data.csv");
 		dbInfo.push("FILE");
-		dbInfo.push("image");
+		d3.csv(dbInfo[0], function(error, results) {
+	   		var fileName = results[0]["FILE"];
+	   		if (fileName.endsWith(".jpg") || fileName.endsWith(".png") || fileName.endsWith(".gif") || fileName.endsWith(".tiff")) {
+	   			dbInfo.push("image");
+				loadDatabaseData(dbInfo, filePath, results, callback);
+	   		}
+	   		else {
+	   			readTextFile(filePath + "quest.json", function(text) {
+					var data = JSON.parse(text);
+					if (data.type == "csv") {
+						dbInfo.push(data.columns.length > 1 ? "columns": "column");
+						dbInfo.push(data.delimiter);
+						data.columns.forEach(function(item, index) {
+							dbInfo.push(item);
+						});
+						console.log(dbInfo);
+						loadDatabaseData(dbInfo, filePath, results, callback);
+					}
+					console.log(data);
+				});
+	   		}
+		});
 	}
 	else {
 		dbInfo = dbString.split(',');
+		d3.csv(dbInfo[0], function(error, results) {
+			loadDatabaseData(dbInfo, filePath, results, callback);
+		});
 	}
+}
 
-
-	d3.csv(dbInfo[0], function(error, results) {
+function loadDatabaseData(dbInfo, filePath, results, callback) {
+	
 	   				var params = results;
-	   				console.log(results[0]);
 			         	var q = d3.queue();
 
 			         	if (dbInfo[2] == "image") {
@@ -97,12 +121,12 @@ function loadDatabase(dbString, callback) {
 							results.forEach(function(item, index) {
 								//if (index > 500) {
 									//console.log(item[dbInfo[1]]);
-					            	q.defer(d3.text, item[dbInfo[1]]);
+					            	q.defer(d3.text, filePath + item[dbInfo[1]]);
 								//}
 				   			});
 				   			q.awaitAll(function(error, results) {
 				            	//if (!error) {
-				            		//console.log(error);
+				            		console.log(error);
 					            	var data = [];
 						        	results.forEach(function(text, index) {
 						        		if (text) {
@@ -153,9 +177,9 @@ function loadDatabase(dbString, callback) {
 					           		});
 
 						            //lineSpace.data(data);
+									console.log("done loading");
 						            callback(data);
 					           // }
 				            });
 						}
-				});
 }
