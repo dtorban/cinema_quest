@@ -14,6 +14,8 @@
     <script src="scripts/Simularity.js"></script>
     <script src="scripts/LineSpace.js"></script>
     <script src="scripts/FileLoad.js"></script>
+    <script src="scripts/Analytics.js"></script>
+    <script src="scripts/Interpolation.js"></script>
 	<script src = 'lib/ParallelCoordinatesChart.js'></script>
 </head>
    <body>
@@ -37,7 +39,6 @@
 					<option value="pca_out1,pca_out2,kmeans_5_in,Select...,Select...|pca_out1,pca_out2,kmeans_5_in,Select...,Select...">PCA Out</option>
 					<option value="1,2,0,5,Select...|3,4,0,5,Select...">Overview</option>
 				</select>
-				<input type="button" value="Generate Feature" onclick="generateFeature('pca', dataSet, pcc.query, true);"></input>
 			</div>
 			<div id="svgArea">
 				<div id="svgContainer"></div>
@@ -199,222 +200,10 @@
 	   			lineSpace2.select(query, true);
 	   		}
 
-	   		function paramNormalize(ds, param) {
-	   			var pInfo = paramInfo[param];
-	   			var val = +ds.params[param];
-	   			return (val - pInfo.min)/(pInfo.max - pInfo.min);
-	   		}
-
-	   		function generateFeature(prefix, data, query, update) {
-	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
-					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
-				});
-
-				//console.log(query);
-
-	   			var points = [];
-	   			data.forEach(function(item, index) {
-	   				var point = [];
-	   				paramSet.forEach(function(param, index) {
-	   					point.push(paramNormalize(item, param));
-					});
-					points.push(point);
-	   			});
-
-	   			var trainingPoints = [];
-	   			query.forEach(function(item, index) {
-	   				trainingPoints.push(points[item]);
-	   			});
-
-				var pca = new ML.Stat.PCA(trainingPoints);
-				console.log(pca.getExplainedVariance());
-				var inPrediction = pca.predict(points);
-
-	   			points = [];
-				data.forEach(function(item, index) {
-	   				var point = [];
-					for (var f = 0; f < item.rows.length; f++) {
-						point.push(item.rows[f].y);
-					}
-					points.push(point);
-				});
-
-				trainingPoints = [];
-	   			query.forEach(function(item, index) {
-	   				trainingPoints.push(points[item]);
-	   			});
-
-				pca = new ML.Stat.PCA(trainingPoints);
-				console.log(pca.getExplainedVariance());
-				var outPrediction = pca.predict(points);
-
-	   			data.forEach(function(item, index) {
-	   				item.params[prefix + "_in1"] = inPrediction[index][0];
-	   				item.params[prefix + "_in2"] = inPrediction[index][1];
-	   				item.params[prefix + "_in3"] = inPrediction[index][2];
-	   				//item.params[prefix + "_in4"] = inPrediction[index][3];
-	   				//item.params[prefix + "_in5"] = inPrediction[index][4];
-	   				item.params[prefix + "_out1"] = outPrediction[index][0];
-	   				item.params[prefix + "_out2"] = outPrediction[index][1];
-	   				item.params[prefix + "_out3"] = outPrediction[index][2];
-	   				//item.params[prefix + "_out4"] = outPrediction[index][3];
-	   				//item.params[prefix + "_out5"] = outPrediction[index][4];
-	   			});
-
-	   			if (update) {
-	   				lineSpace.update();
-	   				lineSpace2.update();
-	   			}
-	   		}
-
-	   		function generatePCA(prefix, data, query, paramSet, update) {
-	   			var points = [];
-	   			data.forEach(function(item, index) {
-	   				var point = [];
-	   				paramSet.forEach(function(param, index) {
-	   					point.push(paramNormalize(item, param));
-					});
-					points.push(point);
-	   			});
-
-	   			var trainingPoints = [];
-	   			query.forEach(function(item, index) {
-	   				trainingPoints.push(points[item]);
-	   			});
-
-				var pca = new ML.Stat.PCA(trainingPoints);
-				console.log(pca.getExplainedVariance());
-				var prediction = pca.predict(points);
-
-	   			data.forEach(function(item, index) {
-	   				item.params[prefix + "1"] = prediction[index][0];
-	   				item.params[prefix + "2"] = prediction[index][1];
-	   				item.params[prefix + "3"] = prediction[index][2];
-	   			});
-
-	   			if (update) {
-	   				lineSpace.update();
-	   				lineSpace2.update();
-	   			}
-	   		}
-
-	   		function generateKMeans(prefix, data, query, k, update) {
-	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
-					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
-				});
-
-				//console.log(query);
-
-	   			var points = [];
-	   			data.forEach(function(item, index) {
-	   				var point = [];
-	   				paramSet.forEach(function(param, index) {
-	   					point.push(paramNormalize(item, param));
-					});
-					points.push(point);
-	   			});
-
-	   			var trainingPoints = [];
-	   			query.forEach(function(item, index) {
-	   				trainingPoints.push(points[item]);
-	   			});
-
-				var centers = [];
-				for (var f = 0; f < k; f++) {
-					centers.push(trainingPoints[Math.floor(Math.random()*trainingPoints.length)]);
-				}
-
-				var kmeansIn = new ML.Clust.kmeans(trainingPoints, k, {initialization: centers});
-
-	   			points = [];
-				data.forEach(function(item, index) {
-	   				var point = [];
-					for (var f = 0; f < item.rows.length; f++) {
-						point.push(item.rows[f].y);
-					}
-					points.push(point);
-				});
-
-				trainingPoints = [];
-	   			query.forEach(function(item, index) {
-	   				trainingPoints.push(points[item]);
-	   			});
-
-	   			centers = [];
-				for (var f = 0; f < k; f++) {
-					centers.push(trainingPoints[Math.floor(Math.random()*trainingPoints.length)]);
-				}
-
-	   			var kmeansOut = new ML.Clust.kmeans(trainingPoints, k, {initialization: centers});
-
-	   			data.forEach(function(item, index) {
-	   				item.params[prefix + "_" + k + "_in"] = kmeansIn.clusters[index];
-	   				item.params[prefix + "_" + k + "_out"] = kmeansOut.clusters[index];
-	   			});
-
-
-	   			if (update) {
-	   				lineSpace.update();
-	   				lineSpace2.update();
-	   			}
-	   		}
-
-
-	   		function generateInterpolationError(suffix, data, interpolationFunction, validator) {
-	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
-					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
-				});
-
-	   			data.forEach(function(ds, index) {
-	   				var trainingSet = validator.getTrainingSet(index);
-	   				trainingSet.forEach(function(item, index) {
-	   					var ds = data[item];
-	   					trainingSet[index] = {id: index, params: ds.params, rows: ds.rows};
-	   				});
-
-	   				var query = {};
-	   				paramSet.forEach(function(param, index) {
-	   					query[param] = {val: ds.params[param], weight:1.0, interpWeight:1.0};
-	   				});
-
-	   				var interp = interpolationFunction(query, trainingSet);
-
-					var interpError = weightedEclideanDistance(null, 
-						Array.from(ds.rows, x => x.y),
-						Array.from(interp.ds.rows, x => x.y));
-					//console.log(validator.getTrainingSet(index), index, interpError);
-
-	   				ds.params["error_" + suffix] = interpError;
-	   			});
-	   		}
-
-	   		function generateInterpolationParamError(suffix, data, interpolationFunction, validator, inParamSet, outParamSet) {
-	   			data.forEach(function(ds, index) {
-	   				var trainingSet = validator.getTrainingSet(index);
-	   				trainingSet.forEach(function(item, index) {
-	   					var ds = data[item];
-	   					trainingSet[index] = {id: index, params: ds.params, rows: ds.rows};
-	   				});
-
-	   				var query = {};
-	   				inParamSet.forEach(function(param, index) {
-	   					query[param] = {val: ds.params[param], weight:1.0, interpWeight:0.0};
-	   				});
-
-	   				var interp = interpolationFunction(query, trainingSet);
-
-					var interpError = weightedEclideanDistance(
-						Array.from(outParamSet, x => 1.0/paramInfo[x].variance), 
-						Array.from(outParamSet, x => +ds.params[x]),
-						Array.from(outParamSet, x => +interp.ds.params[x]));
-
-					if (suffix.startsWith("in") && index == 15) {
-						console.log("error_" + suffix, interpError, outParamSet[0], interp.ds.params[outParamSet[0]], ds.params[outParamSet[0]]);
-					}
-
-	   				ds.params["error_" + suffix] = interpError;
-	   			});
-	   		}
+   			function updateResultsArea() {
+				var topRect = d3.select('#topArea').node().getBoundingClientRect();
+				d3.select('#resultsArea').style('top',(topRect.height)+'px');
+			}
 
 	   		function dataLoaded(data) {
 	   			//trainingSet = [];
@@ -426,9 +215,9 @@
 				});
 
 		   		paramInfo = calcParamInfo(dataSet);
-	   			generateFeature('pca', data, pcc.query);
-		   		generateKMeans('kmeans', data, pcc.query, 5);
-		   		generateKMeans('kmeans', data, pcc.query, 10);
+	   			generateFeature('pca', data, pcc.query, paramInfo);
+		   		generateKMeans('kmeans', data, pcc.query, 5, paramInfo);
+		   		generateKMeans('kmeans', data, pcc.query, 10, paramInfo);
 		   		var fold3 = new KFoldCrossValidation(3, dataSet.length);
 		   		var fold10 = new KFoldCrossValidation(10, dataSet.length);
 		   		var leaveOneOut = new LeaveOneOutCrossValidation(dataSet.length);
@@ -445,7 +234,7 @@
 				   				generateInterpolationError(name, dataSet, interpFunction, validator.validator);
 				   			}
 				   			else if (type == "in") {
-			   					generateInterpolationParamError(name , dataSet, interpFunction, validator.validator, initialParamSet, initialParamSet);
+			   					generateInterpolationParamError(name , dataSet, interpFunction, validator.validator, initialParamSet, initialParamSet, paramInfo);
 				   			}
 
 				   		});
@@ -460,36 +249,18 @@
 				   		interpFunctions.forEach(function(interpFunction, index) {
 				   			var name = type + "_" +validator.name + '_i' + index;
 				   			var errorName = "error_out_" +validator.name + '_i' + index;
-			   				generateInterpolationParamError(name, dataSet, interpFunction, validator.validator, initialParamSet, [errorName]);
+			   				generateInterpolationParamError(name, dataSet, interpFunction, validator.validator, initialParamSet, [errorName], paramInfo);
 				   		});
 				   	});
 		   		});
 
 		   		paramInfo = calcParamInfo(dataSet);
 
-		   		/*validators = [{name: '10Fold', validator: fold10_2}, {name: 'LeaveOneOut', validator: leaveOneOut_2}];
-		   		validators.forEach(function(validator, index) {
-			   		interpFunctions.forEach(function(interpFunction, index) {
-			   			var name = "out_" + validator.name + '_i' + index;
-			   			generateInterpolationParamError(name + "_error", dataSet, interpFunction, validator.validator, initialParamSet, ["error_" + name]);
-
-			   		});
-		   		});
-
-		   		validators = [{name: '10Fold', validator: fold10_2}, {name: 'LeaveOneOut', validator: leaveOneOut_2}];
-		   		validators.forEach(function(validator, index) {
-			   		interpFunctions.forEach(function(interpFunction, index) {
-			   			var name = "in_" + validator.name + '_i' + index;
-			   			generateInterpolationParamError(name + "_error", dataSet, interpFunction, validator.validator, initialParamSet, ["error_" + name]);
-
-			   		});
-		   		});*/
-
 		   		var pcaParamSet = Object.keys(data[0].params).filter(function(d) {
 					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('kmeans_') && !d.startsWith('error_');
 				});
 
-	   			generatePCA('pca_all', data, pcc.query, pcaParamSet);
+	   			generatePCA('pca_all', data, pcc.query, pcaParamSet, paramInfo);
 
 		   		["out", "in", "interr"].forEach(function(type, index) {
 			   		var errorParamSet = Object.keys(data[0].params).filter(function(d) {
@@ -503,9 +274,6 @@
 						});
 						var average = sum/errorParamSet.length;
 						item.params["error_average_" + type] = average;
-						/*errorParamSet.forEach(function(param, index) {
-							item.params[param + '_diff'] = Math.abs(item.params[param]-average);
-						});*/
 					});
 
 					paramInfo = calcParamInfo(dataSet);
@@ -518,7 +286,7 @@
 						return d.startsWith('error_'+type+'_');
 					});
 
-		   			generatePCA('pca_'+type+'_error', data, pcc.query, pcaParamSet);
+		   			generatePCA('pca_'+type+'_error', data, pcc.query, pcaParamSet, paramInfo);
 
 		   		});
 
@@ -541,19 +309,7 @@
 			   	});
 
 	   			fullSet = data;
-	   			//trainingSet = data;
 	   			testSet = data;
-	   			/*data.forEach(function(item, index) {
-		   			if (Math.random() < 0.5) {
-		   				trainingSet.push(item);
-		   			}
-		   			else {
-		   				testSet.push(item);
-		   			}
-	   			});
-	   			*/
-
-
 
 		   		var paramSet = Object.keys(data[0].params).filter(function(d) {
 					return !isNaN(+data[0].params[d]);
@@ -562,7 +318,7 @@
 		   		changeView();
 
 		   		spaces.forEach(function(space, index) {
-	   				space.data(testSet);//, ['pca_in1', 'pca_in2', paramSet[0], 'Select...', 'Select...']);
+	   				space.data(testSet);
 	   				["out", "in", "interr"].forEach(function(type, index) {
 	   					var errorParamSet = Object.keys(data[0].params).filter(function(d) {
 							return d.startsWith('error_'+ type);
@@ -575,9 +331,6 @@
 	   				});
 		   		});
 
-	   			//lineSpace.data(testSet, [paramSet[0], paramSet[1], paramSet[2], paramSet[3], 'Select...']);
-	   			//lineSpace2.data(testSet, [paramSet[4], paramSet[5], paramSet[6], paramSet[7], 'Select...']);
-
 	   		}
 
    			function getGraphProperties(space, ds) {
@@ -587,122 +340,31 @@
 
    			function interpolate1(query, trainingSet) {
    				d3.select('#interp1').text("Eclidean Distance (k=5, p=1)");
-   				var interp = interpolate(query, 5, 1, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet);
+   				var interp = inverseDistanceInterpolation(query, 5, 1, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet, paramInfo);
    				interp.color = 'green';
-   				d3.select('#interp1').style("color","green");
-   				//pcc.overlayPathData[0].data = interp.ds.params;
-   				//pcc.updateOverlayPaths(true);
    				return interp;
    			}
 
    			function interpolate2(query, trainingSet) {
    				d3.select('#interp2').text("Manhattan Distance (k=10, p=2)");
-   				var interp = interpolate(query, 10, 2, function(index) { return -paramInfo[index].mean; }, manhattanDistance, trainingSet);
+   				var interp = inverseDistanceInterpolation(query, 10, 2, function(index) { return -paramInfo[index].mean; }, manhattanDistance, trainingSet, paramInfo);
    				interp.color = 'blue';
-   				d3.select('#interp2').style("color","blue");
-   				//pcc.overlayPathData[1].data = interp.ds.params;
-   				//pcc.updateOverlayPaths(true);
    				return interp;
    			}
 
    			function interpolate3(query, trainingSet) {
    				d3.select('#interp3').text("Eclidean Distance (k=10, p=4)");
-   				var interp = interpolate(query, 10, 4, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet);
+   				var interp = inverseDistanceInterpolation(query, 10, 4, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet, paramInfo);
    				interp.color = 'red';
-   				d3.select('#interp3').style("color","red");
-   				//pcc.overlayPathData[2].data = interp.ds.params;
-   				//pcc.updateOverlayPaths(true);
    				return interp;
    			}
 
    			function interpolate4(query, trainingSet) {
-   				d3.select('#interp4').text("Centered Cosine (k=10, p=4)");
-   				var interp = interpolate(query, 10, 4, function(index) { return -paramInfo[index].mean; }, centeredCosineSimularity, trainingSet);
+   				var interp = inverseDistanceInterpolation(query, 10, 4, function(index) { return -paramInfo[index].mean; }, centeredCosineSimularity, trainingSet, paramInfo);
    				interp.color = 'cyan';
-   				d3.select('#interp4').style("color","cyan");
-   				//pcc.overlayPathData[3].data = interp.ds.params;
-   				//pcc.updateOverlayPaths(true);
    				return interp;
    			}
 
-   			function interpolate(query, k, p, weightFunction, distanceFunction, trainingSet) {
-   				var paramSet = Object.keys(paramInfo);
-   				var querySet = Object.keys(query);
-   				var params = {}
-   				//console.log(query);
-   				/*console.log(query, paramSet);
-   				paramSet.forEach(function(item, index) {
-   					if (item in paramInfo) {
-   						params[item] = paramInfo[item].mean;
-   					}
-   				});*/
-
-		    	var ds = {params: params, id: 0};
-   				var newDs = ds;
-   				newDs.id = -1;
-   				querySet.forEach(function(item, index) {
-   					newDs.params[item] = query[item].val;
-   				});
-   				//console.log();
-
-   				var weightedParamFunction = function(index) { return query[index].weight*weightFunction(index); }
-
-   				var dsDist = calcDistance(newDs, trainingSet, querySet, weightedParamFunction, distanceFunction, p);
-
-   				querySet.forEach(function(item, index) {
-   					newDs.params[item] = query[item].val*query[item].interpWeight;
-   				});
-
-				var weightSum = 0;
-				for (var f = 0; f < k; f++) {
-					weightSum += dsDist[f].weight;
-				}
-
-				paramSet.forEach(function(item, index) {
-					if (!item.startsWith("output_")) {
-						for (var f = 0; f < k; f++) {
-
-							if (f == 0) {
-								params[item] = 0;
-							}
-
-							var interpWeight = (item in query) ? (1.0 - query[item].interpWeight) : 1.0;
-
-							params[item] += interpWeight*trainingSet[dsDist[f].id].params[item]*dsDist[f].weight/weightSum;
-						}
-					}
-   				});
-
-				var rows = [];
-				for (var f = 0; f < k; f++) {
-					trainingSet[dsDist[f].id].rows.forEach(function(item, index) {
-						if (f == 0) {
-							rows.push({x: item.x, y: item.y*dsDist[f].weight/weightSum});
-						}
-						else {
-							rows[index].y += item.y*dsDist[f].weight/weightSum;
-						}
-					});
-				}
-
-				newDs.rows = rows;
-
-				newDs.extentX = d3.extent(newDs.rows, function(d) { return d.x; });
-				newDs.extentY = d3.extent(newDs.rows, function(d) { return d.y; });
-
-				/*var dsTestDist = calcDistance(newDs, testSet, querySet, weightFunction, distanceFunction, p);
-
-				var interpError = weightedEclideanDistance(null, 
-					Array.from(testSet[dsTestDist[0].id].rows, x => x.y),
-					Array.from(newDs.rows, x => x.y));*/
-
-   				return {ds: newDs, neighbors: dsDist};//, error: interpError};
-   			}
-
-   			function updateResultsArea() {
-				var topRect = d3.select('#topArea').node().getBoundingClientRect();
-				d3.select('#resultsArea').style('top',(topRect.height)+'px');
-			}
    		</script>
    </body>
 </html>
