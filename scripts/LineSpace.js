@@ -78,7 +78,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 		.attr('height', this.parentRect.height/2)
 		.attr("style", "z-index: 0;position:absolute;left:0px;top:0px;");
 	this.bgcontext = this.bgcanvas.node().getContext("2d");
-    //this.bgcontext.scale(2,2);
     this.bgcanvas.style("width", ''+this.parentRect.width +'px');
     this.bgcanvas.style("height", ''+this.parentRect.height +'px');
     this.bgcontext.clearRect(0, 0, this.parentRect.width, this.parentRect.height);

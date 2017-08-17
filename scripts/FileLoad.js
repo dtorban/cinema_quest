@@ -8,7 +8,8 @@ function readTextFile(file, callback) {
         if (rawFile.readyState === 4 && rawFile.status == "200") {
             callback(rawFile.responseText);
         }
-        else {
+        else if (rawFile.readyState === 4 && rawFile.status == "0") {
+        	console.log(rawFile.readyState, rawFile.status);
         	callback(null);
         }
     }
@@ -28,15 +29,6 @@ function loadDatabaseWithInfo(dbInfo, results, callback) {
 }
 
 function loadDatabase(dbString, callback) {
-	if (dbString.endsWith(".json")) {
-		readTextFile(dbString, function(text) {
-			var data = JSON.parse(text);
-			//console.log(data);
-		});
-		
-		return;
-	}
-
 	var dbInfo = {};
 	dbInfo.filePath = "";
 	var filePath = "";
@@ -64,7 +56,6 @@ function loadDatabase(dbString, callback) {
 }
 
 function loadDatabaseData(dbInfo, results, callback) {
-	
 	   				var params = results;
 			         	var q = d3.queue();
 
@@ -118,7 +109,7 @@ function loadDatabaseData(dbInfo, results, callback) {
 								}
 
 								img.onerror = function() {
-									console.log("error");
+									console.log("error cannot open image: " + this.src);
 								}
 			         			//URL.revokeObjectURL(img.src)
 			         			data.push(ds);
@@ -141,18 +132,24 @@ function loadDatabaseData(dbInfo, results, callback) {
 							    			if (dbInfo.delimiter == " ") {
 							    				var lines = text.split('\n');
 							    				text = '';
-								    			lines = lines.slice(dbInfo[6], (dbInfo[7] > 0) ? dbInfo[7] : lines.length);
+							    				if (dbInfo.sample) {
+								    				lines = lines.slice(dbInfo.sample.start ? dbInfo.sample.start : 0,
+								    				 	dbInfo.sample.length ? dbInfo.sample.length : lines.length);
+							    				}
 								    			lines.forEach(function(item, index) {
-								    				if (index == 0) {
-								    					text = lines[index].trim();
-								    				}
-								    				else {
-								    					if (index % (dbInfo[8] > 0 ? dbInfo[8]: 10) == 0) {
-								    						text = text + "\n" + lines[index].trim();
-								    					}
-								    				}
+								    					if (index % (dbInfo.sample && dbInfo.sample.step ? dbInfo.sample.step: 1) == 0) {
+										    				if (text == '') {
+										    					text = lines[index].trim();
+										    				}
+										    				else {
+								    							text = text + "\n" + lines[index].trim();
+									    					}
+									    				}
 								    			});
 								    			text = replaceAll(text,"  ","\t");
+							    			}
+							    			else if (dbInfo.delimiter && dbInfo.delimiter != "\t") {
+							    				text = replaceAll(text,dbInfo.delimiter,"\t");
 							    			}
 								    
 						        			var rows = d3.tsvParseRows(text).map(function(row) {
