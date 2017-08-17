@@ -8,8 +8,23 @@ function readTextFile(file, callback) {
         if (rawFile.readyState === 4 && rawFile.status == "200") {
             callback(rawFile.responseText);
         }
+        else {
+        	callback(null);
+        }
     }
     rawFile.send(null);
+}
+
+function loadDatabaseWithInfo(dbInfo, results, callback) {
+	readTextFile(dbInfo.filePath + "quest.json", function(text) {
+	   	if (text) {
+			var data = JSON.parse(text);
+			for (var attrname in data) { dbInfo[attrname] = data[attrname]; }
+			console.log(dbInfo);
+	   	}
+
+		loadDatabaseData(dbInfo, results, callback);
+	});
 }
 
 function loadDatabase(dbString, callback) {
@@ -22,56 +37,44 @@ function loadDatabase(dbString, callback) {
 		return;
 	}
 
-	var dbInfo = [];
+	var dbInfo = {};
+	dbInfo.filePath = "";
 	var filePath = "";
 
 	if (dbString.endsWith(".cdb")) {
-		filePath = dbString + "/";
-		dbInfo.push(dbString + "/data.csv");
-		dbInfo.push("FILE");
-		d3.csv(dbInfo[0], function(error, results) {
-	   		var fileName = results[0]["FILE"];
+		dbInfo.filePath = dbString + "/";
+		dbInfo.file = dbString + "/data.csv";
+		dbInfo.fileColumn = "FILE";
+		d3.csv(dbInfo.file, function(error, results) {
+	   		var fileName = results[0][dbInfo.fileColumn];
+	   		console.log(fileName);
 	   		if (fileName.endsWith(".jpg") || fileName.endsWith(".png") || fileName.endsWith(".gif") || fileName.endsWith(".tiff")) {
-	   			dbInfo.push("image");
-				loadDatabaseData(dbInfo, filePath, results, callback);
+	   			dbInfo.type = "image";
 	   		}
-	   		else {
-	   			readTextFile(filePath + "quest.json", function(text) {
-					var data = JSON.parse(text);
-					if (data.type == "csv") {
-						dbInfo.push(data.columns.length > 1 ? "columns": "column");
-						dbInfo.push(data.delimiter);
-						data.columns.forEach(function(item, index) {
-							dbInfo.push(item);
-						});
-						console.log(dbInfo);
-						loadDatabaseData(dbInfo, filePath, results, callback);
-					}
-					console.log(data);
-				});
-	   		}
+
+			loadDatabaseWithInfo(dbInfo, results, callback);
 		});
 	}
 	else {
 		dbInfo = dbString.split(',');
 		d3.csv(dbInfo[0], function(error, results) {
-			loadDatabaseData(dbInfo, filePath, results, callback);
+			loadDatabaseData(dbInfo, results, callback);
 		});
 	}
 }
 
-function loadDatabaseData(dbInfo, filePath, results, callback) {
+function loadDatabaseData(dbInfo, results, callback) {
 	
 	   				var params = results;
 			         	var q = d3.queue();
 
-			         	if (dbInfo[2] == "image") {
+			         	if (dbInfo.type == "image") {
 			         		var data = [];
 			         		var numProcessed = 0;
 			         		results.forEach(function(item, index) {
 			         			var img = new Image;
 			         			var ds = {id: index, params: params[index], rows: [{x:1,y:2},{x:1,y:2},{x:1,y:2}], image: img};
-			         			img.src = filePath + item[dbInfo[1]];
+			         			img.src = dbInfo.filePath + item[dbInfo.fileColumn];
 								var canvas = document.createElement('canvas');
 			         			var context = canvas.getContext("2d");
 								var featureCanvas = document.createElement('canvas');
@@ -113,6 +116,10 @@ function loadDatabaseData(dbInfo, filePath, results, callback) {
 						    			callback(data);
 									}
 								}
+
+								img.onerror = function() {
+									console.log("error");
+								}
 			         			//URL.revokeObjectURL(img.src)
 			         			data.push(ds);
 				   			});
@@ -121,7 +128,7 @@ function loadDatabaseData(dbInfo, filePath, results, callback) {
 							results.forEach(function(item, index) {
 								//if (index > 500) {
 									//console.log(item[dbInfo[1]]);
-					            	q.defer(d3.text, filePath + item[dbInfo[1]]);
+					            	q.defer(d3.text, dbInfo.filePath + item[dbInfo.fileColumn]);
 								//}
 				   			});
 				   			q.awaitAll(function(error, results) {
@@ -131,7 +138,7 @@ function loadDatabaseData(dbInfo, filePath, results, callback) {
 						        	results.forEach(function(text, index) {
 						        		if (text) {
 											// correct for white space delemited
-							    			if (dbInfo[3] == " ") {
+							    			if (dbInfo.delimiter == " ") {
 							    				var lines = text.split('\n');
 							    				text = '';
 								    			lines = lines.slice(dbInfo[6], (dbInfo[7] > 0) ? dbInfo[7] : lines.length);
@@ -148,7 +155,6 @@ function loadDatabaseData(dbInfo, filePath, results, callback) {
 								    			text = replaceAll(text,"  ","\t");
 							    			}
 								    
-
 						        			var rows = d3.tsvParseRows(text).map(function(row) {
 							            		return row.map(function(value) {
 							            			return +value;
@@ -158,15 +164,12 @@ function loadDatabaseData(dbInfo, filePath, results, callback) {
 								            var rows2 = [];
 								            var count = 0;
 								            rows.forEach(function(item, index) {
-								                if (dbInfo[2] == 'column') {
-								               		rows2.push({x : count, y : item[dbInfo[4]]});
+								                if (dbInfo.columns.length == 1) {
+								               		rows2.push({x : count, y : item[dbInfo.columns[0]]});
 								               		count++;
 								                }
-								                else if (dbInfo[2] == 'columns') {
-								                	rows2.push({x : item[dbInfo[4]], y : item[dbInfo[5]]});
-								                }
-								                else {
-								               		//rows2.push({x : item[0], y : item[column]});
+								                else if (dbInfo.columns.length == 2) {
+								                	rows2.push({x : item[dbInfo.columns[0]], y : item[dbInfo.columns[1]]});
 								                }
 								            });
 
