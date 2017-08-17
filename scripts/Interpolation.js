@@ -29,7 +29,7 @@
 					if (!item.startsWith("output_")) {
 						for (var f = 0; f < k; f++) {
 
-							if (f == 0) {
+							if (f == 0 && !(item in query)) {
 								params[item] = 0;
 							}
 
