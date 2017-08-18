@@ -23,6 +23,7 @@
 		   <div id="header">
 				<h1>Output Explorer</h1>
 				<select id="database" onchange="load()">
+					<option value="examples/rainbowsphere_D.cdb">Rainbow Sphere</option>
 					<option value="data/GF-HP.cdb">GF-HP</option>
 					<option value="data/GF-HP-Visar1.cdb">GF-HP-Visar1</option>
 					<option value="data/GF-HP-Visar2.cdb">GF-HP-Visar2</option>
@@ -48,7 +49,7 @@
 				<div id="spaceContainer1" class="spaceContainer"></div>
 			</div>
 			<div style="position:absolute;top:25%;left:49%;text-align:center;z-index:10">
-			<input type="checkbox" checked="true" id="linkSpace"></div>
+			<input type="checkbox" checked="true" id="linkSpace"><select id="linkSelect"></select></div>
 			<div class="spaceArea">
 				<div id="spaceContainer2" class="spaceContainer"></div>
 			</div>
@@ -85,12 +86,15 @@
 				$('#svgContainer').html('');
 				d3.selectAll('.spaceContainer').html('');
 				var dbString = d3.select('#database').node().value;
+				d3.select('#linkSelect')
+					.property('value', 0);
 
 				pcc = new ParallelCoordinatesChart(d3.select('#svgContainer'),
 												dbString.endsWith(".cdb") ? dbString + "/data.csv" : dbString.split(',')[0],
 												['sim','visar','diffraction','image','output','FILE'],
 												doneLoading);
 				interpFunctions = [interpolate1, interpolate2, interpolate3, interpolate4];
+				//interpFunctions = [interpolate1];
    			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
    			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
 
@@ -108,6 +112,22 @@
 	    				linked = d3.event.target.checked;
 	    			});
 	    		d3.select('#linkSpace').attr("checked", linked);
+
+	    		var interpMethods = Array.apply(null, Array(interpFunctions.length)).map(function (_, i) {return i;});
+
+	    		var linkSelect = d3.select('#linkSelect')
+	    			.on('change',function() {
+			    		spaces.forEach(function(item, index) {
+			    			item.linkInterp = d3.event.target.value;
+			    			item.update();
+			    		});
+			    	});
+	    		var options = linkSelect
+				 	.selectAll('option')
+					.data(interpMethods).enter()
+					.append('option')
+					.text(function (d) { return d; })
+			    linkSelect.property('value', 0);
 
 				loadDatabase(dbString, dataLoaded);
 	   		}

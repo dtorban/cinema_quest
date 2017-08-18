@@ -72,8 +72,8 @@ function loadDatabaseData(dbInfo, results, callback) {
 			         			var featureContext = featureCanvas.getContext("2d");
 
 			         			img.onload = function() {
-					                canvas.width = img.width/100;
-					                canvas.height = img.height/100;
+					                canvas.width = 16;//img.width/100;
+					                canvas.height = 16;//img.height/100;
 					                context.drawImage(img, 0, 0, canvas.width, canvas.height);
 									console.log(ds.id, "loaded");
 

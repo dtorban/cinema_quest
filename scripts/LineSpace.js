@@ -117,6 +117,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     this.manipInterpIndex = -1;
     this.manipOutputIndex = -1;
     this.query = [];
+    this.linkInterp = 0;
 
     this.actionCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
@@ -539,14 +540,19 @@ LineSpace.prototype.updateLense = function(lense, space) {
 		item[space.dimensions[0]] = {val: +lense.interpResults[index].ds.params[space.dimensions[0]], weight:1.0, interpWeight: 0.0};
 		item[space.dimensions[1]] = {val: +lense.interpResults[index].ds.params[space.dimensions[1]], weight:1.0, interpWeight: 0.0};
 		//if (index > 0) {return;}
-		x += +lense.interpResults[index].ds.params[self.dimensions[0]];
-		y += +lense.interpResults[index].ds.params[self.dimensions[1]];
+		//x += +lense.interpResults[index].ds.params[self.dimensions[0]];
+		//y += +lense.interpResults[index].ds.params[self.dimensions[1]];
 	});
 
-	x /= selectedLense.tempInterpParameters.length;
-	y /= selectedLense.tempInterpParameters.length;
+	x = +lense.interpResults[self.linkInterp].ds.params[self.dimensions[0]];
+	y = +lense.interpResults[self.linkInterp].ds.params[self.dimensions[1]];
 	x = self.paramX(x);
 	y = self.paramY(y);
+
+	/*x /= selectedLense.tempInterpParameters.length;
+	y /= selectedLense.tempInterpParameters.length;
+	x = self.paramX(x);
+	y = self.paramY(y);*/
 
 	if (created) {
 		selectedLense.position = [x, y];
