@@ -26,6 +26,7 @@ An interactive visual tool for querying Cinema Database ensembles.
 	}
 }
 ```
+
     * type (Required) - Either "image" or "csv"
     * delimiter (Required if type is "csv") - The delimiter for the file (i.e. "\t", " ", ",", etc...)
     * columns (Required if type is "csv") - The columns to read for x and y respectively out of the file.  If only one column is specified, the y value will be set and x will be a series from 0 to the number of rows.
