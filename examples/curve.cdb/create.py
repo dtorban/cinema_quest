@@ -7,7 +7,7 @@ with open("data.csv", "w") as csvFile:
 	for i in range(0, 500):
 		mag1 = random.random()
 		mag2 = random.random()
-		phase1 = random.random()*1;
+		phase1 = math.pow(random.random()*1,2);
 		phase2 = random.random()*2;
 		c = random.random()
 		start = (random.random()-0.5)/10.0
