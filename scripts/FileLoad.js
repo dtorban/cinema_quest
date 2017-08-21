@@ -160,14 +160,25 @@ function loadDatabaseData(dbInfo, results, callback) {
 
 								            var rows2 = [];
 								            var count = 0;
+
+								            if (dbInfo.delimiter != " " && dbInfo.sample) {
+								            	rows = rows.slice(dbInfo.sample.start ? dbInfo.sample.start : 0,
+								    				 	dbInfo.sample.length ? dbInfo.sample.length : lines.length);
+								            }
+
 								            rows.forEach(function(item, index) {
-								                if (dbInfo.columns.length == 1) {
-								               		rows2.push({x : count, y : item[dbInfo.columns[0]]});
-								               		count++;
-								                }
-								                else if (dbInfo.columns.length == 2) {
-								                	rows2.push({x : item[dbInfo.columns[0]], y : item[dbInfo.columns[1]]});
-								                }
+								            	var skip = dbInfo.delimiter != " " && dbInfo.sample && (index % (dbInfo.sample && dbInfo.sample.step ? dbInfo.sample.step: 1) != 0);
+
+								            	if (!skip) {
+								            		if (dbInfo.columns.length == 1) {
+									               		rows2.push({x : count, y : item[dbInfo.columns[0]]});
+									               		count++;
+									                }
+									                else if (dbInfo.columns.length == 2) {
+									                	rows2.push({x : item[dbInfo.columns[0]], y : item[dbInfo.columns[1]]});
+									                }
+								            	}
+
 								            });
 
 								            var ds = {id: index, params: params[index], rows: rows2, image: null};
