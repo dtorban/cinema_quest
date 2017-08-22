@@ -1,0 +1,13 @@
+[
+	{"name" : "Rainbow Sphere", "database" : "examples/rainbowsphere_D.cdb"},
+	{"name" : "Guassian", "database" : "examples/gaussian.cdb"},
+	{"name" : "Curve Example", "database" : "examples/curve.cdb"},
+	{"name" : "LDRD GF-HP", "database" : "data/LDRD/GF-HP.cdb"},
+	{"name" : "LDRD GF-HP-Visar1", "database" : "data/LDRD/visar/GF-HP-Visar1.cdb"},
+	{"name" : "LDRD GF-HP-Visar2", "database" : "data/LDRD/visar/GF-HP-Visar2.cdb"},
+	{"name" : "LDRD GF-HP-Diffraction", "database" : "data/LDRD/diffraction/GF-HP-Diffraction.cdb"},
+	{"name" : "LDRD GF-HP-Diffraction Images", "database" : "data/LDRD/diffraction/GF-HP-DiffractionImages.cdb"},
+	{"name" : "Trial 1", "database" : "data/LDRD/trial1.cdb"},
+	{"name" : "Trial 3", "database" : "data/LDRD/trial3.cdb"},
+	{"name" : "Trial 4", "database" : "data/LDRD/trial4.cdb"}
+]

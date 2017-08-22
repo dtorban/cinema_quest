@@ -22,8 +22,8 @@
 	   <div id="topArea">
 		   <div id="header">
 				<h1>Output Explorer</h1>
-				<select id="database" onchange="load()">
-					<option value="examples/rainbowsphere_D.cdb">Rainbow Sphere</option>
+				<select id="database">
+					<!--option value="examples/rainbowsphere_D.cdb">Rainbow Sphere</option>
 					<option value="examples/gaussian.cdb">Guassian</option>
 					<option value="examples/curve.cdb">Curve Example</option>
 					<option value="data/LDRD/GF-HP.cdb">LDRD GF-HP</option>
@@ -33,7 +33,7 @@
 					<option value="data/LDRD/diffraction/GF-HP-DiffractionImages.cdb">LDRD GF-HP-Diffraction Images</option>
 					<option value="data/LDRD/trial1.cdb">LDRD Trial 1</option>
 					<option value="data/LDRD/trial3.cdb">LDRD Trial 3</option>
-					<option value="data/LDRD/trial4.cdb">LDRD Trial 4</option>
+					<option value="data/LDRD/trial4.cdb">LDRD Trial 4</option-->
 				</select>
 				<select id="view" onchange="changeView(true)">
 					<option value="pca_in1,pca_in2,kmeans_5_out,Select...,Select...|pca_out1,pca_out2,kmeans_5_out,Select...,Select...">PCA</option>
@@ -72,8 +72,6 @@
 
    			updateResultsArea();
 
-   			load();
-
    			function escapeRegExp(str) {
 			    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
 			}
@@ -82,9 +80,28 @@
 			  return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
 			}
 
+			readTextFile("databases.json", loadDatabases);
+
+			function loadDatabases(text) {
+				var databases = JSON.parse(text);
+				console.log(databases);
+
+				var databaseSelect = d3.select('#database')
+	    			.on('change',function() {
+			    		load();
+			    	});
+	    		var options = databaseSelect
+				 	.selectAll('option')
+					.data(databases).enter()
+					.append('option')
+					.attr("value", function (d) { return d.database; })
+					.text(function (d) { return d.name; })
+			    databaseSelect.property('value', databases[0].database);
+
+   				load();
+			}
 
 			function load() {
-
 				$('#svgContainer').html('');
 				d3.selectAll('.spaceContainer').html('');
 				var dbString = d3.select('#database').node().value;
