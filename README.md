@@ -37,6 +37,7 @@ Open index.html in the Firefox web browser
 	{"name" : "Rainbow Sphere", "database" : "examples/rainbowsphere_D.cdb"},
 	{"name" : "Guassian", "database" : "examples/gaussian.cdb"},
 	{"name" : "Curve Example", "database" : "examples/curve.cdb"}
+	{"name" : "My Cinema Database", "database" : "data/MyCinemaDatabase.cdb"}
 ]
 
 # name - The name of the database
@@ -44,7 +45,7 @@ Open index.html in the Firefox web browser
 ```
 
 ## Displaying CSV Files Instead of Images
-* To display csv files instead of images, additional data loading information in the quest.json file:
+* To display csv files instead of images, add data loading information in the quest.json file:
   * Store the quest.json file in MyCinemaDatabase.cdb/quest.json.
   * The following is an example of a quest.json file (also look at examples/curve.cdb/quest.json):
 ```
@@ -76,7 +77,7 @@ function interpolate1(query, trainingSet) {
    	return {ds: interpolatedInstance, neighbors: neighbors, color: 'cyan'};
 }
 
-// Simplest interpolation function - returns the first value in training set:
+// Simple interpolation function - returns the first value in training set:
 function interpolate_UseFirstValue(query, trainingSet) {
 	var interpolatedInstance = trainingSet[0];
 	var neighbors = [{id: 0, distance: 0.0, weight: 1.0}];
