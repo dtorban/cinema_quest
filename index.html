@@ -102,7 +102,7 @@
 												['sim','visar','diffraction','image','output','FILE'],
 												doneLoading);
 				interpFunctions = [interpolate1, interpolate2, interpolate3];
-				//interpFunctions = [interpolate1];
+				//interpFunctions = [interpolate_UseFirstValue];
    			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
    			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
 
@@ -391,6 +391,12 @@
    				interp.color = 'cyan';
    				return interp;
    			}
+
+   			function interpolate_UseFirstValue(query, trainingSet) {
+				var interpolatedInstance = trainingSet[0];
+				var neighbors = [{id: 0, distance: 0.0, weight: 1.0}];
+				return {ds: interpolatedInstance, neighbors: neighbors, color: 'cyan'};
+			}
 
    		</script>
    </body>

@@ -67,6 +67,22 @@ Open index.html in the Firefox web browser
 # sample.step (Optional) - Set's the number of rows to skip per sample
 
 ```
+
+## Create a New Interpolation Method
+* Add a function of the following form and add it to the "interpFunctions" array in index.html (See interpolate1() function for example):
+```
+function interpolate1(query, trainingSet) {
+	// calculate interpolated data set (interpolatedInstance) and find nearest neighbors distances (neighbors)
+   	return {ds: interpolatedInstance, neighbors: neighbors, color: 'cyan'};
+}
+
+// Simplest interpolation function - returns the first value in training set:
+function interpolate_UseFirstValue(query, trainingSet) {
+	var interpolatedInstance = trainingSet[0];
+	var neighbors = [{id: 0, distance: 0.0, weight: 1.0}];
+	return {ds: interpolatedInstance, neighbors: neighbors, color: 'cyan'};
+}
+```
 ​
 ##Issues
 * Currently Quest only interactively supports up to 500 instances due to the performance of SVG in the parallel coordinates plot.  This can be improved by using the HTML5 Canvas.
