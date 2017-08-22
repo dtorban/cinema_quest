@@ -1,7 +1,7 @@
 #Cinema Quest
 ##Version 1.0
 ​
-An interactive visual tool for querying Cinema Database ensembles.
+An interactive visual tool for querying Cinema Database ensembles.  [Detailed Description of Tool](https://tf.lanl.gov/ctf/code/git/projects.aesist_open/scm.quest/file/images/doc/quest_details.png)
 
 ##Developer Information
 Quest was developed by Dan Orban (dtorban@umn.edu) in the summer of 2017 as part of the
