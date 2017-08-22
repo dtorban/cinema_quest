@@ -31,14 +31,16 @@ Open index.html in the Firefox web browser
 
 ## View a SpecD Cinema Database Using Quest
 * Copy the database to data/MyCinemaDatabase.cdb
-* Edit index.html to add database as an option in the select:
+* Edit databases.json to add database as an option for quest.  For example:
 ```
-<select id="database" onchange="load()">
-	<option value="examples/rainbowsphere_D.cdb">Rainbow Sphere</option>
-	<option value="examples/gaussian.cdb">Guassian</option>
-	<option value="examples/curve.cdb">Curve Example</option>
-	<option value="data/MyCinemaDatabase.cdb">My Cinema Database</option>
-</select>
+[
+	{"name" : "Rainbow Sphere", "database" : "examples/rainbowsphere_D.cdb"},
+	{"name" : "Guassian", "database" : "examples/gaussian.cdb"},
+	{"name" : "Curve Example", "database" : "examples/curve.cdb"}
+]
+
+# name - The name of the database
+# database - The location of the database (i.e. data/MyCinemaDatabase.cdb)
 ```
 
 ## Displaying CSV Files Instead of Images
@@ -69,6 +71,7 @@ Open index.html in the Firefox web browser
 ##Issues
 * Currently Quest only interactively supports up to 500 instances due to the performance of SVG in the parallel coordinates plot.  This can be improved by using the HTML5 Canvas.
 * A Cinema Database needs to have at least 2 parameters to calculate PCA.
+* The first time quest is loaded, you have to refresh due to a loading bug in the lib/ColorMapPicker.js
 
 ##Changelog
 ###Version 1.0
