@@ -20,6 +20,10 @@
    					newDs.params[item] = query[item].val*query[item].interpWeight;
    				});
 
+   				if (k > dsDist.length) {
+   					k = dsDist.length;
+   				}
+
 				var weightSum = 0;
 				for (var f = 0; f < k; f++) {
 					weightSum += dsDist[f].weight;
