@@ -101,7 +101,8 @@
 												dbString.endsWith(".cdb") ? dbString + "/data.csv" : dbString.split(',')[0],
 												['sim','visar','diffraction','image','output','FILE'],
 												doneLoading);
-				interpFunctions = [interpolate1, interpolate2, interpolate3];
+				interpFunctions = [interpolate2];
+				//interpFunctions = [interpolate1, interpolate2, interpolate3];
 				//interpFunctions = [interpolate_UseFirstValue];
    			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
    			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
@@ -242,6 +243,8 @@
 				});
 
 		   		paramInfo = calcParamInfo(dataSet);
+
+		   		
 	   			generateFeature('pca', data, pcc.query, paramInfo);
 		   		generateKMeans('kmeans', data, pcc.query, 5, paramInfo);
 		   		generateKMeans('kmeans', data, pcc.query, 10, paramInfo);
@@ -334,6 +337,15 @@
 						paramInfo[param] = paramInfo["error_average_" + type]
 					});
 			   	});
+
+			   	//new
+				/*data.forEach(function(item, index) {
+					for (var f = 0; f < item.rows.length; f++) {
+						item.params["output_" + f] = item.rows[f].y;
+					}
+				});
+				paramInfo = calcParamInfo(dataSet);*/
+				//new
 
 	   			fullSet = data;
 	   			testSet = data;

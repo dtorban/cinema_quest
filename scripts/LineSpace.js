@@ -718,17 +718,35 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
    		return;
    	}
 
+   	/*
 	var weightSum = 0;
 	for (var f = 0; f < 10; f++) {
 		weightSum+= dsDist[f].weight;
-	 }
+	}
 
 	for (var f = 0; f < 10; f++) {
-		context.globalAlpha = dsDist[f].weight/weightSum;
+		context.globalAlpha = (dsDist[f].weight/weightSum);
 		context.lineWidth = 1.0;
 	 	self.drawLines(lense, self.dataSet[dsDist[f].id], 'black', false, true, 
 	 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
-	}
+	}*/
+
+
+	interpResults.forEach(function(interp, index) {
+		var weightSum = 0;
+		for (var f = 0; f < 10; f++) {
+			weightSum+= interp.neighbors[f].weight;
+		 }
+
+		for (var f = 0; f < 10; f++) {
+			context.globalAlpha = 0.7*(interp.neighbors[f].weight/weightSum) + 0.3;
+			context.lineWidth = 1.0;
+		 	self.drawLines(lense, self.dataSet[interp.neighbors[f].id], 'black', false, true, 
+		 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
+		}
+
+	});
+
 
 
 	context.globalAlpha = 1.0;
@@ -983,11 +1001,17 @@ LineSpace.prototype.calcBackgroundInterpolate = function(nearest) {
 			var weight = 1/(Math.pow(item[1],1));
 			sum += weight;
 			w.push(weight);
-		});
+		});		
+
+		if (sum < 20) {
+			return null;
+		}
 
 		nearest.forEach(function(item, index) {
 			val += (+item[0][self.dimensions[3]])*w[index];
 		});
+
+
 
 		val /= sum;
 	}
@@ -1032,15 +1056,25 @@ LineSpace.prototype.updateBackground = function() {
 
 				var pInfo = self.paramInfo[self.dimensions[3]];
 
-				self.bgValuesTemp[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
+				if (val != null) {
+					self.bgValuesTemp[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
+				}
+				else {
+					self.bgValuesTemp[f*self.bgImageHeight + i] = null;
+				}
+				
+				//self.bgValuesTemp[f*self.bgImageHeight + i] = 0.0;
+				//self.bgValuesTemp[f*self.bgImageHeight + i] = null;
 		}
 	}
 
 	for (var f = 0; f < self.bgImageWidth; f+=1) {
 		for (var i = 0; i < self.bgImageHeight; i+=1) {
 			self.bgValues[f*self.bgImageHeight + i] = self.bgValuesTemp[Math.floor(f/4)*self.bgImageHeight + Math.floor(i/4)];
-			colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
-			self.setPixelValue(self.bgcontext, f+self.margin.left/2, i+self.margin.top/2, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+			if (self.bgValues[f*self.bgImageHeight + i] != null) {
+				colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
+				self.setPixelValue(self.bgcontext, f+self.margin.left/2, i+self.margin.top/2, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+			}
 		}
 	}
 	self.drawBackgroundFeatures();
@@ -1072,7 +1106,12 @@ LineSpace.prototype.updateBackground = function() {
 
 									var pInfo = self.paramInfo[self.dimensions[3]];
 
-									self.bgValues[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
+									if (val != null) {
+										self.bgValues[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
+									}
+									else {
+										self.bgValues[f*self.bgImageHeight + i] = null;
+									}
 								}
 							}
 						}
@@ -1095,6 +1134,8 @@ LineSpace.prototype.updateBackground = function() {
 LineSpace.prototype.redrawBackground = function() {
 	var self = this;
 
+	this.bgcontext.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
+
 	if (!(self.dimensions[3] in self.paramInfo)) {
 		self.featureContext.beginPath();
 		self.featureContext.clearRect(0,0,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
@@ -1104,8 +1145,10 @@ LineSpace.prototype.redrawBackground = function() {
 
 	for (var f = 0; f < self.bgImageWidth; f++) {
 		for (var i = 0; i < self.bgImageHeight; i++) {
-			var colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
-			self.setPixelValue(self.bgcontext, f+self.margin.left/2, i+self.margin.top/2, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+			if (self.bgValues[f*self.bgImageHeight + i] != null) {
+				var colorValue = self.colorMapPicker2.getColor(self.bgValues[f*self.bgImageHeight + i]);
+				self.setPixelValue(self.bgcontext, f+self.margin.left/2, i+self.margin.top/2, colorValue[0], colorValue[1], colorValue[2], colorValue[3]);
+			}
 		}
 	}
 
