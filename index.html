@@ -39,11 +39,11 @@
 			<div class="spaceArea">
 				<div id="spaceContainer1" class="spaceContainer"></div>
 			</div>
-			<div style="position:absolute;top:25%;left:49%;text-align:center;z-index:10">
-			<input type="checkbox" checked="true" id="linkSpace"><select id="linkSelect"></select></div>
-			<div class="spaceArea">
+			<!--div style="position:absolute;top:25%;left:49%;text-align:center;z-index:10">
+			<input type="checkbox" checked="true" id="linkSpace"><select id="linkSelect"></select></div-->
+			<!--div class="spaceArea">
 				<div id="spaceContainer2" class="spaceContainer"></div>
-			</div>
+			</div-->
 		</div>
    		<script>
 
@@ -101,15 +101,15 @@
 												dbString.endsWith(".cdb") ? dbString + "/data.csv" : dbString.split(',')[0],
 												['sim','visar','diffraction','image','output','FILE'],
 												doneLoading);
-				interpFunctions = [interpolate2];
-				//interpFunctions = [interpolate1, interpolate2, interpolate3];
+				//interpFunctions = [interpolate2];
+				interpFunctions = [interpolate1, interpolate2, interpolate3];
 				//interpFunctions = [interpolate_UseFirstValue];
    			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
-   			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
+   			 	//lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
 
    			 	spaces = [];
    			 	spaces.push(lineSpace);
-   			 	spaces.push(lineSpace2);
+   			 	//spaces.push(lineSpace2);
 
    			 	d3.select('#linkSpace')
 	    			.on('click',function() {
@@ -159,10 +159,10 @@
 	   			});
 
 	   			lineSpace.changeView(views[0]);
-	   			lineSpace2.changeView(views[1]);
+	   			//lineSpace2.changeView(views[1]);
 	   			if (update) {
 	   				lineSpace.update();
-	   				lineSpace2.update();
+	   				//lineSpace2.update();
 	   			}
 	   		}
 
@@ -181,7 +181,7 @@
 
 	   		function onSelectionChange(query) {
 	   			lineSpace.onSelectionChange(query);
-	   			lineSpace2.onSelectionChange(query);
+	   			//lineSpace2.onSelectionChange(query);
 	   		}
 
 			function onUpdateLense(space, lense) {
@@ -211,21 +211,21 @@
 			}
 
 	   		function onMouseOverChange(i, event) {
-	   			if (!lineSpace.selectable && !lineSpace2.selectable) {
+	   			if (!lineSpace.selectable) {// && !lineSpace2.selectable) {
 		   			if (i) {
 		   				lineSpace.select([i]);
-		   				lineSpace2.select([i]);
+		   				//lineSpace2.select([i]);
 		   			}
 		   			else {
 		   				lineSpace.select([]);
-		   				lineSpace2.select([]);
+		   				//lineSpace2.select([]);
 		   			}
 		   		}
 	   		}
 
 	   		function onSelect(query) {
 	   			lineSpace.select(query, true);
-	   			lineSpace2.select(query, true);
+	   			//lineSpace2.select(query, true);
 	   		}
 
    			function updateResultsArea() {

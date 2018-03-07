@@ -574,8 +574,12 @@ LineSpace.prototype.removeLense = function(lenseId) {
 	self.lenses.splice(lenseId,1);
 }
 
-LineSpace.prototype.select = function(query, clear) {
+LineSpace.prototype.select = function(query, clear, color) {
 	var self = this;
+
+	if (!color) {
+		color = 'red';
+	}
 
 	if (clear) {
 		self.selectContext.beginPath();
@@ -589,7 +593,7 @@ LineSpace.prototype.select = function(query, clear) {
 		query.forEach(function(item, index) {
 			self.selected.push(item);
 			var ds = self.dataSet[item];
-			self.drawLines({context: self.selectContext, scale: 1.0, prevScale: 1.0}, ds, 'red');
+			self.drawLines({context: self.selectContext, scale: 1.0, prevScale: 1.0}, ds, color);
 		});
 	}
 	else {
@@ -676,7 +680,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	context.stroke();
 	context.closePath();
 	context.beginPath();
-	context.globalAlpha = 0.8;
+	context.globalAlpha = 0.4;
 	context.fillStyle = 'white';
 	context.globalCompositeOperation = "difference";
 	context.fillRect(x-self.margin.right-lense.scale*self.instanceWidth/2,y-self.margin.top-lense.scale*self.instanceHeight/2,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
@@ -731,8 +735,9 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
 	}*/
 
-
 	interpResults.forEach(function(interp, index) {
+		var neighborIds = [];
+
 		var weightSum = 0;
 		for (var f = 0; f < 10; f++) {
 			weightSum+= interp.neighbors[f].weight;
@@ -741,11 +746,14 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		for (var f = 0; f < 10; f++) {
 			context.globalAlpha = 0.7*(interp.neighbors[f].weight/weightSum) + 0.3;
 			context.lineWidth = 1.0;
-		 	self.drawLines(lense, self.dataSet[interp.neighbors[f].id], 'black', false, true, 
+		 	self.drawLines(lense, self.dataSet[interp.neighbors[f].id], interp.color, false, true, 
 		 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
+		 	neighborIds.push(interp.neighbors[f].id);
 		}
 
+		self.select(neighborIds, index == 0, interp.color);
 	});
+
 
 
 
@@ -1185,8 +1193,19 @@ LineSpace.prototype.redraw = function() {
 	var self = this;
 	this.context.clearRect(-this.margin.right, -this.margin.top, this.parentRect.width, this.parentRect.height);
 
+
+	var querySet = [];
+
 	this.query.forEach(function(item, index) {
-		var ds = self.dataSet[item];
+		querySet.push(self.dataSet[item]);
+	});
+
+	querySet.sort(function(a, b){
+		return self.getGraphProperties(self, b).value - self.getGraphProperties(self, a).value;
+	});
+
+	querySet.forEach(function(item, index) {
+		var ds = item;
 		self.drawLines({context: self.context, scale: 1.0, prevScale: 1.0}, ds);
 	});
 	
