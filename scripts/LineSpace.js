@@ -610,9 +610,40 @@ LineSpace.prototype.select = function(query, clear, color, metaIndex, numIndexes
 		});
 
 		self.selected = [];
+		self.query.forEach(function(item, index) {
+			var ds = self.dataSet[item];
+			$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
+		});
+		self.redraw();
 	}
 	
 	self.selectContext.globalAlpha = oldGlobalAlpha;
+
+	if (!self.selectVersion) { self.selectVersion = 0; }
+	self.selectVersion++;
+
+	var q = d3.queue();
+			q.defer(function(callback) {
+				var ver = self.selectVersion;
+				setTimeout(function() {
+					if (ver == self.selectVersion && numIndexes) {
+						self.query.forEach(function(item, index) {
+							var ds = self.dataSet[item];
+							if (query.includes(item)) {
+								$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
+								$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke', color);
+							}
+							else {
+								$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '0px');
+							}
+						});
+					}
+					
+					callback(null); 
+				}, 200);
+							
+			});
+
 }
 
 LineSpace.prototype.setPixelValue = function(context, x, y, r, g, b, a) {
@@ -673,7 +704,9 @@ LineSpace.prototype.handleManipulate = function(event) {
 	var transY = lense.height/2;
 	var xVal = self.x.invert(xPos/lense.scale+transX);
 	var yVal = self.y.invert(yPos/lense.scale+transY);
-	lense.interpParameters[self.manipInterpIndex]["output_" + self.manipOutputIndex] = {val: yVal, weight:1.0, interpWeight:0.0};
+	self.interpolateFunctions.forEach(function(item, functionIndex) {
+		lense.interpParameters[functionIndex]["output_" + self.manipOutputIndex] = {val: yVal, weight:1.0, interpWeight:0.0};
+	});
 	self.interpolate(x, y, lense);
 }
 
@@ -890,17 +923,6 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 				context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5, 0, 2 * Math.PI);
 				context.fill();
 			}
-			/*else {
-				this.context.globalAlpha = 0.9;	
-				this.context.globalCompositeOperation = "source-over";
-				var oldFillStyle = context.fillStyle;
-				context.fillStyle = 'white';
-				context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5, 0, 2 * Math.PI);
-				context.fill();
-				context.fillStyle = oldFillStyle;
-			}*/
-			//context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 6, 0, 2 * Math.PI);
-			//context.stroke();
 
 			var oldLineWidth = context.lineWidth;
 			var oldStyle = context.strokeStyle;
