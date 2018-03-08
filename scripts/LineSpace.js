@@ -572,6 +572,7 @@ LineSpace.prototype.removeLense = function(lenseId) {
 	}
 	self.lenses[lenseId].canvas.remove();
 	self.lenses.splice(lenseId,1);
+	self.currentLenseIndex = -1;
 	self.select([], true);
 }
 
@@ -610,11 +611,15 @@ LineSpace.prototype.select = function(query, clear, color, metaIndex, numIndexes
 		});
 
 		self.selected = [];
-		self.query.forEach(function(item, index) {
-			var ds = self.dataSet[item];
-			$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
-		});
-		self.redraw();
+
+		if (self.currentLenseIndex < 0) {
+
+			self.query.forEach(function(item, index) {
+				var ds = self.dataSet[item];
+				$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
+			});
+			self.redraw();
+		}
 	}
 	
 	self.selectContext.globalAlpha = oldGlobalAlpha;
