@@ -572,9 +572,10 @@ LineSpace.prototype.removeLense = function(lenseId) {
 	}
 	self.lenses[lenseId].canvas.remove();
 	self.lenses.splice(lenseId,1);
+	self.select([], true);
 }
 
-LineSpace.prototype.select = function(query, clear, color) {
+LineSpace.prototype.select = function(query, clear, color, metaIndex, numIndexes, alphas) {
 	var self = this;
 
 	if (!color) {
@@ -588,12 +589,17 @@ LineSpace.prototype.select = function(query, clear, color) {
 		self.selectContext.closePath();
 	}
 
+	var oldGlobalAlpha = self.selectContext.globalAlpha;
+
 	if (query.length > 0) {
 		self.selected = [];
 		query.forEach(function(item, index) {
 			self.selected.push(item);
 			var ds = self.dataSet[item];
-			self.drawLines({context: self.selectContext, scale: 1.0, prevScale: 1.0}, ds, color);
+			if (alphas) {
+				//self.selectContext.globalAlpha = alphas[index];
+			}
+			self.drawLines({context: self.selectContext, scale: 1.0, prevScale: 1.0}, ds, color, false, false, null, false, metaIndex, numIndexes);
 		});
 	}
 	else {
@@ -606,6 +612,7 @@ LineSpace.prototype.select = function(query, clear, color) {
 		self.selected = [];
 	}
 	
+	self.selectContext.globalAlpha = oldGlobalAlpha;
 }
 
 LineSpace.prototype.setPixelValue = function(context, x, y, r, g, b, a) {
@@ -680,7 +687,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	context.stroke();
 	context.closePath();
 	context.beginPath();
-	context.globalAlpha = 0.4;
+	context.globalAlpha = 0.8;
 	context.fillStyle = 'white';
 	context.globalCompositeOperation = "difference";
 	context.fillRect(x-self.margin.right-lense.scale*self.instanceWidth/2,y-self.margin.top-lense.scale*self.instanceHeight/2,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
@@ -737,6 +744,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 
 	interpResults.forEach(function(interp, index) {
 		var neighborIds = [];
+		var alphas = []
 
 		var weightSum = 0;
 		for (var f = 0; f < 10; f++) {
@@ -744,17 +752,17 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		 }
 
 		for (var f = 0; f < 10; f++) {
-			context.globalAlpha = 0.7*(interp.neighbors[f].weight/weightSum) + 0.3;
+			var alpha = 0.7*(interp.neighbors[f].weight/weightSum) + 0.3;
+			alphas.push(alpha);
+			context.globalAlpha = alpha;
 			context.lineWidth = 1.0;
 		 	self.drawLines(lense, self.dataSet[interp.neighbors[f].id], interp.color, false, true, 
 		 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
 		 	neighborIds.push(interp.neighbors[f].id);
 		}
 
-		self.select(neighborIds, index == 0, interp.color);
+		self.select(neighborIds, index == 0, interp.color, index, interpResults.length, alphas);
 	});
-
-
 
 
 	context.globalAlpha = 1.0;
@@ -779,10 +787,11 @@ LineSpace.prototype.data = function(dataSet) {
     self.update();
 }
 
-LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, localCoords, noPoint) {
+LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, localCoords, noPoint, metaIndex, numIndexes) {
 	var self = this;
 
 	var context = lense.context;
+	var oldGlobalAlpha = context.globalAlpha;
 	var graphProperties = self.getGraphProperties(self, ds);
 	if(localCoords) {
 		graphProperties = localCoords;
@@ -857,7 +866,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 			context.beginPath();
 			var xClear = transX+lense.scale*this.instanceWidth/2;
 			var yClear = transY+lense.scale*this.instanceHeight/2;
-			var clearRadius = 6;
+			var clearRadius = 8;
 		
 			context.arc(xClear, yClear, clearRadius, 0, 2*Math.PI, true);
 			context.clip();
@@ -872,14 +881,41 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 				opacity = (+ds.params[opacityKey] - pInfo.min)/(pInfo.max - pInfo.min);		
 			}
 
-			this.context.globalAlpha = opacity;	
+			
 			$('.pCoordChart .resultPaths path[index="'+graphProperties.index+'"]').css('stroke-opacity', '' + (opacity*0.4));
-			this.context.globalCompositeOperation = "source-over";
 			context.beginPath()
-			context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5, 0, 2 * Math.PI);
-			context.fill();
+			if (!numIndexes) {
+				this.context.globalAlpha = opacity;	
+				this.context.globalCompositeOperation = "source-over";
+				context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5, 0, 2 * Math.PI);
+				context.fill();
+			}
+			/*else {
+				this.context.globalAlpha = 0.9;	
+				this.context.globalCompositeOperation = "source-over";
+				var oldFillStyle = context.fillStyle;
+				context.fillStyle = 'white';
+				context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5, 0, 2 * Math.PI);
+				context.fill();
+				context.fillStyle = oldFillStyle;
+			}*/
+			//context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 6, 0, 2 * Math.PI);
+			//context.stroke();
+
+			var oldLineWidth = context.lineWidth;
+			var oldStyle = context.strokeStyle;
+			context.strokeStyle = context.fillStyle;
+			context.lineWidth = 2.0;
+			context.globalAlpha = oldGlobalAlpha;
+			//var metaStart = 2.0 * Math.PI*metaIndex/numIndexes;
+			//var metaLength = 2.0 * Math.PI/numIndexes;
+			//context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 6, metaStart, metaStart + metaLength);
+			context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 8 + metaIndex*2, 0, 2 * Math.PI);
+			context.stroke();
 			context.closePath();
 			this.context.globalAlpha = 1.0;
+			context.strokeStyle = oldStyle;
+			context.lineWidth = oldLineWidth;
 		}
 	}
 	else {
