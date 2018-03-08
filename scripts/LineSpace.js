@@ -619,31 +619,6 @@ LineSpace.prototype.select = function(query, clear, color, metaIndex, numIndexes
 	
 	self.selectContext.globalAlpha = oldGlobalAlpha;
 
-	if (!self.selectVersion) { self.selectVersion = 0; }
-	self.selectVersion++;
-
-	var q = d3.queue();
-			q.defer(function(callback) {
-				var ver = self.selectVersion;
-				setTimeout(function() {
-					if (ver == self.selectVersion && numIndexes) {
-						self.query.forEach(function(item, index) {
-							var ds = self.dataSet[item];
-							if (query.includes(item)) {
-								$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
-								$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke', color);
-							}
-							else {
-								$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '0px');
-							}
-						});
-					}
-					
-					callback(null); 
-				}, 200);
-							
-			});
-
 }
 
 LineSpace.prototype.setPixelValue = function(context, x, y, r, g, b, a) {
@@ -762,18 +737,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
    		return;
    	}
 
-   	/*
-	var weightSum = 0;
-	for (var f = 0; f < 10; f++) {
-		weightSum+= dsDist[f].weight;
-	}
-
-	for (var f = 0; f < 10; f++) {
-		context.globalAlpha = (dsDist[f].weight/weightSum);
-		context.lineWidth = 1.0;
-	 	self.drawLines(lense, self.dataSet[dsDist[f].id], 'black', false, true, 
-	 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
-	}*/
+	var neighborResults = [];
 
 	interpResults.forEach(function(interp, index) {
 		var neighborIds = [];
@@ -785,7 +749,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		 }
 
 		for (var f = 0; f < 10; f++) {
-			var alpha = 0.7*(interp.neighbors[f].weight/weightSum) + 0.3;
+			var alpha = 0.8*(interp.neighbors[f].weight/weightSum) + 0.2;
 			alphas.push(alpha);
 			context.globalAlpha = alpha;
 			context.lineWidth = 1.0;
@@ -795,7 +759,35 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		}
 
 		self.select(neighborIds, index == 0, interp.color, index, interpResults.length, alphas);
+		neighborResults.push([neighborIds, interp.color, alphas]);
 	});
+
+	if (!self.selectVersion) { self.selectVersion = 0; }
+	self.selectVersion++;
+
+	var q = d3.queue();
+			q.defer(function(callback) {
+				var ver = self.selectVersion;
+				setTimeout(function() {
+					if (ver == self.selectVersion) {
+						self.query.forEach(function(item, index) {
+							var ds = self.dataSet[item];
+							$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '0px');
+							
+							neighborResults.forEach(function(item, index) {
+								if (item[0].includes(ds.id)) {
+									$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
+									$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke', item[1]);
+								}
+							});
+							
+						});
+					}
+					
+					callback(null); 
+				}, 200);
+							
+			});
 
 
 	context.globalAlpha = 1.0;
@@ -803,6 +795,21 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		context.lineWidth = 2.0;
 		self.drawLines(lense, interp.ds, interp.color, index == 0, false, {x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
 	});
+
+
+	/*
+	var weightSum = 0;
+	for (var f = 0; f < 1; f++) {
+		weightSum+= dsDist[f].weight;
+	}
+
+	for (var f = 0; f < 1; f++) {
+		context.globalAlpha = (dsDist[f].weight/weightSum);
+		context.lineWidth = 3.0;
+	 	self.drawLines(lense, self.dataSet[dsDist[f].id], 'black', false, true, 
+	 		{x: +tempParams[self.dimensions[0]], y: +tempParams[self.dimensions[1]], value: 0, show: true}, true);
+	}
+	*/
 }
 
 LineSpace.prototype.data = function(dataSet) {
