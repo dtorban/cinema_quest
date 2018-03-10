@@ -598,7 +598,7 @@ LineSpace.prototype.select = function(query, clear, color, metaIndex, numIndexes
 			self.selected.push(item);
 			var ds = self.dataSet[item];
 			if (alphas) {
-				//self.selectContext.globalAlpha = alphas[index];
+				self.selectContext.globalAlpha = alphas[index];
 			}
 			self.drawLines({context: self.selectContext, scale: 1.0, prevScale: 1.0}, ds, color, false, false, null, false, metaIndex, numIndexes);
 		});
@@ -617,6 +617,7 @@ LineSpace.prototype.select = function(query, clear, color, metaIndex, numIndexes
 			self.query.forEach(function(item, index) {
 				var ds = self.dataSet[item];
 				$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
+				$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-opacity', '0.4');
 			});
 			self.redraw();
 		}
@@ -749,12 +750,14 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		var alphas = []
 
 		var weightSum = 0;
-		for (var f = 0; f < 10; f++) {
+		for (var f = 0; f < 15; f++) {
 			weightSum+= interp.neighbors[f].weight;
 		 }
 
-		for (var f = 0; f < 10; f++) {
-			var alpha = 0.8*(interp.neighbors[f].weight/weightSum) + 0.2;
+		for (var f = 0; f < 15; f++) {
+			var alpha = (15.0-f)/15.0;
+			alpha = alpha * alpha * alpha;
+			//var alpha = (interp.neighbors[f].weight/weightSum)+0.25;
 			alphas.push(alpha);
 			context.globalAlpha = alpha;
 			context.lineWidth = 1.0;
@@ -778,10 +781,13 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 						self.query.forEach(function(item, index) {
 							var ds = self.dataSet[item];
 							$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '0px');
-							
+
 							neighborResults.forEach(function(item, index) {
 								if (item[0].includes(ds.id)) {
 									$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
+									var alphaIndex = item[0].findIndex(function(element) {
+										 return element == ds.id; });
+									$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-opacity', '' + item[2][alphaIndex]);
 									$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke', item[1]);
 								}
 							});
