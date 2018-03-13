@@ -167,6 +167,9 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 		}
 
 		if (self.canManipulate) {
+			lense.tempInterpParameters.forEach(function(item, index) {
+				lense.tempInterpParameters[index] = {};
+			});
 			self.handleManipulate(d3.event);
 			self.manipulating = true;
 		}
@@ -178,7 +181,6 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 			self.handleResize(d3.event);
 		}
 		else if (self.manipulating) {
-
 		}
 		else if (Math.abs(Math.abs(self.cursorPosition[0] - lense.position[0])) < lense.width/15 && 
 				Math.abs(self.cursorPosition[1] - lense.position[1]) < lense.height/15) {
