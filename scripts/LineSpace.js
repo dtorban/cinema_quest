@@ -2,7 +2,7 @@
 
 var id = 0;
 
-function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, onUpdateLense, onRemoveLense) {
+function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense) {
 	var self = this;
 
     self.id = id;
@@ -157,8 +157,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 		}
 
 		if (self.removeable) {
-			self.removeLense(self.currentLenseIndex);
 			self.onRemoveLense(self, self.currentLenseIndex);
+			self.removeLense(self.currentLenseIndex);
 			return;
 		}
 
@@ -172,6 +172,9 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 		}
 
 		if (self.resizing) {
+			lense.tempInterpParameters.forEach(function(item, index) {
+				lense.tempInterpParameters[index] = {};
+			});
 			self.handleResize(d3.event);
 		}
 		else if (self.manipulating) {
@@ -508,6 +511,7 @@ LineSpace.prototype.createLense = function(x,y) {
 	lense.interpResults = [];
 	lense.interpParameters = [];
 	lense.tempInterpParameters = [];
+	lense.color = 'white';
 	self.interpolateFunctions.forEach(function(item, index) {
 		lense.interpParameters.push({});
 		lense.tempInterpParameters.push({});
@@ -515,6 +519,8 @@ LineSpace.prototype.createLense = function(x,y) {
 	self.lenses.push(lense);
 	self.currentLenseIndex = self.lenses.length-1;
 	lense.id = self.currentLenseIndex;
+
+	onCreateLense(self, lense);
 
 	return lense;
 }
@@ -537,8 +543,8 @@ LineSpace.prototype.updateLense = function(lense, space) {
 
 	selectedLense.interpParameters = lense.interpParameters;
 	selectedLense.tempInterpParameters.forEach(function(item, index) {
-		item[space.dimensions[0]] = {val: +lense.interpResults[index].ds.params[space.dimensions[0]], weight:1.0, interpWeight: 1.0};
-		item[space.dimensions[1]] = {val: +lense.interpResults[index].ds.params[space.dimensions[1]], weight:1.0, interpWeight: 1.0};
+		item[space.dimensions[0]] = {val: +lense.interpResults[index].ds.params[space.dimensions[0]], weight:1.0, interpWeight: 0.0};
+		item[space.dimensions[1]] = {val: +lense.interpResults[index].ds.params[space.dimensions[1]], weight:1.0, interpWeight: 0.0};
 		//if (index > 0) {return;}
 		//x += +lense.interpResults[index].ds.params[self.dimensions[0]];
 		//y += +lense.interpResults[index].ds.params[self.dimensions[1]];
@@ -612,7 +618,7 @@ LineSpace.prototype.select = function(query, clear, color, metaIndex, numIndexes
 
 		self.selected = [];
 
-		if (self.currentLenseIndex < 0) {
+		if (clear) {
 
 			self.query.forEach(function(item, index) {
 				var ds = self.dataSet[item];
@@ -707,6 +713,14 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	context.fillRect(x-self.margin.right-lense.scale*self.instanceWidth/2,y-self.margin.top-lense.scale*self.instanceHeight/2,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
 	context.stroke();
 	context.closePath();
+	context.beginPath();
+	context.globalAlpha = 0.2;
+	context.fillStyle = lense.color;
+	context.globalCompositeOperation = "source-over";
+	context.fillRect(x-self.margin.right-lense.scale*self.instanceWidth/2,y-self.margin.top-lense.scale*self.instanceHeight/2,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
+	context.stroke();
+	context.closePath();
+
 	context.globalAlpha = 1.0;
 	context.globalCompositeOperation = "source-over";
 	var pSet = [self.dimensions[0], self.dimensions[1]];
@@ -733,7 +747,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 			query[item] = lense.tempInterpParameters[functionIndex][item];
 		});
 
-	 	var interp = item(query, self.dataSet);
+	 	var interp = item(query, self.dataSet, lense);
 	 	//console.log(self.id, query, interp);
 	 	interpResults.push(interp);
 	});
@@ -868,18 +882,23 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 	}
 
 	if ((self.showAll || graphProperties.show || forceShow) && !ds.image) {
-		context.beginPath();
-		ds.rows.forEach(function(item, index) {
-			if (index == 0) {
-				context.moveTo(lense.scale*self.x(item.x), lense.scale*self.y(item.y));
-			}
-			else {
-				context.lineTo(lense.scale*self.x(item.x), lense.scale*self.y(item.y));
-			}
-		});
-
-		context.stroke();
-		context.closePath();
+		var alpha = context.globalAlpha;
+		for (var f = 0; f < 2; f++) {
+			context.beginPath();
+			context.strokeStyle = f == 0 ? context.strokeStyle : 'black';
+			context.globalAlpha = f == 0 ? alpha : 0.4*alpha;
+			ds.rows.forEach(function(item, index) {
+				if (index == 0) {
+					context.moveTo(lense.scale*self.x(item.x), lense.scale*self.y(item.y));
+				}
+				else {
+					context.lineTo(lense.scale*self.x(item.x), lense.scale*self.y(item.y));
+				}
+			});
+			context.stroke();
+			context.closePath();
+		}
+		context.globalAlpha = alpha;
 	}
 
 	context.translate(-transX, -transY);
@@ -974,6 +993,11 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		context.lineWidth = 2.0;
 		context.beginPath();
 		context.strokeRect(transX,transY,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
+		context.stroke();
+		context.closePath();
+		context.beginPath();
+		context.strokeStyle = lense.color;
+		context.strokeRect(transX+1,transY+1,this.instanceWidth*lense.scale-2,this.instanceHeight*lense.scale-2);
 		context.stroke();
 		context.closePath();
 		context.lineWidth = 1.1;

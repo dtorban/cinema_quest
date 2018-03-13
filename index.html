@@ -58,6 +58,7 @@
 			var interpFunctions = null;
 			var spaces = [];
 			var linked = true;
+			var lensColors = ['#073b0e','#b67bf1','#d1b838','#849bb9','#4a781b','#9bcc04','#f98ca0','#b1dbe8','#1561db','#563693','#d71fa2'];
 
    			updateResultsArea();
 
@@ -101,12 +102,12 @@
 												dbString.endsWith(".cdb") ? dbString + "/data.csv" : dbString.split(',')[0],
 												['sim','visar','diffraction','image','output','FILE'],
 												doneLoading);
-				//interpFunctions = [interpolate3];
-				interpFunctions = [interpolate1, interpolate2, interpolate4, interpolate3];
+				interpFunctions = [interpolate1];
+				//interpFunctions = [interpolate1, interpolate2, interpolate4, interpolate3];
 				//interpFunctions = [interpolate1, interpolate2, interpolate3];
 				//interpFunctions = [interpolate_UseFirstValue];
-   			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
-   			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
+   			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense);
+   			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense);
 
    			 	spaces = [];
    			 	spaces.push(lineSpace);
@@ -169,10 +170,10 @@
 
 	   		function doneLoading() {
 
-   			 	pcc.overlayPathData.push({data: {}, style: "stroke: green; stroke-width: 4px;"});
-   			 	pcc.overlayPathData.push({data: {}, style: "stroke: blue; stroke-width: 4px;"});
-   			 	pcc.overlayPathData.push({data: {}, style: "stroke: cyan; stroke-width: 4px;"});
-   			 	pcc.overlayPathData.push({data: {}, style: "stroke: red; stroke-width: 4px;"});
+//   			 	pcc.overlayPathData.push({data: {}, style: "stroke: green; stroke-width: 4px;"});
+   			 	pcc.overlayPathData.push({data: {}, style: "stroke: black; stroke-width: 4px;"});
+//   			 	pcc.overlayPathData.push({data: {}, style: "stroke: cyan; stroke-width: 4px;"});
+//   			 	pcc.overlayPathData.push({data: {}, style: "stroke: red; stroke-width: 4px;"});
 	   			//$('.pCoordChart .resultPaths path[index="'+30+'"]').css('stroke', 'blue');
 
    			 	//pcc.updateOverlayPaths();
@@ -183,6 +184,10 @@
 	   		function onSelectionChange(query) {
 	   			lineSpace.onSelectionChange(query);
 	   			lineSpace2.onSelectionChange(query);
+	   		}
+
+	   		function onCreateLense(space, lense) {
+	   			lense.color = lensColors[lense.id % lensColors.length];
 	   		}
 
 			function onUpdateLense(space, lense) {
@@ -196,6 +201,7 @@
 				}
 
 				lense.interpResults.forEach(function(interp, index) {
+					pcc.overlayPathData[index].style = "stroke: " + lensColors[lense.id % lensColors.length] + "; stroke-width: 4px;";
 					pcc.overlayPathData[index].data = interp.ds.params;
 				});
    				pcc.updateOverlayPaths(true);
@@ -378,11 +384,15 @@
    				return {x: +ds.params[space.dimensions[0]], y: +ds.params[space.dimensions[1]], value: (+ds.params[space.dimensions[2]]-pInfo.min)/(pInfo.max - pInfo.min), show: ds.id < 0 && space.showInterpolation, index: ds.id};
    			}
 
-   			function interpolate1(query, trainingSet) {
+   			function interpolate1(query, trainingSet, lense) {
    				d3.select('#interp1').text("Eclidean Distance (k=5, p=1)");
-   				var interp = inverseDistanceInterpolation(query, 3, 1, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet, paramInfo);
-   				interp.color = 'green';
-   				//interp.color = 'blue';
+   				var interp = inverseDistanceInterpolation(query, 5, 1, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet, paramInfo);
+   				if (lense) {
+   					interp.color = lensColors[lense.id % lensColors.length];
+   				}
+   				else {
+	   				interp.color = 'blue';
+   				}
    				return interp;
    			}
 
