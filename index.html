@@ -101,8 +101,8 @@
 												dbString.endsWith(".cdb") ? dbString + "/data.csv" : dbString.split(',')[0],
 												['sim','visar','diffraction','image','output','FILE'],
 												doneLoading);
-				interpFunctions = [interpolate3];
-				//interpFunctions = [interpolate1, interpolate2, interpolate4, interpolate3];
+				//interpFunctions = [interpolate3];
+				interpFunctions = [interpolate1, interpolate2, interpolate4, interpolate3];
 				//interpFunctions = [interpolate1, interpolate2, interpolate3];
 				//interpFunctions = [interpolate_UseFirstValue];
    			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense);
@@ -169,10 +169,10 @@
 
 	   		function doneLoading() {
 
-   			 	//pcc.overlayPathData.push({data: {}, style: "stroke: green; stroke-width: 4px;"});
+   			 	pcc.overlayPathData.push({data: {}, style: "stroke: green; stroke-width: 4px;"});
    			 	pcc.overlayPathData.push({data: {}, style: "stroke: blue; stroke-width: 4px;"});
-   			 	//pcc.overlayPathData.push({data: {}, style: "stroke: cyan; stroke-width: 4px;"});
-   			 	//pcc.overlayPathData.push({data: {}, style: "stroke: red; stroke-width: 4px;"});
+   			 	pcc.overlayPathData.push({data: {}, style: "stroke: cyan; stroke-width: 4px;"});
+   			 	pcc.overlayPathData.push({data: {}, style: "stroke: red; stroke-width: 4px;"});
 	   			//$('.pCoordChart .resultPaths path[index="'+30+'"]').css('stroke', 'blue');
 
    			 	//pcc.updateOverlayPaths();
@@ -381,8 +381,8 @@
    			function interpolate1(query, trainingSet) {
    				d3.select('#interp1').text("Eclidean Distance (k=5, p=1)");
    				var interp = inverseDistanceInterpolation(query, 3, 1, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet, paramInfo);
-   				//interp.color = 'green';
-   				interp.color = 'blue';
+   				interp.color = 'green';
+   				//interp.color = 'blue';
    				return interp;
    			}
 
@@ -396,8 +396,8 @@
    			function interpolate3(query, trainingSet) {
    				d3.select('#interp3').text("Eclidean Distance (k=10, p=4)");
    				var interp = inverseDistanceInterpolation(query, 10, 4, function(index) { return 1.0/paramInfo[index].variance; }, weightedEclideanDistance, trainingSet, paramInfo);
-   				//interp.color = 'red';
-   				interp.color = 'blue';
+   				interp.color = 'red';
+   				//interp.color = 'blue';
    				return interp;
    			}
 
