@@ -537,8 +537,8 @@ LineSpace.prototype.updateLense = function(lense, space) {
 
 	selectedLense.interpParameters = lense.interpParameters;
 	selectedLense.tempInterpParameters.forEach(function(item, index) {
-		item[space.dimensions[0]] = {val: +lense.interpResults[index].ds.params[space.dimensions[0]], weight:1.0, interpWeight: 0.0};
-		item[space.dimensions[1]] = {val: +lense.interpResults[index].ds.params[space.dimensions[1]], weight:1.0, interpWeight: 0.0};
+		item[space.dimensions[0]] = {val: +lense.interpResults[index].ds.params[space.dimensions[0]], weight:1.0, interpWeight: 1.0};
+		item[space.dimensions[1]] = {val: +lense.interpResults[index].ds.params[space.dimensions[1]], weight:1.0, interpWeight: 1.0};
 		//if (index > 0) {return;}
 		//x += +lense.interpResults[index].ds.params[self.dimensions[0]];
 		//y += +lense.interpResults[index].ds.params[self.dimensions[1]];
@@ -719,8 +719,10 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	var interpResults = [];
 	self.interpolateFunctions.forEach(function(item, functionIndex) {
 		var query = {};
-		query[self.dimensions[0]] = {val: self.paramX.invert(x-self.margin.right), weight:1.0, interpWeight: 1.0};
-		query[self.dimensions[1]] = {val: self.paramY.invert(y-self.margin.top), weight:1.0, interpWeight: 1.0};
+		if (Object.keys(lense.tempInterpParameters[functionIndex]).length == 0) {
+			query[self.dimensions[0]] = {val: self.paramX.invert(x-self.margin.right), weight:1.0, interpWeight: 1.0};
+			query[self.dimensions[1]] = {val: self.paramY.invert(y-self.margin.top), weight:1.0, interpWeight: 1.0};
+		}
 		var lenseQueryParams = Object.keys(lense.interpParameters[functionIndex]);
 		lenseQueryParams.forEach(function(item, index) {
 			query[item] = lense.interpParameters[functionIndex][item];
@@ -732,6 +734,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		});
 
 	 	var interp = item(query, self.dataSet);
+	 	//console.log(self.id, query, interp);
 	 	interpResults.push(interp);
 	});
 
