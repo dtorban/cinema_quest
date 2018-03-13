@@ -572,7 +572,7 @@ LineSpace.prototype.removeLense = function(lenseId) {
 	}
 	self.lenses[lenseId].canvas.remove();
 	self.lenses.splice(lenseId,1);
-	self.currentLenseIndex = -1;
+	//self.currentLenseIndex = -1;
 	self.select([], true);
 }
 
