@@ -2,7 +2,7 @@
 
 var id = 0;
 
-function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense) {
+function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense, rowSetIndex) {
 	var self = this;
 
     self.id = id;
@@ -118,6 +118,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     this.manipOutputIndex = -1;
     this.query = [];
     this.linkInterp = 0;
+    self.rowSetIndex = rowSetIndex;
 
     this.actionCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
@@ -317,10 +318,10 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 
 							lense.interpResults.forEach(function(item, index) {
 								var i = 0;
-								var j = item.ds.rows.length-1;
+								var j = item.ds.rowSet[self.rowSetIndex].length-1;
 								while (i < j) {
 									var m = Math.floor((i+j)/2);
-									if (xVal > item.ds.rows[m].x) {
+									if (xVal > item.ds.rowSet[self.rowSetIndex][m].x) {
 										i = m + 1;
 									}
 									else {
@@ -328,7 +329,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 									}
 								}
 
-								var foundY = item.ds.rows[i].y;
+								var foundY = item.ds.rowSet[self.rowSetIndex][i].y;
 
 								if (Math.abs(yVal - foundY) < (self.y.domain()[1]-self.y.domain()[0])*0.02) {
 									self.actionCanvas.style("cursor", "crosshair");
@@ -695,7 +696,7 @@ LineSpace.prototype.handleManipulate = function(event) {
 		var xVal = self.x.invert(xPos/lense.scale+transX);
 		var yVal = self.y.invert(yPos/lense.scale+transY);
 		self.interpolateFunctions.forEach(function(item, functionIndex) {
-			lense.interpParameters[functionIndex]["output_" + self.manipOutputIndex] = {val: yVal, weight:1.0, interpWeight:0.0};
+			lense.interpParameters[functionIndex]["output_" + self.rowSetIndex + "_" + self.manipOutputIndex] = {val: yVal, weight:1.0, interpWeight:0.0};
 		});
 	}
 	else if (self.lastPos) {
@@ -926,7 +927,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 			context.beginPath();
 			context.strokeStyle = f == 0 ? context.strokeStyle : 'black';
 			context.globalAlpha = f == 0 ? alpha : 0.4*alpha;
-			ds.rows.forEach(function(item, index) {
+			ds.rowSet[self.rowSetIndex].forEach(function(item, index) {
 				if (index == 0) {
 					context.moveTo(lense.scale*self.x(item.x), lense.scale*self.y(item.y));
 				}
@@ -1080,8 +1081,8 @@ LineSpace.prototype.update = function() {
 		var graphProperties = self.getGraphProperties(self, ds);
 		paramExtentX.push(graphProperties.x);
 		paramExtentY.push(graphProperties.y);
-		ds.extentX = d3.extent(ds.rows, function(d) { return d.x; });
-		ds.extentY = d3.extent(ds.rows, function(d) { return d.y; });
+		ds.extentX = d3.extent(ds.rowSet[self.rowSetIndex], function(d) { return d.x; });
+		ds.extentY = d3.extent(ds.rowSet[self.rowSetIndex], function(d) { return d.y; });
 		extentX.push.apply(extentX, ds.extentX);
 		extentY.push.apply(extentY, ds.extentY);
 	});

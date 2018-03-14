@@ -157,7 +157,7 @@
 	   				var trainingSet = validator.getTrainingSet(index);
 	   				trainingSet.forEach(function(item, index) {
 	   					var ds = data[item];
-	   					trainingSet[index] = {id: index, params: ds.params, rows: ds.rows};
+	   					trainingSet[index] = {id: index, params: ds.params, rows: ds.rows, rowSet: ds.rowSet};
 	   				});
 
 	   				var query = {};
@@ -181,7 +181,7 @@
 	   				var trainingSet = validator.getTrainingSet(index);
 	   				trainingSet.forEach(function(item, index) {
 	   					var ds = data[item];
-	   					trainingSet[index] = {id: index, params: ds.params, rows: ds.rows};
+	   					trainingSet[index] = {id: index, params: ds.params, rows: ds.rows, rowSet: ds.rowSet};
 	   				});
 
 	   				var query = {};

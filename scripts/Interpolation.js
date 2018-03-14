@@ -61,5 +61,21 @@
 				newDs.extentX = d3.extent(newDs.rows, function(d) { return d.x; });
 				newDs.extentY = d3.extent(newDs.rows, function(d) { return d.y; });
 
+				newDs.rowSet = [];
+				for (var rowSetNum = 0; rowSetNum < trainingSet[0].rowSet.length; rowSetNum++) {
+					var rows = [];
+					for (var f = 0; f < k; f++) {
+						trainingSet[dsDist[f].id].rowSet[rowSetNum].forEach(function(item, index) {
+							if (f == 0) {
+								rows.push({x: item.x, y: item.y*dsDist[f].weight/weightSum});
+							}
+							else {
+								rows[index].y += item.y*dsDist[f].weight/weightSum;
+							}
+						});
+					}
+					newDs.rowSet.push(rows);
+				}
+
    				return {ds: newDs, neighbors: dsDist};
    			}

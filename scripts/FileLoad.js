@@ -77,12 +77,14 @@ function loadDatabaseData(dbInfo, results, callback) {
 					                context.drawImage(img, 0, 0, canvas.width, canvas.height);
 									console.log(ds.id, "loaded");
 
+									ds.rowSet = [];
 									ds.rows = [];
 									var imageData = context.getImageData(0,0,canvas.width, canvas.height);
 									for (var f = 0; f < canvas.width*canvas.height*4; f++) {
 										ds.rows.push({x:f, y:imageData.data[f]});
 									}
 
+									ds.rowSet.push(ds.rows);
 
 									tracking.Fast.THRESHOLD = 20;
 									var width = Math.floor(1+img.width/16)*16;
