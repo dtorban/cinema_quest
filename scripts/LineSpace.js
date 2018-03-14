@@ -1355,7 +1355,7 @@ LineSpace.prototype.redraw = function() {
 	});
 
 	querySet.sort(function(a, b){
-		return self.getGraphProperties(self, b).value - self.getGraphProperties(self, a).value;
+		return self.getGraphProperties(self, a).value - self.getGraphProperties(self, b).value;
 	});
 
 	querySet.forEach(function(item, index) {

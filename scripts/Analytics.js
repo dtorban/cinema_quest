@@ -173,6 +173,28 @@
 					//console.log(validator.getTrainingSet(index), index, interpError);
 
 	   				ds.params["error_" + suffix] = interpError;
+
+
+					var neighborErrors = [];
+					var weights = [];
+					var weightSum = 0.0;
+					interp.neighbors.forEach(function(item, index) {
+						var interpNeighborError = weightedEclideanDistance(null, 
+						Array.from(trainingSet[item.id].rows, x => x.y),
+						Array.from(interp.ds.rows, x => x.y));
+						if (index < 15) {
+							neighborErrors.push(interpNeighborError);
+							weights.push(item.weight);
+							weightSum += item.weight;
+						}
+					});
+
+					neighborErrors.forEach(function(item, index) {
+						neighborErrors[index] = item*weights[index]/weightSum;
+					});
+
+					var statistics = calcStatistics(neighborErrors, function(item) { return item; })
+					ds.params["error_variance_" + suffix] = statistics.variance;
 	   			});
 	   		}
 
