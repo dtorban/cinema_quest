@@ -241,8 +241,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 			self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
 		}
 		else if (self.manipulating) {
-			self.handleManipulate(d3.event);
 			self.manipulating = false;
+			self.handleManipulate(d3.event);
 			self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
 		}
     });
@@ -684,18 +684,27 @@ LineSpace.prototype.handleResize = function(event) {
 
 LineSpace.prototype.handleManipulate = function(event) {
 	var self = this;
+
 	var lense = self.lenses[self.currentLenseIndex];
+	
+	if (self.manipulating) {
+		var xPos = d3.event.offsetX-self.margin.right - lense.position[0];
+		var yPos = d3.event.offsetY-self.margin.top - lense.position[1];
+		var transX = lense.width/2;
+		var transY = lense.height/2;
+		var xVal = self.x.invert(xPos/lense.scale+transX);
+		var yVal = self.y.invert(yPos/lense.scale+transY);
+		self.interpolateFunctions.forEach(function(item, functionIndex) {
+			lense.interpParameters[functionIndex]["output_" + self.manipOutputIndex] = {val: yVal, weight:1.0, interpWeight:0.0};
+		});
+	}
+	else if (self.lastPos) {
+		lense.position = self.lastPos;
+	}
+
 	var x = lense.position[0] + self.margin.left;
 	var y = lense.position[1] + self.margin.top;
-	var xPos = d3.event.offsetX-self.margin.right - lense.position[0];
-	var yPos = d3.event.offsetY-self.margin.top - lense.position[1];
-	var transX = lense.width/2;
-	var transY = lense.height/2;
-	var xVal = self.x.invert(xPos/lense.scale+transX);
-	var yVal = self.y.invert(yPos/lense.scale+transY);
-	self.interpolateFunctions.forEach(function(item, functionIndex) {
-		lense.interpParameters[functionIndex]["output_" + self.manipOutputIndex] = {val: yVal, weight:1.0, interpWeight:0.0};
-	});
+	
 	self.interpolate(x, y, lense);
 }
 
@@ -703,25 +712,53 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	var self = this;
 
 	var context = lense.context;
-	var prevPosition = lense.position;
-	context.beginPath();
-	context.clearRect(prevPosition[0]-lense.prevScale*self.instanceWidth/2-2, prevPosition[1]-lense.prevScale*self.instanceHeight/2-2, lense.prevScale*self.instanceWidth+4, lense.prevScale*self.instanceHeight+4);
-	context.stroke();
-	context.closePath();
-	context.beginPath();
-	context.globalAlpha = 0.8;
-	context.fillStyle = 'white';
-	context.globalCompositeOperation = "difference";
-	context.fillRect(x-self.margin.right-lense.scale*self.instanceWidth/2,y-self.margin.top-lense.scale*self.instanceHeight/2,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
-	context.stroke();
-	context.closePath();
-	context.beginPath();
-	context.globalAlpha = 0.2;
-	context.fillStyle = lense.color;
-	context.globalCompositeOperation = "source-over";
-	context.fillRect(x-self.margin.right-lense.scale*self.instanceWidth/2,y-self.margin.top-lense.scale*self.instanceHeight/2,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
-	context.stroke();
-	context.closePath();
+	var prevPosition = lense.prevPosition;
+
+	if (self.lastPos) {
+					context.save();
+					context.beginPath();
+					var xClear = self.lastPos[0];
+					var yClear = self.lastPos[1];
+					var clearRadius = 8;
+					context.arc(xClear, yClear, clearRadius, 0, 2*Math.PI, true);
+					context.clip();
+					context.clearRect(xClear-clearRadius,yClear-clearRadius,clearRadius*2,clearRadius*2);
+					context.restore();
+	}
+
+	if (prevPosition) {
+		context.beginPath();
+		context.clearRect(prevPosition[0]-lense.prevScale*self.instanceWidth/2-8, prevPosition[1]-lense.prevScale*self.instanceHeight/2-8, lense.prevScale*self.instanceWidth+16, lense.prevScale*self.instanceHeight+16);
+		context.stroke();
+		context.closePath();
+		context.beginPath();
+	}
+
+	prevPosition = lense.position;
+
+	if (prevPosition) {
+		context.beginPath();
+		context.clearRect(prevPosition[0]-lense.prevScale*self.instanceWidth/2-8, prevPosition[1]-lense.prevScale*self.instanceHeight/2-8, lense.prevScale*self.instanceWidth+16, lense.prevScale*self.instanceHeight+16);
+		context.stroke();
+		context.closePath();
+		context.beginPath();
+		context.globalAlpha = 0.8;
+		context.fillStyle = 'white';
+		context.globalCompositeOperation = "difference";
+		context.fillRect(x-self.margin.right-lense.scale*self.instanceWidth/2,y-self.margin.top-lense.scale*self.instanceHeight/2,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
+		context.stroke();
+		context.closePath();
+		context.beginPath();
+		context.globalAlpha = 0.2;
+		context.fillStyle = lense.color;
+		context.globalCompositeOperation = "source-over";
+		context.fillRect(x-self.margin.right-lense.scale*self.instanceWidth/2,y-self.margin.top-lense.scale*self.instanceHeight/2,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
+		context.stroke();
+		context.closePath();
+	}
+
+
+	lense.prevPosition = lense.position;
 
 	context.globalAlpha = 1.0;
 	context.globalCompositeOperation = "source-over";
@@ -736,8 +773,8 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	self.interpolateFunctions.forEach(function(item, functionIndex) {
 		var query = {};
 		if (Object.keys(lense.tempInterpParameters[functionIndex]).length == 0) {
-			query[self.dimensions[0]] = {val: self.paramX.invert(x-self.margin.right), weight:1.0, interpWeight: 1.0};
-			query[self.dimensions[1]] = {val: self.paramY.invert(y-self.margin.top), weight:1.0, interpWeight: 1.0};
+			query[self.dimensions[0]] = {val: self.paramX.invert(x-self.margin.right), weight:1.0, interpWeight: self.manipulating ? 0.0 : 1.0};
+			query[self.dimensions[1]] = {val: self.paramY.invert(y-self.margin.top), weight:1.0, interpWeight: self.manipulating ? 0.0 : 1.0};
 		}
 		var lenseQueryParams = Object.keys(lense.interpParameters[functionIndex]);
 		lenseQueryParams.forEach(function(item, index) {
@@ -983,11 +1020,11 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		}
 	}
 	else {
-		context.fillStyle = 'black';
+		/*context.fillStyle = 'black';
 		context.beginPath()
 		context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 3, 0, 2 * Math.PI);
 		context.fill();
-		context.closePath();
+		context.closePath();*/
 	}
 
 	if(showBox) {
@@ -1003,6 +1040,17 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		context.stroke();
 		context.closePath();
 		context.lineWidth = 1.1;
+
+		context.fillStyle = lense.color;
+		context.beginPath();
+		var x = self.paramX(ds.params[self.dimensions[0]]);
+		var y = self.paramY(ds.params[self.dimensions[1]]);
+		var xtrans = x-lense.scale*self.instanceWidth/2;
+		var ytrans = y-lense.scale*self.instanceHeight/2;
+		context.arc(xtrans+lense.scale*this.instanceWidth/2, ytrans+lense.scale*this.instanceHeight/2, 4, 0, 2 * Math.PI);
+		context.fill();
+		context.closePath();
+		self.lastPos = [x, y];
 	}
 
 	if (graphProperties.show) {
