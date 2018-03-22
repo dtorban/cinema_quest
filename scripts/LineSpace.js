@@ -157,6 +157,12 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 			lense = self.createLense(self.cursorPosition[0],self.cursorPosition[1]);
 		}
 
+
+		if (d3.event.ctrlKey && lense && !lense.searchPosition) {
+			lense.searchPosition = lense.position;
+			console.log("set search position");
+		}
+
 		if (self.removeable) {
 			self.onRemoveLense(self, self.currentLenseIndex);
 			self.removeLense(self.currentLenseIndex);
@@ -188,6 +194,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 			lense.tempInterpParameters.forEach(function(item, index) {
 				lense.tempInterpParameters[index] = {};
 			});
+
 	    	self.handleInterpolate(d3.event);
 		}
 
@@ -662,6 +669,7 @@ LineSpace.prototype.handleInterpolate = function(event) {
 	var self = this;
 	self.interpolating = !self.interpolating;
 	if(self.interpolating) {
+
 	    self.interpolate(d3.event.offsetX, d3.event.offsetY, self.lenses[self.currentLenseIndex]);
 	}
 	self.actionCanvas.style("cursor", self.interpolating ? "crosshair" : "default");
@@ -705,7 +713,7 @@ LineSpace.prototype.handleManipulate = function(event) {
 
 	var x = lense.position[0] + self.margin.left;
 	var y = lense.position[1] + self.margin.top;
-	
+
 	self.interpolate(x, y, lense);
 }
 
@@ -774,8 +782,9 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	self.interpolateFunctions.forEach(function(item, functionIndex) {
 		var query = {};
 		if (Object.keys(lense.tempInterpParameters[functionIndex]).length == 0) {
-			query[self.dimensions[0]] = {val: self.paramX.invert(x-self.margin.right), weight:1.0, interpWeight: 0.0};//self.manipulating ? 0.0 : 1.0};
-			query[self.dimensions[1]] = {val: self.paramY.invert(y-self.margin.top), weight:1.0, interpWeight: 0.0};//self.manipulating ? 0.0 : 1.0};
+			var searchPos = lense.searchPosition ? lense.searchPosition : [x-self.margin.right, y-self.margin.top];
+			query[self.dimensions[0]] = {val: self.paramX.invert(searchPos[0]), weight:1.0, interpWeight: 0.0};//self.manipulating ? 0.0 : 1.0};
+			query[self.dimensions[1]] = {val: self.paramY.invert(searchPos[1]), weight:1.0, interpWeight: 0.0};//self.manipulating ? 0.0 : 1.0};
 		}
 		var lenseQueryParams = Object.keys(lense.interpParameters[functionIndex]);
 		lenseQueryParams.forEach(function(item, index) {
@@ -1392,8 +1401,10 @@ LineSpace.prototype.redrawLenses = function() {
 
 LineSpace.prototype.redrawLense = function(lense) {
 	var self = this;
+
 	var x = lense.x ? lense.x : lense.position[0] + self.margin.left;
 	var y = lense.y ? lense.y : lense.position[1] + self.margin.top;
+
 	self.interpolate(x, y, lense);
 }
 
