@@ -567,11 +567,11 @@ LineSpace.prototype.updateLense = function(lense, space) {
 		selectedLense.position = [x, y];
 	}
 
-	selectedLense.x = x+self.margin.left;
-	selectedLense.y = y+self.margin.top;
+	//selectedLense.x = x+self.margin.left;
+	//selectedLense.y = y+self.margin.top;
 
 	self.redrawLense(selectedLense);
-	selectedLense.position = [x, y];
+	//selectedLense.position = [x, y];
 }
 
 LineSpace.prototype.removeLense = function(lenseId) {
@@ -700,7 +700,7 @@ LineSpace.prototype.handleManipulate = function(event) {
 		});
 	}
 	else if (self.lastPos) {
-		lense.position = self.lastPos;
+		//lense.position = self.lastPos;
 	}
 
 	var x = lense.position[0] + self.margin.left;
@@ -774,8 +774,8 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	self.interpolateFunctions.forEach(function(item, functionIndex) {
 		var query = {};
 		if (Object.keys(lense.tempInterpParameters[functionIndex]).length == 0) {
-			query[self.dimensions[0]] = {val: self.paramX.invert(x-self.margin.right), weight:1.0, interpWeight: self.manipulating ? 0.0 : 1.0};
-			query[self.dimensions[1]] = {val: self.paramY.invert(y-self.margin.top), weight:1.0, interpWeight: self.manipulating ? 0.0 : 1.0};
+			query[self.dimensions[0]] = {val: self.paramX.invert(x-self.margin.right), weight:1.0, interpWeight: 0.0};//self.manipulating ? 0.0 : 1.0};
+			query[self.dimensions[1]] = {val: self.paramY.invert(y-self.margin.top), weight:1.0, interpWeight: 0.0};//self.manipulating ? 0.0 : 1.0};
 		}
 		var lenseQueryParams = Object.keys(lense.interpParameters[functionIndex]);
 		lenseQueryParams.forEach(function(item, index) {
