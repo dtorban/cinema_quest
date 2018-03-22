@@ -720,7 +720,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 					context.beginPath();
 					var xClear = self.lastPos[0];
 					var yClear = self.lastPos[1];
-					var clearRadius = 8;
+					var clearRadius = 10;
 					context.arc(xClear, yClear, clearRadius, 0, 2*Math.PI, true);
 					context.clip();
 					context.clearRect(xClear-clearRadius,yClear-clearRadius,clearRadius*2,clearRadius*2);
@@ -979,7 +979,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 			context.beginPath();
 			var xClear = transX+lense.scale*this.instanceWidth/2;
 			var yClear = transY+lense.scale*this.instanceHeight/2;
-			var clearRadius = 8;
+			var clearRadius = 10;
 		
 			context.arc(xClear, yClear, clearRadius, 0, 2*Math.PI, true);
 			context.clip();
@@ -1003,18 +1003,22 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 				context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5, 0, 2 * Math.PI);
 				context.fill();
 			}
+			context.closePath();
 
+			context.beginPath()
 			var oldLineWidth = context.lineWidth;
 			var oldStyle = context.strokeStyle;
 			context.strokeStyle = context.fillStyle;
-			context.lineWidth = 2.0;
+			context.lineWidth = 20.0;
 			context.globalAlpha = oldGlobalAlpha;
 			//var metaStart = 2.0 * Math.PI*metaIndex/numIndexes;
 			//var metaLength = 2.0 * Math.PI/numIndexes;
 			//context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 6, metaStart, metaStart + metaLength);
 			context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 8 + metaIndex*2, 0, 2 * Math.PI);
 			context.stroke();
+			context.lineWidth = 2.0;
 			context.closePath();
+
 			this.context.globalAlpha = 1.0;
 			context.strokeStyle = oldStyle;
 			context.lineWidth = oldLineWidth;
@@ -1048,8 +1052,20 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		var y = self.paramY(ds.params[self.dimensions[1]]);
 		var xtrans = x-lense.scale*self.instanceWidth/2;
 		var ytrans = y-lense.scale*self.instanceHeight/2;
-		context.arc(xtrans+lense.scale*this.instanceWidth/2, ytrans+lense.scale*this.instanceHeight/2, 4, 0, 2 * Math.PI);
+		context.arc(xtrans+lense.scale*this.instanceWidth/2, ytrans+lense.scale*this.instanceHeight/2, 8, 0, 2 * Math.PI);
 		context.fill();
+		context.closePath();
+
+		context.strokeStyle = 'white';
+		context.lineWidth = 2;
+		context.arc(xtrans+lense.scale*this.instanceWidth/2, ytrans+lense.scale*this.instanceHeight/2, 6, 0, 2 * Math.PI);
+		context.stroke();
+		context.closePath();
+		context.beginPath();
+		context.strokeStyle = 'black';
+		context.lineWidth = 2;
+		context.arc(xtrans+lense.scale*this.instanceWidth/2, ytrans+lense.scale*this.instanceHeight/2, 8, 0, 2 * Math.PI);
+		context.stroke();
 		context.closePath();
 		self.lastPos = [x, y];
 	}
