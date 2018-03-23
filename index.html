@@ -394,7 +394,7 @@
 
    			function getGraphProperties(space, ds) {
    				var pInfo = space.paramInfo[space.dimensions[2]];
-   				return {x: +ds.params[space.dimensions[0]], y: +ds.params[space.dimensions[1]], value: (+ds.params[space.dimensions[2]]-pInfo.min)/(pInfo.max - pInfo.min), show: ds.id < 0 && space.showInterpolation, index: ds.id};
+   				return {x: +ds.params[space.dimensions[0]], y: +ds.params[space.dimensions[1]], value: (+ds.params[space.dimensions[2]]-pInfo.min)/(pInfo.max - pInfo.min), show: ds.id < 0 && space.showInterpolation, index: ds.refID ? ds.refId : ds.id};
    			}
 
    			function interpolate1(query, trainingSet, lense) {

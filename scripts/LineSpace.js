@@ -225,17 +225,17 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 				var imgData = self.selectContext.getImageData(self.paramX(+ds.params[self.dimensions[0]])*self.pixelRatio+self.margin.left*self.pixelRatio, self.paramY(+ds.params[self.dimensions[1]])*self.pixelRatio+self.margin.top*self.pixelRatio, 1, 1).data;
 				if (imgData[0] > 0) {
 					selected.push(ds.id);
-					$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
+					$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '1px');
 				}
 				else {
-					$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '0px');
+					$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '0px');
 				}
 			});
 
 			if (selected.length == 0) {
 				self.query.forEach(function(item, index) {
 					var ds = self.dataSet[item];
-					$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
+					$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '1px');
 				});
 			}
 			
@@ -691,8 +691,8 @@ LineSpace.prototype.select = function(query, clear, color, metaIndex, numIndexes
 
 			self.query.forEach(function(item, index) {
 				var ds = self.dataSet[item];
-				$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
-				$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-opacity', '0.4');
+				$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '1px');
+				$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-opacity', '0.4');
 			});
 			self.redraw();
 		}
@@ -713,10 +713,39 @@ LineSpace.prototype.setPixelValue = function(context, x, y, r, g, b, a) {
 
 LineSpace.prototype.onSelectionChange = function(query) {
 	var self = this;
-	self.query = query;
-	if (self.dataSet) {
+	if (self.fullDataSet) {
+		self.dataSet = [];
+		self.query = [];
+		query.forEach(function(item, index) {
+			self.query.push(index);
+		});
+		query.forEach(function(item, index) {
+	   		var ds = self.fullDataSet[item];
+	   		self.dataSet.push({id: index, params: ds.params, rows: ds.rows, rowSet: ds.rowSet, refId: ds.refId});
+	   	});
 		self.redraw();
+		self.redrawLenses();
+
+		if (!self.selectionChangeVersion) { self.selectionChangeVersion = 0; }
+		self.selectionChangeVersion++;
+
+		var q = d3.queue();
+			q.defer(function(callback) {
+					var ver = self.selectionChangeVersion;
+					setTimeout(function() {
+						if (ver == self.selectionChangeVersion) {
+							
+							self.updateBackground();
+						}
+						callback(null); 
+			}, 200);
+								
+		});
 	}
+	else {
+		self.query = query;
+	}
+
 }
 
 LineSpace.prototype.onColorMapChange = function() {
@@ -909,12 +938,13 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		var alphas = []
 
 		var weightSum = 0;
-		for (var f = 0; f < 15; f++) {
+		var numNeighbors = interp.neighbors.length < 15.0 ? interp.neighbors.length : 15.0;
+		for (var f = 0; f < numNeighbors; f++) {
 			weightSum+= interp.neighbors[f].weight;
 		 }
 
-		for (var f = 0; f < 15; f++) {
-			var alpha = (15.0-f)/15.0;
+		for (var f = 0; f < numNeighbors; f++) {
+			var alpha = numNeighbors == 0 ? 0.0 : (1.0*numNeighbors-f)/numNeighbors;
 			alpha = alpha * alpha * alpha;
 			//var alpha = (interp.neighbors[f].weight/weightSum)+0.25;
 			alphas.push(alpha);
@@ -939,15 +969,16 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 					if (ver == self.selectVersion) {
 						self.query.forEach(function(item, index) {
 							var ds = self.dataSet[item];
-							$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '0px');
+							$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke', self.fullDataSet[ds.refId].defaultColor);
+							//$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '0px');
 
 							neighborResults.forEach(function(item, index) {
 								if (item[0].includes(ds.id)) {
-									$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
+									//$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
 									var alphaIndex = item[0].findIndex(function(element) {
 										 return element == ds.id; });
-									$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-opacity', '' + item[2][alphaIndex]);
-									$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke', item[1]);
+									//$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-opacity', '' + item[2][alphaIndex]);
+									$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke', item[1]);
 								}
 							});
 							
@@ -985,7 +1016,12 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 LineSpace.prototype.data = function(dataSet) {
 	var self = this;
 
+	this.fullDataSet = dataSet;
 	this.dataSet = dataSet;
+
+	this.fullDataSet.forEach(function(item, index) {
+		item.refId = item.id;
+	})
 
    	self.paramInfo = calcParamInfo(self.dataSet);
 
@@ -1073,6 +1109,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		var c = 'rgba('+colorValue[0]+','+colorValue[1]+','+colorValue[2]+','+colorValue[3]+')';
 		context.fillStyle = c;
 		$('.pCoordChart .resultPaths path[index="'+graphProperties.index+'"]').css('stroke', c);
+		self.fullDataSet[graphProperties.index].defaultColor = c;
 	}
 
 	if (!noPoint) {
@@ -1225,10 +1262,10 @@ LineSpace.prototype.update = function() {
     this.x = d3.scaleLinear().range([0, this.instanceWidth]);
     this.y = d3.scaleLinear().range([this.instanceHeight, 0]);
 
-	var fold10 = new KFoldCrossValidation(10, self.dataSet.length);
+	var fold10 = new KFoldCrossValidation(10, self.fullDataSet.length);
 	var validator = fold10;
 
-	self.dataSet.forEach(function(ds, index) {
+	self.fullDataSet.forEach(function(ds, index) {
 		var graphProperties = self.getGraphProperties(self, ds);
 		paramExtentX.push(graphProperties.x);
 		paramExtentY.push(graphProperties.y);
@@ -1238,8 +1275,8 @@ LineSpace.prototype.update = function() {
 		extentY.push.apply(extentY, ds.extentY);
 	});
 
-	var paramSet = Object.keys(self.dataSet[0].params).filter(function(d) {
-		return !isNaN(+self.dataSet[0].params[d]);
+	var paramSet = Object.keys(self.fullDataSet[0].params).filter(function(d) {
+		return !isNaN(+self.fullDataSet[0].params[d]);
 	});
 
     paramSet.unshift('Select...');
@@ -1286,6 +1323,7 @@ LineSpace.prototype.update = function() {
 
 	self.lenses.forEach(function(item, index) {
 		item.canvas.remove();
+		item.selectcanvas.remove();
 		self.onRemoveLense(self, 0);
 	});
 	self.lenses = [];
