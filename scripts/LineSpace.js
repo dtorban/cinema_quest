@@ -123,7 +123,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     this.actionCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
 		.attr('height', this.parentRect.height*this.pixelRatio)
-		.attr("style", "z-index: 5;position:absolute;left:0px;top:0px;cursor: default");
+		.attr("style", "z-index: 6;position:absolute;left:0px;top:0px;cursor: default");
     this.actionCanvas.style("width", ''+this.parentRect.width +'px');
     this.actionCanvas.style("height", ''+this.parentRect.height +'px');
 
@@ -532,12 +532,27 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 LineSpace.prototype.createLense = function(x,y) {
 	var self = this;
 
+	var selectcanvas = self.parent.append("canvas")
+		.attr('width', self.parentRect.width*self.pixelRatio)
+		.attr('height', self.parentRect.height*self.pixelRatio)
+		.attr('class', 'lense')
+		.attr("style", "z-index: 4;position:absolute;left:0px;top:0px;cursor: default");
+	var selectcontext = selectcanvas.node().getContext("2d");
+    selectcontext.scale(self.pixelRatio,self.pixelRatio);
+    selectcanvas.style("width", ''+self.parentRect.width +'px');
+    selectcanvas.style("height", ''+self.parentRect.height +'px');
+	selectcontext.translate(self.margin.right, self.margin.top);
+	selectcontext.fillStyle = "green";
+	selectcontext.lineWidth = 1.1;
+	selectcontext.globalAlpha = 1.0;
+	selectcontext.globalCompositeOperation = "source-over";
+
 	var lense = {width: self.instanceWidth, height: self.instanceHeight};
 	var canvas = self.parent.append("canvas")
 		.attr('width', self.parentRect.width*self.pixelRatio)
 		.attr('height', self.parentRect.height*self.pixelRatio)
 		.attr('class', 'lense')
-		.attr("style", "z-index: 4;position:absolute;left:0px;top:0px;cursor: default");
+		.attr("style", "z-index: 5;position:absolute;left:0px;top:0px;cursor: default");
 	var context = canvas.node().getContext("2d");
     context.scale(self.pixelRatio,self.pixelRatio);
     canvas.style("width", ''+self.parentRect.width +'px');
@@ -547,8 +562,11 @@ LineSpace.prototype.createLense = function(x,y) {
 	context.lineWidth = 1.1;
 	context.globalAlpha = 1.0;
 	context.globalCompositeOperation = "difference";
+
 	lense.canvas = canvas;
 	lense.context = context;
+	lense.selectcanvas = selectcanvas;
+	lense.selectcontext = selectcontext;
 	lense.prevScale = 1.0;
 	lense.scale = 1.0;
 	lense.position = [x,y];
@@ -625,26 +643,29 @@ LineSpace.prototype.removeLense = function(lenseId) {
 		self.lenses[lenseId].id--;
 	}
 	self.lenses[lenseId].canvas.remove();
+	self.lenses[lenseId].selectcanvas.remove();
 	self.lenses.splice(lenseId,1);
 	//self.currentLenseIndex = -1;
 	self.select([], true);
 }
 
-LineSpace.prototype.select = function(query, clear, color, metaIndex, numIndexes, alphas) {
+LineSpace.prototype.select = function(query, clear, color, metaIndex, numIndexes, alphas, lense) {
 	var self = this;
+
+	var selectContext = lense ? lense.selectcontext : self.selectContext;
 
 	if (!color) {
 		color = 'red';
 	}
 
 	if (clear) {
-		self.selectContext.beginPath();
-		self.selectContext.clearRect(-self.margin.left,-self.margin.top,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
-		self.selectContext.stroke();
-		self.selectContext.closePath();
+		selectContext.beginPath();
+		selectContext.clearRect(-self.margin.left,-self.margin.top,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
+		selectContext.stroke();
+		selectContext.closePath();
 	}
 
-	var oldGlobalAlpha = self.selectContext.globalAlpha;
+	var oldGlobalAlpha = selectContext.globalAlpha;
 
 	if (query.length > 0) {
 		self.selected = [];
@@ -652,16 +673,16 @@ LineSpace.prototype.select = function(query, clear, color, metaIndex, numIndexes
 			self.selected.push(item);
 			var ds = self.dataSet[item];
 			if (alphas) {
-				self.selectContext.globalAlpha = alphas[index];
+				selectContext.globalAlpha = alphas[index];
 			}
-			self.drawLines({context: self.selectContext, scale: 1.0, prevScale: 1.0}, ds, color, false, false, null, false, metaIndex, numIndexes);
+			self.drawLines({context: selectContext, scale: 1.0, prevScale: 1.0}, ds, color, false, false, null, false, metaIndex, numIndexes);
 		});
 	}
 	else {
 		self.selected.forEach(function(item, index) {
 			self.selected.push(item);
 			var ds = self.dataSet[item];
-			self.drawLines({context: self.selectContext, scale: 1.0, prevScale: 1.0}, ds, 'clear');
+			self.drawLines({context: selectContext, scale: 1.0, prevScale: 1.0}, ds, 'clear');
 		});
 
 		self.selected = [];
@@ -677,7 +698,7 @@ LineSpace.prototype.select = function(query, clear, color, metaIndex, numIndexes
 		}
 	}
 	
-	self.selectContext.globalAlpha = oldGlobalAlpha;
+	selectContext.globalAlpha = oldGlobalAlpha;
 
 }
 
@@ -904,7 +925,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		 	neighborIds.push(interp.neighbors[f].id);
 		}
 
-		self.select(neighborIds, index == 0, interp.color, index, interpResults.length, alphas);
+		self.select(neighborIds, index == 0, interp.color, index, interpResults.length, alphas, lense);
 		neighborResults.push([neighborIds, interp.color, alphas]);
 	});
 
