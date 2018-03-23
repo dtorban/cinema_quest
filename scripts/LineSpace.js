@@ -784,6 +784,14 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 					context.clip();
 					context.clearRect(xClear-clearRadius,yClear-clearRadius,clearRadius*2,clearRadius*2);
 					context.restore();
+
+					context.save();
+					context.beginPath();
+					context.clearRect(Math.min(lense.prevSearchPosition[0], lense.prevPosition[0]) - 10,
+						Math.min(lense.prevSearchPosition[1], lense.prevPosition[1]) - 10,
+						Math.abs(lense.prevPosition[0]-lense.prevSearchPosition[0])+20,
+						Math.abs(lense.prevPosition[1]-lense.prevSearchPosition[1])+20);
+					context.restore();
 	}
 
 	if (lense.searchPosition) {
@@ -1164,6 +1172,14 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		context.strokeStyle = 'black';
 		context.lineWidth = 2;
 		context.arc(xtrans+lense.scale*this.instanceWidth/2, ytrans+lense.scale*this.instanceHeight/2, 8, 0, 2 * Math.PI);
+		context.stroke();
+		context.closePath();
+
+		context.beginPath();
+		context.strokeStyle = lense.color;
+		context.lineWidth = 1;
+		context.moveTo(searchPos[0], searchPos[1]);
+		context.lineTo(lense.position[0], lense.position[1]);
 		context.stroke();
 		context.closePath();
 	}
