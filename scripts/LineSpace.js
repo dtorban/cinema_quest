@@ -1185,7 +1185,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 			context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5 + metaIndex*2, 0, 2 * Math.PI);
 			context.stroke();
 			for (var f = 1; f < 10; f++) {
-				context.globalAlpha = context.globalAlpha*0.75;
+				context.globalAlpha = context.globalAlpha*0.80;
 				context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5 + 2*f + metaIndex*2, 0, 2 * Math.PI);
 				context.stroke();
 			}

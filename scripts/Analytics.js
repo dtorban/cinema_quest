@@ -53,11 +53,13 @@
 	   				item.params[prefix + "_in1"] = inPrediction[index][0];
 	   				item.params[prefix + "_in2"] = inPrediction[index][1];
 	   				item.params[prefix + "_in3"] = inPrediction[index][2];
+	   				item.params[prefix + "_in4"] = inPrediction[index][3];
 	   				//item.params[prefix + "_in4"] = inPrediction[index][3];
 	   				//item.params[prefix + "_in5"] = inPrediction[index][4];
 	   				item.params[prefix + "_out1"] = outPrediction[index][0];
 	   				item.params[prefix + "_out2"] = outPrediction[index][1];
 	   				item.params[prefix + "_out3"] = outPrediction[index][2];
+	   				item.params[prefix + "_out4"] = outPrediction[index][3];
 	   				//item.params[prefix + "_out4"] = outPrediction[index][3];
 	   				//item.params[prefix + "_out5"] = outPrediction[index][4];
 	   			});
@@ -87,6 +89,7 @@
 	   				item.params[prefix + "1"] = prediction[index][0];
 	   				item.params[prefix + "2"] = prediction[index][1];
 	   				item.params[prefix + "3"] = prediction[index][2];
+	   				item.params[prefix + "4"] = prediction[index][3];
 	   			});
 
 	   		}
