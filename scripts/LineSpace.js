@@ -1177,13 +1177,18 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 			var oldLineWidth = context.lineWidth;
 			var oldStyle = context.strokeStyle;
 			context.strokeStyle = context.fillStyle;
-			context.lineWidth = 20.0;
+			context.lineWidth = 2.0;
 			context.globalAlpha = oldGlobalAlpha;
 			//var metaStart = 2.0 * Math.PI*metaIndex/numIndexes;
 			//var metaLength = 2.0 * Math.PI/numIndexes;
 			//context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 6, metaStart, metaStart + metaLength);
-			context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 8 + metaIndex*2, 0, 2 * Math.PI);
+			context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5 + metaIndex*2, 0, 2 * Math.PI);
 			context.stroke();
+			for (var f = 1; f < 10; f++) {
+				context.globalAlpha = context.globalAlpha*0.75;
+				context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 5 + 2*f + metaIndex*2, 0, 2 * Math.PI);
+				context.stroke();
+			}
 			context.lineWidth = 2.0;
 			context.closePath();
 
