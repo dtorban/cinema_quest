@@ -176,7 +176,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 
 		if (self.canManipulate) {
 			lense.tempInterpParameters.forEach(function(item, index) {
-				lense.tempInterpParameters[index] = {};
+				//lense.tempInterpParameters[index] = {};
 			});
 			self.handleManipulate(d3.event);
 			self.manipulating = true;
@@ -184,7 +184,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 
 		if (self.resizing) {
 			lense.tempInterpParameters.forEach(function(item, index) {
-				lense.tempInterpParameters[index] = {};
+				//lense.tempInterpParameters[index] = {};
 			});
 			self.handleResize(d3.event);
 		}
@@ -193,7 +193,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 		else if (Math.abs(Math.abs(self.cursorPosition[0] - lense.position[0])) < lense.width/15 && 
 				Math.abs(self.cursorPosition[1] - lense.position[1]) < lense.height/15) {
 			lense.tempInterpParameters.forEach(function(item, index) {
-				lense.tempInterpParameters[index] = {};
+				//lense.tempInterpParameters[index] = {};
 			});
 
 	    	self.handleInterpolate(d3.event);
@@ -201,7 +201,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 		else if (lense.searchPosition && Math.abs(Math.abs(self.cursorPosition[0] - lense.searchPosition[0])) < lense.width/15 && 
 				Math.abs(self.cursorPosition[1] - lense.searchPosition[1]) < lense.height/15) {
 			lense.tempInterpParameters.forEach(function(item, index) {
-				lense.tempInterpParameters[index] = {};
+				//lense.tempInterpParameters[index] = {};
 			});
 
     		self.searching = true;
@@ -904,7 +904,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 	var interpResults = [];
 	self.interpolateFunctions.forEach(function(item, functionIndex) {
 		var query = {};
-		if (Object.keys(lense.tempInterpParameters[functionIndex]).length == 0) {
+		if (true) { //Object.keys(lense.tempInterpParameters[functionIndex]).length == 0) {
 			var searchPos = lense.searchPosition ? lense.searchPosition : [x-self.margin.right, y-self.margin.top];
 			query[self.dimensions[0]] = {val: self.paramX.invert(searchPos[0]), weight:1.0, interpWeight: 0.0};//self.manipulating ? 0.0 : 1.0};
 			query[self.dimensions[1]] = {val: self.paramY.invert(searchPos[1]), weight:1.0, interpWeight: 0.0};//self.manipulating ? 0.0 : 1.0};
