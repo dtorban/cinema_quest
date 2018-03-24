@@ -645,6 +645,7 @@ LineSpace.prototype.removeLense = function(lenseId) {
 	self.lenses[lenseId].canvas.remove();
 	self.lenses[lenseId].selectcanvas.remove();
 	self.lenses.splice(lenseId,1);
+	self.redrawLenses();
 	//self.currentLenseIndex = -1;
 	self.select([], true);
 }
@@ -938,7 +939,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		var alphas = []
 
 		var weightSum = 0;
-		var numNeighbors = interp.neighbors.length < 15.0 ? interp.neighbors.length : 15.0;
+		var numNeighbors = interp.neighbors.length < 25.0 ? interp.neighbors.length : 25.0;
 		for (var f = 0; f < numNeighbors; f++) {
 			weightSum+= interp.neighbors[f].weight;
 		 }
@@ -957,6 +958,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 
 		self.select(neighborIds, index == 0, interp.color, index, interpResults.length, alphas, lense);
 		neighborResults.push([neighborIds, interp.color, alphas]);
+		lense.neighborResults = neighborResults;
 	});
 
 	if (!self.selectVersion) { self.selectVersion = 0; }
@@ -969,17 +971,22 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 					if (ver == self.selectVersion) {
 						self.query.forEach(function(item, index) {
 							var ds = self.dataSet[item];
-							$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke', self.fullDataSet[ds.refId].defaultColor);
-							//$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '0px');
+							$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '0.2px');
+							$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-opacity', '0.4px');
+							//$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke', self.fullDataSet[ds.refId].defaultColor);
+							$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke', 'grey');
 
-							neighborResults.forEach(function(item, index) {
-								if (item[0].includes(ds.id)) {
-									//$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-width', '1px');
-									var alphaIndex = item[0].findIndex(function(element) {
-										 return element == ds.id; });
-									//$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-opacity', '' + item[2][alphaIndex]);
-									$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke', item[1]);
-								}
+							self.lenses.forEach(function(item, index) {
+								item.neighborResults.forEach(function(item, index) {
+									if (item[0].includes(ds.id)) {
+										$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '1.5px');
+										$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-opacity', '1.0px');
+										var alphaIndex = item[0].findIndex(function(element) {
+											 return element == ds.id; });
+										//$('.pCoordChart .resultPaths path[index="'+ds.id+'"]').css('stroke-opacity', '' + item[2][alphaIndex]);
+										$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke', item[1]);
+									}
+								});
 							});
 							
 						});

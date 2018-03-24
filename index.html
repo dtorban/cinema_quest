@@ -58,7 +58,7 @@
 			var interpFunctions = null;
 			var spaces = [];
 			var linked = true;
-			var lensColors = ['#073b0e','#b67bf1','#d1b838','#849bb9','#4a781b','#9bcc04','#f98ca0','#b1dbe8','#1561db','#563693','#d71fa2'];
+			var lensColors = ['#316939','#748c38','#ffed63','#cf7f29','#753f3b','#4a914f','#99d173','#fff491','#e8b25a','#b85233','#073b0e','#b67bf1','#d1b838','#849bb9','#4a781b','#9bcc04','#f98ca0','#b1dbe8','#1561db','#563693','#d71fa2'];
 
    			updateResultsArea();
 
@@ -171,7 +171,7 @@
 	   		function doneLoading() {
 
 //   			 	pcc.overlayPathData.push({data: {}, style: "stroke: green; stroke-width: 4px;"});
-   			 	pcc.overlayPathData.push({data: {}, style: "stroke: black; stroke-width: 4px;"});
+   			 	//pcc.overlayPathData.push({data: {}, style: "stroke: black; stroke-width: 4px;"});
 //   			 	pcc.overlayPathData.push({data: {}, style: "stroke: cyan; stroke-width: 4px;"});
 //   			 	pcc.overlayPathData.push({data: {}, style: "stroke: red; stroke-width: 4px;"});
 	   			//$('.pCoordChart .resultPaths path[index="'+30+'"]').css('stroke', 'blue');
@@ -201,8 +201,8 @@
 				}
 
 				lense.interpResults.forEach(function(interp, index) {
-					pcc.overlayPathData[index].style = "stroke: " + lensColors[lense.id % lensColors.length] + "; stroke-width: 4px;";
-					pcc.overlayPathData[index].data = interp.ds.params;
+					//pcc.overlayPathData[index].style = "stroke: " + lensColors[lense.id % lensColors.length] + "; stroke-width: 4px;";
+					//pcc.overlayPathData[index].data = interp.ds.params;
 				});
    				pcc.updateOverlayPaths(true);
 			}
