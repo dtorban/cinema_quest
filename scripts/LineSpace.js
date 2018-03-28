@@ -268,68 +268,11 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     });
 
     this.actionCanvas.on("mouseup", function() {
+		self.handleOnMouseUp();
+    });
 
-    	if (self.selecting) {
-    		self.selecting = false;
-			self.selectContext.globalAlpha = 1.0;
-
-			var selected = [];
-
-			self.query.forEach(function(item, index) {
-				var ds = self.dataSet[item];
-				var imgData = self.selectContext.getImageData(self.paramX(+ds.params[self.dimensions[0]])*self.pixelRatio+self.margin.left*self.pixelRatio, self.paramY(+ds.params[self.dimensions[1]])*self.pixelRatio+self.margin.top*self.pixelRatio, 1, 1).data;
-				if (imgData[0] > 0) {
-					selected.push(ds.id);
-					$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '1px');
-				}
-				else {
-					$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '0px');
-				}
-			});
-
-			if (selected.length == 0) {
-				self.query.forEach(function(item, index) {
-					var ds = self.dataSet[item];
-					$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '1px');
-				});
-			}
-			
-
-			self.selectContext.beginPath();
-			self.selectContext.clearRect(-self.margin.left,-self.margin.top,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
-			self.selectContext.stroke();
-			self.selectContext.closePath();
-
-			self.onSelect(selected);
-    		return;
-    	}
-
-    	if (self.interpolating) {
-		    self.handleInterpolate(d3.event);
-		    self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
-		   	if (self.searching && self.lenses[self.currentLenseIndex].searchPosition) {
-					var searchPos = self.lenses[self.currentLenseIndex].searchPosition ? self.lenses[self.currentLenseIndex].searchPosition : self.lenses[self.currentLenseIndex].position;
-					searchPos[0] = self.cursorPosition[0];
-		    		searchPos[1] = self.cursorPosition[1];
-					//searchPos[0] = self.cursorPosition[0]-self.lenses[self.currentLenseIndex].startingPos[0]+self.lenses[self.currentLenseIndex].startingSearchPos[0];
-					//searchPos[1] = self.cursorPosition[1]-self.lenses[self.currentLenseIndex].startingPos[1]+self.lenses[self.currentLenseIndex].startingSearchPos[1];
-		    }
-			else {
-				self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];
-			}
-			self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
-	    	self.searching = false;
-		}
-		else if (self.resizing) {
-			self.handleResize(d3.event);
-			self.resizing = false;
-			self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
-		}
-		else if (self.manipulating) {
-			self.manipulating = false;
-			self.handleManipulate(d3.event);
-			self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
-		}
+    this.actionCanvas.on("mouseout", function() {
+		self.handleOnMouseUp();
     });
 
     this.actionCanvas.on("mousemove", function() {
@@ -590,6 +533,71 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     	checkbox.attr("checked", self.showInterpolation);
     }
     checkbox.style("float", "left").style("position", "relative");
+}
+
+LineSpace.prototype.handleOnMouseUp = function() {
+	var self = this;
+	if (self.selecting) {
+    		self.selecting = false;
+			self.selectContext.globalAlpha = 1.0;
+
+			var selected = [];
+
+			self.query.forEach(function(item, index) {
+				var ds = self.dataSet[item];
+				var imgData = self.selectContext.getImageData(self.paramX(+ds.params[self.dimensions[0]])*self.pixelRatio+self.margin.left*self.pixelRatio, self.paramY(+ds.params[self.dimensions[1]])*self.pixelRatio+self.margin.top*self.pixelRatio, 1, 1).data;
+				if (imgData[0] > 0) {
+					selected.push(ds.id);
+					$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '1px');
+				}
+				else {
+					$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '0px');
+				}
+			});
+
+			if (selected.length == 0) {
+				self.query.forEach(function(item, index) {
+					var ds = self.dataSet[item];
+					$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '1px');
+				});
+			}
+			
+
+			self.selectContext.beginPath();
+			self.selectContext.clearRect(-self.margin.left,-self.margin.top,self.parentRect.width*self.pixelRatio,self.parentRect.height*self.pixelRatio);
+			self.selectContext.stroke();
+			self.selectContext.closePath();
+
+			self.onSelect(selected);
+    		return;
+    	}
+
+    	if (self.interpolating) {
+		    self.handleInterpolate(d3.event);
+		    self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
+		   	if (self.searching && self.lenses[self.currentLenseIndex].searchPosition) {
+					var searchPos = self.lenses[self.currentLenseIndex].searchPosition ? self.lenses[self.currentLenseIndex].searchPosition : self.lenses[self.currentLenseIndex].position;
+					searchPos[0] = self.cursorPosition[0];
+		    		searchPos[1] = self.cursorPosition[1];
+					//searchPos[0] = self.cursorPosition[0]-self.lenses[self.currentLenseIndex].startingPos[0]+self.lenses[self.currentLenseIndex].startingSearchPos[0];
+					//searchPos[1] = self.cursorPosition[1]-self.lenses[self.currentLenseIndex].startingPos[1]+self.lenses[self.currentLenseIndex].startingSearchPos[1];
+		    }
+			else {
+				self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];
+			}
+			self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
+	    	self.searching = false;
+		}
+		else if (self.resizing) {
+			self.handleResize(d3.event);
+			self.resizing = false;
+			self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
+		}
+		else if (self.manipulating) {
+			self.manipulating = false;
+			self.handleManipulate(d3.event);
+			self.onUpdateLense(self, self.lenses[self.currentLenseIndex]);
+		}
 }
 
 LineSpace.prototype.createLense = function(x,y) {
