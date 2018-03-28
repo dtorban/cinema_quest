@@ -198,7 +198,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 				});
 			});
 
-			lense.searchWeight *= 0.5;
+			lense.searchWeight *= 0.6;
 
 			self.handleManipulate(d3.event);
 			self.manipulating = true;
@@ -226,7 +226,18 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 		}
 		else if (lense.lastPos && Math.abs(Math.abs(self.cursorPosition[0] - lense.lastPos[0])) < lense.width/15 && 
 				Math.abs(self.cursorPosition[1] - lense.lastPos[1]) < lense.height/15) {
-
+			self.interpolateFunctions.forEach(function(item, functionIndex) {
+				var lenseQueryParams = Object.keys(lense.interpParameters[functionIndex]);
+				lenseQueryParams.forEach(function(item, index) {
+					if (lense.interpParameters[functionIndex][item].weight > 0.1) {
+						lense.interpParameters[functionIndex][item].weight *= 0.6;
+					}
+					else {
+						console.log("deleted", item);
+						delete lense.interpParameters[functionIndex][item];
+					}
+				});
+			});
 
 			//lense.searchPosition = lense.lastPos;
 			lense.startingPos = [self.cursorPosition[0],self.cursorPosition[1]];
@@ -239,7 +250,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 			}
 
 			var searchPos = lense.searchPosition ? lense.searchPosition : lense.position;
-			lense.startingSearchPos = [searchPos[0],searchPos[1]];
+			lense.startingSearchPos = [self.cursorPosition[0],self.cursorPosition[1]];
+			lense.searchPosition = [self.cursorPosition[0],self.cursorPosition[1]];
 
 
 			lense.tempInterpParameters.forEach(function(item, index) {
@@ -297,8 +309,10 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 		    self.cursorPosition = [d3.event.offsetX-self.margin.right, d3.event.offsetY-self.margin.top];
 		   	if (self.searching && self.lenses[self.currentLenseIndex].searchPosition) {
 					var searchPos = self.lenses[self.currentLenseIndex].searchPosition ? self.lenses[self.currentLenseIndex].searchPosition : self.lenses[self.currentLenseIndex].position;
-					searchPos[0] = self.cursorPosition[0]-self.lenses[self.currentLenseIndex].startingPos[0]+self.lenses[self.currentLenseIndex].startingSearchPos[0];
-					searchPos[1] = self.cursorPosition[1]-self.lenses[self.currentLenseIndex].startingPos[1]+self.lenses[self.currentLenseIndex].startingSearchPos[1];
+					searchPos[0] = self.cursorPosition[0];
+		    		searchPos[1] = self.cursorPosition[1];
+					//searchPos[0] = self.cursorPosition[0]-self.lenses[self.currentLenseIndex].startingPos[0]+self.lenses[self.currentLenseIndex].startingSearchPos[0];
+					//searchPos[1] = self.cursorPosition[1]-self.lenses[self.currentLenseIndex].startingPos[1]+self.lenses[self.currentLenseIndex].startingSearchPos[1];
 		    }
 			else {
 				self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];
@@ -342,8 +356,10 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 
 		    	if (self.searching && self.lenses[self.currentLenseIndex].searchPosition) {
 					var searchPos = self.lenses[self.currentLenseIndex].searchPosition ? self.lenses[self.currentLenseIndex].searchPosition : self.lenses[self.currentLenseIndex].position;
-					searchPos[0] = self.cursorPosition[0]-self.lenses[self.currentLenseIndex].startingPos[0]+self.lenses[self.currentLenseIndex].startingSearchPos[0];
-					searchPos[1] = self.cursorPosition[1]-self.lenses[self.currentLenseIndex].startingPos[1]+self.lenses[self.currentLenseIndex].startingSearchPos[1];
+		    		searchPos[0] = self.cursorPosition[0];
+		    		searchPos[1] = self.cursorPosition[1];
+					//searchPos[0] = self.cursorPosition[0]-self.lenses[self.currentLenseIndex].startingPos[0]+self.lenses[self.currentLenseIndex].startingSearchPos[0];
+					//searchPos[1] = self.cursorPosition[1]-self.lenses[self.currentLenseIndex].startingPos[1]+self.lenses[self.currentLenseIndex].startingSearchPos[1];
 		    	}
 		    	else {
 					self.lenses[self.currentLenseIndex].position = [self.cursorPosition[0],self.cursorPosition[1]];	
