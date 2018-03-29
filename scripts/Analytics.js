@@ -45,6 +45,9 @@
 	   				trainingPoints.push(points[item]);
 	   			});
 
+	   			var pcaList = [];
+	   			pcaList.push(pca);
+
 				pca = new ML.Stat.PCA(trainingPoints);
 				console.log(pca.getExplainedVariance());
 				var outPrediction = pca.predict(points);
@@ -64,6 +67,9 @@
 	   				//item.params[prefix + "_out5"] = outPrediction[index][4];
 	   			});
 
+	   			pcaList.push(pca);
+
+	   			return pcaList;
 	   		}
 
 	   		function generatePCA(prefix, data, query, paramSet, paramInfo) {

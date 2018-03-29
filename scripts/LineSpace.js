@@ -164,6 +164,8 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 
 		//console.log(d3.event);
 
+		var prevPos = lense.lastPos;
+
 		if (d3.event.shiftKey) {
 			lense.searchWeight = 0.0;
 		}
