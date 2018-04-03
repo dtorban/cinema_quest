@@ -93,11 +93,12 @@ function interpolate_UseFirstValue(query, trainingSet) {
 }
 ```
 ​
-##Issues
+## Issues
 * Currently Quest only interactively supports up to 500 instances due to the performance of SVG in the parallel coordinates plot.  This can be improved by using the HTML5 Canvas.
 * A Cinema Database needs to have at least 2 parameters to calculate PCA.
 * The first time quest is loaded, you have to refresh due to a loading bug in the lib/ColorMapPicker.js
 
-##Changelog
-###Version 1.0
+## Changelog
+
+### Version 1.0
  * Initial Release
