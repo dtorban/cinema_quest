@@ -1,18 +1,22 @@
 #Cinema Quest
+
 ##Version 1.0
+
 ​
 An interactive visual tool for querying Cinema Database ensembles.  [Detailed Description of Tool](https://tf.lanl.gov/ctf/code/git/projects.aesist_open/scm.quest/file/images/doc/quest_details.png)
 
 ##Developer Information
+
 Quest was developed by Dan Orban (dtorban@umn.edu) in the summer of 2017 as part of the
 LDRD project.  Dan Orban attends the University of Minnesota where he works on Interactive Ensemble Visualization.
 ​
+
 ###NOTE: The only datasets included in the code are those in the examples folder
 ​
+
 ##Usage
 * View SpecD Cinema Databases across multiple dimensionally reduced views.
 * Query continous spaces using several interpolation methods.
-
 
 ## Getting started
 
