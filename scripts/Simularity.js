@@ -75,8 +75,10 @@
    			}
 
    			function centeredCosineSimularity(w, a, b) {
-   				a = vectorAdd(a, w);
-   				b = vectorAdd(b, w);
+               if (w) {
+                  a = vectorAdd(a, w);
+                  b = vectorAdd(b, w);
+               }
    				var x = -(dot(a, b)/(mag(a)*mag(b)));
    				//console.log(a, b, dot(a, b), mag(a), mag(b),x);
    				return x;
