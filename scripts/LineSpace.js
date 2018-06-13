@@ -170,7 +170,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 			lense.searchWeight = 0.0;
 		}
 
-		if (d3.event.ctrlKey && lense && !lense.searchPosition) {
+		if ((d3.event.ctrlKey || d3.event.altKey) && lense && !lense.searchPosition) {
 			lense.searchPosition = lense.position;
 		}
 
