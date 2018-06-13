@@ -8,7 +8,7 @@
 
 	   		function generateFeature(prefix, data, query, paramInfo) {
 	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
-					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('mds_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
 				});
 
 				//console.log(query);
@@ -102,7 +102,7 @@
 
 	   		function generateKMeans(prefix, data, query, k, paramInfo) {
 	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
-					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('mds_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
 				});
 
 				//console.log(query);
@@ -156,10 +156,75 @@
 
 	   		}
 
+	   		function generateMDS(prefix, data, query, paramInfo) {
+	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('mds_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
+				});
+
+				//console.log(query);
+
+	   			var points = [];
+	   			data.forEach(function(item, index) {
+	   				var point = [];
+	   				paramSet.forEach(function(param, index) {
+	   					point.push(paramNormalize(item, param, paramInfo));
+					});
+					points.push(point);
+	   			});
+
+	   			var trainingPoints = [];
+	   			query.forEach(function(item, index) {
+	   				trainingPoints.push(points[item]);
+	   			});
+
+	   			var distances = [];
+	   			trainingPoints.forEach(function(a, index) {
+	   				var pointDist = [];
+	   				trainingPoints.forEach(function(b, index) {
+	   					pointDist.push(weightedEclideanDistance(0,a,b));
+	   				});
+	   				distances.push(pointDist);
+	   			});
+				var mdsIn = numeric.transpose(mds.classic(distances));
+
+	   			points = [];
+				data.forEach(function(item, index) {
+	   				var point = [];
+					for (var f = 0; f < item.rows.length; f++) {
+						point.push(item.rows[f].y);
+					}
+					points.push(point);
+				});
+
+				trainingPoints = [];
+	   			query.forEach(function(item, index) {
+	   				trainingPoints.push(points[item]);
+	   			});
+
+				distances = [];
+				trainingPoints.forEach(function(a, index) {
+	   				var pointDist = [];
+	   				trainingPoints.forEach(function(b, index) {
+	   					pointDist.push(weightedEclideanDistance(0,a,b));
+	   				});
+	   				distances.push(pointDist);
+	   			});
+
+				var mdsOut = numeric.transpose(mds.classic(distances));
+				console.log(mdsOut);
+
+	   			data.forEach(function(item, index) {
+	   				item.params[prefix + "_in1"] = mdsIn[0][index];
+	   				item.params[prefix + "_in2"] = mdsIn[1][index];
+	   				item.params[prefix + "_out1"] = mdsOut[0][index];
+	   				item.params[prefix + "_out2"] = mdsOut[1][index];
+	   			});
+	   		}
+
 
 	   		function generateInterpolationError(suffix, data, interpolationFunction, validator) {
 	   			var paramSet = Object.keys(data[0].params).filter(function(d) {
-					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
+					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('mds_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
 				});
 
 	   			data.forEach(function(ds, index) {

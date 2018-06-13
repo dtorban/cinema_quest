@@ -9,6 +9,8 @@
 	<script src="lib/tracking-min.js"></script>
     <script src="lib/ml.min.js"></script>
     <script src="lib/d3.v4.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+    <script src="lib/mds.js"></script>
     <script src="lib/ColorMapPicker.js"></script>
 	<script src="scripts/Validation.js"></script>
     <script src="scripts/Simularity.js"></script>
@@ -16,7 +18,7 @@
     <script src="scripts/FileLoad.js"></script>
     <script src="scripts/Analytics.js"></script>
     <script src="scripts/Interpolation.js"></script>
-	<script src = 'lib/ParallelCoordinatesChart.js'></script>
+	<script src = 'lib/ParallelCoordinatesChart.js'></script
 </head>
    <body>
 	   <div id="topArea">
@@ -268,6 +270,7 @@
 	   			pcaList = generateFeature('pca', data, pcc.query, paramInfo);
 		   		generateKMeans('kmeans', data, pcc.query, 5, paramInfo);
 		   		generateKMeans('kmeans', data, pcc.query, 10, paramInfo);
+		   		generateMDS('mds', data, pcc.query, paramInfo);
 		   		var fold3 = new KFoldCrossValidation(3, dataSet.length);
 		   		var fold10 = new KFoldCrossValidation(10, dataSet.length);
 		   		var leaveOneOut = new LeaveOneOutCrossValidation(dataSet.length);
@@ -412,7 +415,7 @@
    				//interp.ds.params["pca_in1"] = 0.0;
 
    				var paramSet = Object.keys(interp.ds.params).filter(function(d) {
-					return d != 'run' && d != 'id' && !isNaN(+interp.ds.params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
+					return d != 'run' && d != 'id' && !isNaN(+interp.ds.params[d]) && !d.startsWith("output_") && !d.startsWith('pca_') && !d.startsWith('mds_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
 				});
 
 	   			var points = [];
