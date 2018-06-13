@@ -181,7 +181,7 @@
 	   			trainingPoints.forEach(function(a, index) {
 	   				var pointDist = [];
 	   				trainingPoints.forEach(function(b, index) {
-	   					pointDist.push(centeredCosineSimularity(0,a,b));
+	   					pointDist.push(manhattanDistance(0,a,b));
 	   				});
 	   				distances.push(pointDist);
 	   			});
@@ -205,7 +205,7 @@
 				trainingPoints.forEach(function(a, index) {
 	   				var pointDist = [];
 	   				trainingPoints.forEach(function(b, index) {
-	   					pointDist.push(centeredCosineSimularity(0,a,b));
+	   					pointDist.push(manhattanDistance(0,a,b));
 	   				});
 	   				distances.push(pointDist);
 	   			});
