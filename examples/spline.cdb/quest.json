@@ -1,0 +1,11 @@
+{
+	"type" : "csv",
+	"delimiter" : ",",
+	"columns" : [0,1],
+	"fileColumn": "FILE",
+	"sample" : {
+		"start" : "10",
+		"length" : "1980",
+		"step" : "10"
+	}
+}

@@ -18,13 +18,19 @@ function readTextFile(file, callback) {
 
 function loadDatabaseWithInfo(dbInfo, results, callback) {
 	readTextFile(dbInfo.filePath + "quest.json", function(text) {
+
 	   	if (text) {
+			var newDbInfo = {};
+			for (var attrname in dbInfo) { newDbInfo[attrname] = dbInfo[attrname]; }
 			var data = JSON.parse(text);
-			for (var attrname in data) { dbInfo[attrname] = data[attrname]; }
-			console.log(dbInfo);
+			for (var attrname in data) { newDbInfo[attrname] = data[attrname]; }
+			console.log(newDbInfo);
+			loadDatabaseData(newDbInfo, results, callback);
+	   	}
+	   	else {
+			loadDatabaseData(dbInfo, results, callback);
 	   	}
 
-		loadDatabaseData(dbInfo, results, callback);
 	});
 }
 
