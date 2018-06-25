@@ -111,7 +111,7 @@
 				//interpFunctions = [interpolate1, interpolate2, interpolate4, interpolate3];
 				//interpFunctions = [interpolate1, interpolate2, interpolate3];
 				//interpFunctions = [interpolate_UseFirstValue];
-   			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense, 1);
+   			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense, 0);
    			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense, 1);
 
    			 	spaces = [];
@@ -271,7 +271,7 @@
 	   			pcaList = generateFeature('pca', data, pcc.query, paramInfo);
 		   		generateKMeans('kmeans', data, pcc.query, 5, paramInfo);
 		   		generateKMeans('kmeans', data, pcc.query, 10, paramInfo);
-		   		generateMDS('mds', data, pcc.query, paramInfo);
+		   		//generateMDS('mds', data, pcc.query, paramInfo);
 		   		var fold3 = new KFoldCrossValidation(3, dataSet.length);
 		   		var fold10 = new KFoldCrossValidation(10, dataSet.length);
 		   		var leaveOneOut = new LeaveOneOutCrossValidation(dataSet.length);

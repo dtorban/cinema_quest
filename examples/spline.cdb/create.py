@@ -57,18 +57,14 @@ with open("data.csv", "w") as csvFile:
 	csvFile.write("i,a,b,c,d,FILE\n")
 	#csvFile.write("Height,Center,Standard Deviation,FILE\n")
 	for i in range(0, 100):
+		#vi = np.array([0.0,random.random()]);
 		vi = np.array([0.0,random.random()]);
-		I = vi[1]
 		v0 = np.array([0.25,random.random()]);
-		a = v0[1];
 		v1 = np.array([0.5,random.random()]);
-		b = v1[1];
 		v2 = np.array([0.75,random.random()]);
-		c = v2[1];
 		v3 = np.array([1.0,random.random()]);
-		d = v3[1];
 		fileName = "" + str(i) + ".csv"
-		csvFile.write("" + str(I) + "," + str(a) + "," + str(b) + "," + str(c) + "," + str(d) + "," + fileName + "\n")
+		csvFile.write("" + str(vi[1]) + "," + str(v0[1]) + "," + str(v1[1])  + "," + str(v2[1])  + "," + str(v3[1]) + "," + fileName + "\n")
 		#csvFile.write("" + str(a) + "," + str(b) + "," + str(c) + "," + fileName + "\n")
 		with open(fileName, "w") as dataFile:
 			for f in range(0, 200):
@@ -84,11 +80,11 @@ with open("data.csv", "w") as csvFile:
 				#x = math.cos(2.0*3.14158*f/(200-1))
 				#y = math.sin(2.0*3.14158*f/(200-1))
 				dataFile.write(str(sp[0]) + "," + str(sp[1]) + "\n")
-			for f in range(0, 20):
-				dataFile.write(str(1.0 + 0.25*f/20) + "," + str(0.5) + "\n")
+			#for f in range(0, 20):
+			#	dataFile.write(str(1.0 + 0.25*f/20) + "," + str(0.5) + "\n")
 			points = [v3,v2,v1,v0,vi]
 			xvals, yvals = bezier_curve(points, nTimes=200)
 				#x = math.cos(2.0*3.14158*f/(200-1))
 				#y = math.sin(2.0*3.14158*f/(200-1))
-			for f in range(0, 200):
-				dataFile.write(str(xvals[f] + 1.25) + "," + str(yvals[f]) + "\n")
+			#for f in range(0, 200):
+			#	dataFile.write(str(xvals[f] + 1.25) + "," + str(yvals[f]) + "\n")
