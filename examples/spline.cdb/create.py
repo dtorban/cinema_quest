@@ -56,7 +56,7 @@ def catmullRom(v0, v1, v2, v3, s):
 with open("data.csv", "w") as csvFile:
 	csvFile.write("i,a,b,c,d,FILE\n")
 	#csvFile.write("Height,Center,Standard Deviation,FILE\n")
-	for i in range(0, 100):
+	for i in range(0, 500):
 		#vi = np.array([0.0,random.random()]);
 		vi = np.array([0.0,random.random()]);
 		v0 = np.array([0.25,random.random()]);
@@ -86,5 +86,5 @@ with open("data.csv", "w") as csvFile:
 			xvals, yvals = bezier_curve(points, nTimes=200)
 				#x = math.cos(2.0*3.14158*f/(200-1))
 				#y = math.sin(2.0*3.14158*f/(200-1))
-			#for f in range(0, 200):
-			#	dataFile.write(str(xvals[f] + 1.25) + "," + str(yvals[f]) + "\n")
+			for f in range(0, 200):
+				dataFile.write(str(xvals[f] + 1.25) + "," + str(yvals[f]) + "\n")
