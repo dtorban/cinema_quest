@@ -10,5 +10,7 @@
 	{"name" : "Trial 1", "database" : "data/LDRD/trial1.cdb"},
 	{"name" : "Trial 3", "database" : "data/LDRD/trial3.cdb"},
 	{"name" : "Trial 4", "database" : "data/LDRD/trial4.cdb"},
-	{"name" : "Volume Render", "database" : "data/volume-render.cdb"}
+	{"name" : "Volume Render", "database" : "data/volume-render.cdb"},
+	{"name" : "CMS", "database" : "data/CMS.cdb"},
+	{"name" : "CMStime", "database" : "data/CMStime.cdb"}
 ]

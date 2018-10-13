@@ -105,7 +105,7 @@
 
 				pcc = new ParallelCoordinatesChart(d3.select('#svgContainer'),
 												dbString.endsWith(".cdb") ? dbString + "/data.csv" : dbString.split(',')[0],
-												['id','sim','visar','diffraction','image','output','FILE'],
+												['id','sim','visar','diffraction','image','output','FILE','FILE_2'],
 												doneLoading);
 				interpFunctions = [interpolate1];
 				//interpFunctions = [interpolate1, interpolate2, interpolate4, interpolate3];
@@ -257,15 +257,14 @@
 		   		paramInfo = calcParamInfo(dataSet);
 
 		   		dataSet.forEach(function(ds, index) {
-			   		ds.rowSet = [];
 			   		var rows2 = [];
 			   		initialParamSet.forEach(function(item, index) {
 			   			for (var f = 0; f < 10; f++) {
 			   				rows2.push({x : index*10+f, y : paramNormalize(ds, item, paramInfo)});
 			   			}
 			   		});
-			   		ds.rowSet.push(rows2);
-			   		ds.rowSet.push(ds.rows);
+			   		ds.rowSet.splice(0,0,ds.rows);
+			   		ds.rowSet.splice(0,0,rows2);
 		   		});
 		   		
 	   			pcaList = generateFeature('pca', data, pcc.query, paramInfo);
