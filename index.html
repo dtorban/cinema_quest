@@ -105,14 +105,16 @@
 
 				pcc = new ParallelCoordinatesChart(d3.select('#svgContainer'),
 												dbString.endsWith(".cdb") ? dbString + "/data.csv" : dbString.split(',')[0],
-												['id','sim','visar','diffraction','image','output','FILE','FILE_2'],
+												['id','sim','visar','diffraction','image','output','FILE','FILE_2','FILE_3'],
 												doneLoading);
 				interpFunctions = [interpolate1];
 				//interpFunctions = [interpolate1, interpolate2, interpolate4, interpolate3];
 				//interpFunctions = [interpolate1, interpolate2, interpolate3];
 				//interpFunctions = [interpolate_UseFirstValue];
    			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense, 0);
-   			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense, 1);
+   			 	//lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense, 3);
+   			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense, 7);
+   			 	//lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense, 12);
 
    			 	spaces = [];
    			 	spaces.push(lineSpace);

@@ -62,7 +62,7 @@
 				newDs.extentY = d3.extent(newDs.rows, function(d) { return d.y; });
 
 				newDs.rowSet = [];
-				for (var rowSetNum = 0; rowSetNum < 2 /*trainingSet[0].rowSet.length*/; rowSetNum++) {
+				for (var rowSetNum = 0; rowSetNum < trainingSet[0].rowSet.length; rowSetNum++) {
 					var rows = [];
 					for (var f = 0; f < k; f++) {
 						trainingSet[dsDist[f].id].rowSet[rowSetNum].forEach(function(item, index) {

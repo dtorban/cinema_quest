@@ -130,12 +130,18 @@ function loadDatabaseData(dbInfo, results, callback) {
 					            	q.defer(d3.text, dbInfo.filePath + item["FILE_2"]);
 								//}
 				   			});
+				   			results.forEach(function(item, index) {
+								//if (index > 500) {
+									//console.log(item[dbInfo[1]]);
+					            	q.defer(d3.text, dbInfo.filePath + item["FILE_3"]);
+								//}
+				   			});
 				   			q.awaitAll(function(error, results) {
 				            	//if (!error) {
 				            		console.log(error);
 					            	var data = [];
 						        	results.forEach(function(text, index) {
-						        		if (text && index < results.length/2) {
+						        		if (text && index < results.length/3) {
 
 											// correct for white space delemited
 							    			if (dbInfo.delimiter == " ") {
@@ -194,7 +200,8 @@ function loadDatabaseData(dbInfo, results, callback) {
 								            data.push(ds);
 							        	}
 							        	else if (text) {
-							        		console.log(index, data[index - data.length]);
+							        		var dataIndex = index % data.length;
+							        		var rowSetOffset = data[dataIndex].rowSet.length;
 							        		//data[index - data.length].rowSet.push([{x:0,y:0},{x:1,y:1},{x:2,y:2},{x:3,y:3},{x:4,y:4}]);
 							        		var lines = text.split('\r');
 							        		//lines = lines.slice(1,lines.length);
@@ -202,14 +209,13 @@ function loadDatabaseData(dbInfo, results, callback) {
 							        			var cols = line.split(",");
 							        			cols.forEach(function(col, colIndex) {
 							        				if (rowSetIndex == 0) {
-								        				data[index - data.length].rowSet.push([]);
+								        				data[dataIndex].rowSet.push([]);
 								        			}
 								        			else {
-								        				data[index - data.length].rowSet[colIndex].push({x: rowSetIndex-1, y: +col})
+								        				data[dataIndex].rowSet[rowSetOffset + colIndex].push({x: rowSetIndex-1, y: +col})
 								        			}
 							        			});
 							        		});
-							        		console.log(data[index - data.length].rowSet);
 							        	}
 					               		
 					           		});
