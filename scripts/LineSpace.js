@@ -1816,6 +1816,8 @@ LineSpace.prototype.xAxis = function(context) {
 		ticks = self.paramX.ticks(tickCount),
 		tickFormat = self.paramX.tickFormat();
 
+	tickFormat = function(d) { return d3.format(".2f")(Math.exp(d)); };
+
 	var internalHeight = self.parentRect.height - self.instanceHeight;
 	var internalWidth = self.parentRect.width - self.instanceWidth;
 
@@ -1851,6 +1853,8 @@ LineSpace.prototype.yAxis = function(context) {
 		tickPadding = 3,
 		ticks = self.paramY.ticks(tickCount),
 		tickFormat = self.paramY.tickFormat(tickCount);
+
+	tickFormat = function(d) { return d3.format(".2f")(Math.exp(d)); };
 
 	var internalHeight = self.parentRect.height - self.instanceHeight;
 

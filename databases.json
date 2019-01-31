@@ -1,5 +1,7 @@
 [
 	{"name" : "Rainbow Sphere", "database" : "examples/rainbowsphere_D.cdb"},
+	{"name" : "CMS_many", "database" : "data/many.cdb"},
+	{"name" : "CMS_full", "database" : "data/full.cdb"},
 	{"name" : "Guassian", "database" : "examples/gaussian.cdb"},
 	{"name" : "Curve Example", "database" : "examples/curve.cdb"},
 	{"name" : "LDRD GF-HP", "database" : "data/LDRD/GF-HP.cdb"},
