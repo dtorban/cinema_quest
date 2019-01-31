@@ -251,7 +251,7 @@
 	   			dataSet = data;
 
 	   			var initialParamSet = Object.keys(data[0].params).filter(function(d) {
-					return d != 'run' && d != 'id' && !isNaN(+data[0].params[d]);
+					return d != 'run' && d != 'id' && !d.startsWith("output_") && !isNaN(+data[0].params[d]);
 				});
 
 		   		paramInfo = calcParamInfo(dataSet);
