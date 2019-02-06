@@ -40,11 +40,11 @@
 			</div>
 		</div>
 		<div id="resultsArea">
-			<div class="spaceArea">
+			<!--div class="spaceArea">
 				<div id="spaceContainer1" class="spaceContainer"></div>
-			</div>
-			<div style="position:absolute;top:25%;left:49%;text-align:center;z-index:10">
-			<input type="checkbox" checked="true" id="linkSpace"><select id="linkSelect"></select></div>
+			</div-->
+			<!--div style="position:absolute;top:25%;left:49%;text-align:center;z-index:10">
+			<input type="checkbox" checked="true" id="linkSpace"><select id="linkSelect"></select></div-->
 			<div class="spaceArea">
 				<div id="spaceContainer2" class="spaceContainer"></div>
 			</div>
@@ -111,11 +111,11 @@
 				//interpFunctions = [interpolate1, interpolate2, interpolate4, interpolate3];
 				//interpFunctions = [interpolate1, interpolate2, interpolate3];
 				//interpFunctions = [interpolate_UseFirstValue];
-   			 	lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense, 0);
+   			 	//lineSpace = new LineSpace(d3.select("#spaceContainer1"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense, 0);
    			 	lineSpace2 = new LineSpace(d3.select("#spaceContainer2"), getGraphProperties, interpFunctions, onSelect, onUpdateLense, onRemoveLense, onCreateLense, 1);
 
    			 	spaces = [];
-   			 	spaces.push(lineSpace);
+   			 	//spaces.push(lineSpace);
    			 	spaces.push(lineSpace2);
 
    			 	d3.select('#linkSpace')
@@ -165,10 +165,10 @@
 	   				});
 	   			});
 
-	   			lineSpace.changeView(views[0]);
+	   			//lineSpace.changeView(views[0]);
 	   			lineSpace2.changeView(views[1]);
 	   			if (update) {
-	   				lineSpace.update();
+	   				//lineSpace.update();
 	   				lineSpace2.update();
 	   			}
 	   		}
@@ -187,7 +187,7 @@
 	   		}
 
 	   		function onSelectionChange(query) {
-	   			lineSpace.onSelectionChange(query);
+	   			//lineSpace.onSelectionChange(query);
 	   			lineSpace2.onSelectionChange(query);
 	   		}
 
@@ -225,18 +225,18 @@
 	   		function onMouseOverChange(i, event) {
 	   			if (!lineSpace.selectable && !lineSpace2.selectable) {
 		   			if (i) {
-		   				lineSpace.select([i]);
+		   				//lineSpace.select([i]);
 		   				lineSpace2.select([i]);
 		   			}
 		   			else {
-		   				lineSpace.select([]);
+		   				//lineSpace.select([]);
 		   				lineSpace2.select([]);
 		   			}
 		   		}
 	   		}
 
 	   		function onSelect(query) {
-	   			lineSpace.select(query, true);
+	   			//lineSpace.select(query, true);
 	   			lineSpace2.select(query, true);
 	   		}
 
@@ -271,7 +271,7 @@
 	   			pcaList = generateFeature('pca', data, pcc.query, paramInfo);
 		   		generateKMeans('kmeans', data, pcc.query, 5, paramInfo);
 		   		generateKMeans('kmeans', data, pcc.query, 10, paramInfo);
-		   		generateMDS('mds', data, pcc.query, paramInfo);
+		   		/*generateMDS('mds', data, pcc.query, paramInfo);
 		   		var fold3 = new KFoldCrossValidation(3, dataSet.length);
 		   		var fold10 = new KFoldCrossValidation(10, dataSet.length);
 		   		var leaveOneOut = new LeaveOneOutCrossValidation(dataSet.length);
@@ -342,7 +342,7 @@
 
 		   			generatePCA('pca_'+type+'_error', data, pcc.query, pcaParamSet, paramInfo);
 
-		   		});
+		   		});*/
 
 			   	data.forEach(function(ds, index) {
 			   		ds.rowSet.forEach(function(item, rowSetIndex) {
@@ -354,7 +354,7 @@
 
 		   		paramInfo = calcParamInfo(dataSet);
 
-		   		["out", "in", "interr"].forEach(function(type, index) {
+		   		/*["out", "in", "interr"].forEach(function(type, index) {
 			   		var errorParamSet = Object.keys(data[0].params).filter(function(d) {
 						return d.startsWith('error_'+ type);
 					});
@@ -362,16 +362,8 @@
 					errorParamSet.forEach(function(param, index) {
 						paramInfo[param] = paramInfo["error_average_" + type]
 					});
-			   	});
+			   	});*/
 
-			   	//new
-				/*data.forEach(function(item, index) {
-					for (var f = 0; f < item.rows.length; f++) {
-						item.params["output_" + f] = item.rows[f].y;
-					}
-				});
-				paramInfo = calcParamInfo(dataSet);*/
-				//new
 
 	   			fullSet = data;
 	   			testSet = data;
@@ -381,6 +373,7 @@
 				});
 
 		   		changeView();
+
 
 		   		spaces.forEach(function(space, index) {
 	   				space.data(testSet);
