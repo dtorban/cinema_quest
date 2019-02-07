@@ -223,7 +223,7 @@
 			}
 
 	   		function onMouseOverChange(i, event) {
-	   			if (!lineSpace.selectable && !lineSpace2.selectable) {
+	   			if (/*!lineSpace.selectable &&*/ !lineSpace2.selectable) {
 		   			if (i) {
 		   				//lineSpace.select([i]);
 		   				lineSpace2.select([i]);

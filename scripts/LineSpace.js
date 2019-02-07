@@ -1816,7 +1816,12 @@ LineSpace.prototype.xAxis = function(context) {
 		ticks = self.paramX.ticks(tickCount),
 		tickFormat = self.paramX.tickFormat();
 
-	tickFormat = function(d) { return d3.format(".2f")(Math.exp(d)); };
+	if (self.dimensions[0].startsWith("output_")) {
+		tickFormat = function(d) { return d3.format(".2f")(d); };
+	}
+	else {
+		tickFormat = function(d) { return d3.format(".2f")(Math.exp(d)); };
+	}
 
 	var internalHeight = self.parentRect.height - self.instanceHeight;
 	var internalWidth = self.parentRect.width - self.instanceWidth;
@@ -1854,7 +1859,12 @@ LineSpace.prototype.yAxis = function(context) {
 		ticks = self.paramY.ticks(tickCount),
 		tickFormat = self.paramY.tickFormat(tickCount);
 
-	tickFormat = function(d) { return d3.format(".2f")(Math.exp(d)); };
+	if (self.dimensions[1].startsWith("output_")) {
+		tickFormat = function(d) { return d3.format(".2f")(d); };
+	}
+	else {
+		tickFormat = function(d) { return d3.format(".2f")(Math.exp(d)); };
+	}
 
 	var internalHeight = self.parentRect.height - self.instanceHeight;
 
