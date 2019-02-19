@@ -1590,9 +1590,9 @@ LineSpace.prototype.calcBackgroundInterpolate = function(nearest) {
 			w.push(weight);
 		});		
 
-		if (sum < 20) {
+		/*if (sum < 20) {
 			return null;
-		}
+		}*/
 
 		nearest.forEach(function(item, index) {
 			val += (+item[0][self.dimensions[3]])*w[index];
