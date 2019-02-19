@@ -1600,7 +1600,7 @@ LineSpace.prototype.updateBackground = function() {
 				var point = {};
 				point[self.dimensions[0]] = self.paramX.invert(f*4*2);
 				point[self.dimensions[1]] = self.paramY.invert(i*4*2);
-				var nearest = tree.nearest(point, 10);
+				var nearest = tree.nearest(point, 5);
 				nearest.sort(function(a, b){return a[1]-b[1]});
 
 				var val = self.calcBackgroundInterpolate(nearest);
