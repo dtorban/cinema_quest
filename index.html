@@ -48,6 +48,7 @@
 			<div class="spaceArea">
 				<div id="spaceContainer2" class="spaceContainer"></div>
 			</div>
+			<div class="textArea"><p id="textObj" class="textObj">abc</p></div>
 		</div>
    		<script>
 
@@ -196,6 +197,27 @@
 	   		}
 
 			function onUpdateLense(space, lense) {
+				var params = lense.interpResults[0].ds.params;
+
+				var paramSet = Object.keys(params).filter(function(d) {
+					return d != 'run' && d != 'id' && !d.startsWith('pca_') && !d.startsWith('mds_') && !d.startsWith('kmeans_') && !d.startsWith('error_');
+				});
+
+
+				var textObj = $('#textObj');
+				d3.select('#textObj').style("color", lense.color);
+				var html = '';
+
+				paramSet.forEach(function(item, index) {
+					html += "<b>" + item + ":</b> " + params[item].toFixed(2) + '<br>';
+					//console.log(item, params[item]);
+				});
+
+				textObj.html(html);
+				//textObj.append("canvas")
+					//.attr('width', this.parentRect.width*this.pixelRatio)
+
+
 				//console.log(space.id, lense.id);
 				if (linked) {
 					spaces.forEach(function(item, index) {
@@ -213,6 +235,7 @@
 			}
 
 			function onRemoveLense(space, id) {
+				$('#textObj').html('');
 				if (linked) {
 					spaces.forEach(function(item, index) {
 						if (space.id != item.id) {

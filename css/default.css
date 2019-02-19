@@ -34,9 +34,23 @@ body {
 	position: relative;
 	background-color: white;
 	/*width: 84%;*/
-	width: 100%;
+	width: 80%;
 	height: 100%;
 	box-shadow: inset 0px 0px 5px black;
+}
+
+.textArea {
+	float: left;
+	position: relative;
+	background-color: white;
+	/*width: 84%;*/
+	width: 20%;
+	height: 100%;
+	box-shadow: inset 0px 0px 5px black;
+}
+
+.textObj {
+	padding: 10px;
 }
 
 #nav {

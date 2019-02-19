@@ -354,7 +354,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 					
 					if (Math.abs(x) < lense.scale*lense.width/2 && Math.abs(y) < lense.scale*lense.height/2) {
 
-						if ((Math.abs(x) < lense.scale*lense.width/2 &&
+						/*if ((Math.abs(x) < lense.scale*lense.width/2 &&
 							Math.abs(x) > lense.scale*lense.width/2-10) ||
 							(Math.abs(y) < lense.scale*lense.height/2 &&
 							Math.abs(y) > lense.scale*lense.height/2-10)) {
@@ -368,11 +368,11 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
    							}
 							found = true;
 						}
-						else if(Math.abs(x) < lense.width/15 && Math.abs(y) < lense.height/15) {
+						else*/ if(Math.abs(x) < lense.width/15 && Math.abs(y) < lense.height/15) {
 							self.actionCanvas.style("cursor", "move");
 							found = true;
 						}
-						else {
+						/*else {
 							var transX = lense.width/2;
 							var transY = lense.height/2;
 							var xVal = self.x.invert(x/lense.scale+transX);
@@ -401,7 +401,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 									self.canManipulate = true;
 								}
 							});
-						}
+						}*/
 
 						break;
 					}
@@ -527,6 +527,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     		var numLenses = self.lenses.length;
     		for (var f = numLenses - 1; f >= 0; f--) {
     			console.log(numLenses, f);
+    			self.onRemoveLense(self, self.lenses[f].id);
     			self.removeLense(self.lenses[f].id, false);
     		}
 

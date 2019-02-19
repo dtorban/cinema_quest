@@ -30,7 +30,7 @@
 				}
 
 				paramSet.forEach(function(item, index) {
-					if (!item.startsWith("output_")) {
+					if ( !item.startsWith("output_") || item.startsWith("output__") ) {
 						for (var f = 0; f < k; f++) {
 
 							if (f == 0 && !(item in query)) {
