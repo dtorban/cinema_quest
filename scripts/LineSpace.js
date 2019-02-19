@@ -432,7 +432,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 		.append('div')
   		.attr("style", "z-index: 10;position:absolute;left:0px;top:0px;cursor: default");
 
-	var checkbox = selectDiv.append("input")
+	/*var checkbox = selectDiv.append("input")
 	    .attr("type", "checkbox")
 	    .on('click',function() {
 	    	self.showAll = d3.event.target.checked;
@@ -442,7 +442,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     if (self.showAll) {
     	checkbox.attr("checked", self.showAll);
     }
-    checkbox.style("float", "left").style("position", "relative");
+    checkbox.style("float", "left").style("position", "relative");*/
 
     var selectDivX = self.parent
 		.append('div')
@@ -507,7 +507,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 
     self.colorMapPicker2 = new ColorMapPicker(selectDiv, "images/colormoves/ColorMaps2.csv", function() {self.redrawBackground();})
 
-    var checkbox = selectDiv.append("input")
+    /*var checkbox = selectDiv.append("input")
 	    .attr("type", "checkbox")
 	    .on('click',function() {
 	    	self.selectable = d3.event.target.checked;
@@ -516,7 +516,32 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     if (self.selectable) {
     	checkbox.attr("checked", self.selectable);
     }
-    checkbox.style("float", "left").style("position", "relative");
+    checkbox.style("float", "left").style("position", "relative");*/
+
+    var clearLensesButton = selectDiv.append("input")
+	    .attr("type", "button")
+	    .attr("value", "Clear Predictions")
+	    .on('click',function() {
+	    	//self.selectable = d3.event.target.checked;
+    		//self.update();
+    		var numLenses = self.lenses.length;
+    		for (var f = numLenses - 1; f >= 0; f--) {
+    			console.log(numLenses, f);
+    			self.removeLense(self.lenses[f].id, false);
+    		}
+
+    		self.query.forEach(function(item, index) {
+				var ds = self.dataSet[item];
+				$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-width', '1px');
+				$('.pCoordChart .resultPaths path[index="'+ds.refId+'"]').css('stroke-opacity', '0.4');
+			});
+    		/*self.lenses.forEach(function(item, index) {
+				item.canvas.remove();
+				item.selectcanvas.remove();
+				self.onRemoveLense(self, 0);
+			});*/
+    	});
+    clearLensesButton.style("float", "left").style("position", "relative");
 
     self.opacitySelect = selectDiv
 		.append('select')
@@ -750,7 +775,7 @@ LineSpace.prototype.updateLense = function(lense, space) {
 	//}
 }
 
-LineSpace.prototype.removeLense = function(lenseId) {
+LineSpace.prototype.removeLense = function(lenseId, redraw=true) {
 	var self = this;
 	for (var f = lenseId+1; f < self.lenses.length; f++) {
 		self.lenses[lenseId].id--;
@@ -758,7 +783,9 @@ LineSpace.prototype.removeLense = function(lenseId) {
 	self.lenses[lenseId].canvas.remove();
 	self.lenses[lenseId].selectcanvas.remove();
 	self.lenses.splice(lenseId,1);
-	self.redrawLenses();
+	if (redraw) {
+		self.redrawLenses();
+	}
 	//self.currentLenseIndex = -1;
 	self.select([], true);
 }
@@ -1011,6 +1038,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		context.stroke();
 		context.closePath();
 
+		if (false) { // enable for transparent lense
 		context.beginPath();
 		context.globalAlpha = 0.8;
 		context.fillStyle = 'white';
@@ -1024,7 +1052,7 @@ LineSpace.prototype.interpolate = function(x, y, lense) {
 		context.globalCompositeOperation = "source-over";
 		context.fillRect(x-self.margin.right-lense.scale*self.instanceWidth/2,y-self.margin.top-lense.scale*self.instanceHeight/2,this.instanceWidth*lense.scale,this.instanceHeight*lense.scale);
 		context.stroke();
-		context.closePath();
+		context.closePath();}
 	}
 
 	lense.prevSearchPosition = lense.searchPosition;
@@ -1207,19 +1235,21 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 	if ((self.showAll || graphProperties.show || forceShow) && !ds.image) {
 		var alpha = context.globalAlpha;
 		for (var f = 0; f < 2; f++) {
-			context.beginPath();
-			context.strokeStyle = f == 0 ? context.strokeStyle : 'black';
-			context.globalAlpha = f == 0 ? alpha : 0.4*alpha;
-			ds.rowSet[self.rowSetIndex].forEach(function(item, index) {
-				if (index == 0) {
-					context.moveTo(lense.scale*self.x(item.x), lense.scale*self.y(item.y));
-				}
-				else {
-					context.lineTo(lense.scale*self.x(item.x), lense.scale*self.y(item.y));
-				}
-			});
-			context.stroke();
-			context.closePath();
+			if (false) { // enable to draw lines
+				context.beginPath();
+				context.strokeStyle = f == 0 ? context.strokeStyle : 'black';
+				context.globalAlpha = f == 0 ? alpha : 0.4*alpha;
+				ds.rowSet[self.rowSetIndex].forEach(function(item, index) {
+					if (index == 0) {
+						context.moveTo(lense.scale*self.x(item.x), lense.scale*self.y(item.y));
+					}
+					else {
+						context.lineTo(lense.scale*self.x(item.x), lense.scale*self.y(item.y));
+					}
+				});
+				context.stroke();
+				context.closePath();
+			}
 		}
 		context.globalAlpha = alpha;
 	}
@@ -1323,6 +1353,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 
 	if(showBox) {
 
+		if (false) {
 		context.strokeStyle = 'black';
 		context.lineWidth = 2.0;
 		context.beginPath();
@@ -1334,7 +1365,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		context.strokeRect(transX+1,transY+1,this.instanceWidth*lense.scale-2,this.instanceHeight*lense.scale-2);
 		context.stroke();
 		context.closePath();
-		context.lineWidth = 1.1;
+		context.lineWidth = 1.1;}
 
 		context.fillStyle = lense.color;
 		context.beginPath();
@@ -1349,35 +1380,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		lense.lastPos = [x, y];
 		self.track.push(lense.lastPos);
 
-		/*self.track.forEach(function(track, index) {
-			var xtrans = track[0]-lense.scale*self.instanceWidth/2;
-			var ytrans = track[1]-lense.scale*self.instanceHeight/2;
-			self.selectContext.fillStyle = lense.color;
-			self.selectContext.beginPath();
-			//self.selectContext.arc(xtrans+lense.scale*this.instanceWidth/2, ytrans+lense.scale*this.instanceHeight/2, 4, 0, 2 * Math.PI);
-			self.selectContext.fillRect(xtrans+lense.scale*self.instanceWidth/2-2,ytrans+lense.scale*self.instanceHeight/2-2,4,4);
-			self.selectContext.fill();
-			self.selectContext.closePath();
-			self.selectContext.strokeStyle = 'white';
-			self.selectContext.beginPath();
-			//self.selectContext.arc(xtrans+lense.scale*this.instanceWidth/2, ytrans+lense.scale*this.instanceHeight/2, 5, 0, 2 * Math.PI);
-			self.selectContext.strokeRect(xtrans+lense.scale*self.instanceWidth/2-3,ytrans+lense.scale*self.instanceHeight/2-3,6,6);
-			self.selectContext.stroke();
-			self.selectContext.closePath();
-
-			self.selectContext.beginPath();
-			self.selectContext.strokeStyle = lense.color;
-			self.selectContext.lineWidth = 1;
-			if (index == 0) {
-				self.selectContext.moveTo(track[0], track[1]);
-			}
-			else {
-				self.selectContext.lineTo(track[0], track[1]);
-			}
-			self.selectContext.stroke();
-			self.selectContext.closePath();
-		});*/
-
+		if (false) { // enable for path
 		self.selectContext.beginPath();
 		self.selectContext.strokeStyle = "white";
 		self.selectContext.lineWidth = 3;
@@ -1391,8 +1394,9 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 			}
 		});
 		self.selectContext.stroke();
-		self.selectContext.closePath();
+		self.selectContext.closePath();}
 
+		if (false) {
 		self.selectContext.beginPath();
 		self.selectContext.strokeStyle = lense.color;
 		self.selectContext.lineWidth = 2;
@@ -1406,7 +1410,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 			}
 		});
 		self.selectContext.stroke();
-		self.selectContext.closePath();
+		self.selectContext.closePath();}
 
 		context.strokeStyle = 'white';
 		context.lineWidth = 1;
@@ -1421,12 +1425,8 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 		context.strokeRect(xtrans+lense.scale*this.instanceWidth/2-8,ytrans+lense.scale*this.instanceHeight/2-8,16,16);
 		context.stroke();
 		context.closePath();
-		/*context.strokeStyle = 'black';
-		context.lineWidth = 2;
-		context.arc(xtrans+lense.scale*this.instanceWidth/2, ytrans+lense.scale*this.instanceHeight/2, 8, 0, 2 * Math.PI);
-		context.stroke();
-		context.closePath();*/
 
+		if (false) {
 		context.globalAlpha = 1.0;
 		var searchPos = lense.searchPosition ? lense.searchPosition : lense.position;
 		context.beginPath();
@@ -1438,44 +1438,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 			context.lineTo(lense.position[0], lense.position[1]);
 		}
 		context.stroke();
-		context.closePath();
-
-		/*var globalAlpha = context.globalAlpha;
-		//console.log(lense.searchWeight);
-		context.globalAlpha = 0.2 + lense.searchWeight*0.8;
-		var searchPos = lense.searchPosition ? lense.searchPosition : lense.position;
-		context.fillStyle = lense.color;
-		context.beginPath();
-		var x = searchPos[0];
-		var y = searchPos[1];
-		var xtrans = x-lense.scale*self.instanceWidth/2;
-		var ytrans = y-lense.scale*self.instanceHeight/2;
-		context.arc(xtrans+lense.scale*this.instanceWidth/2, ytrans+lense.scale*this.instanceHeight/2, 8, 0, 2 * Math.PI);
-		context.fill();
-		context.closePath();
-
-		context.strokeStyle = 'white';
-		context.lineWidth = 2;
-		context.arc(xtrans+lense.scale*this.instanceWidth/2, ytrans+lense.scale*this.instanceHeight/2, 6, 0, 2 * Math.PI);
-		context.stroke();
-		context.closePath();
-		context.beginPath();
-		context.strokeStyle = 'black';
-		context.lineWidth = 2;
-		context.arc(xtrans+lense.scale*this.instanceWidth/2, ytrans+lense.scale*this.instanceHeight/2, 8, 0, 2 * Math.PI);
-		context.stroke();
-		context.closePath();
-		context.globalAlpha = globalAlpha;*/
-
-/*		context.beginPath();
-		context.strokeStyle = lense.color;
-		context.lineWidth = 2;
-		context.moveTo(searchPos[0], searchPos[1]);
-		context.lineTo(lense.position[0], lense.position[1]);
-		context.stroke();
-		context.closePath();*/
-
-
+		context.closePath();}
 	}
 
 	if (graphProperties.show) {
