@@ -84,12 +84,16 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
 	this.bgcontext.globalAlpha = 1.0;
 
 	this.bgValues = [];
+	this.bgValuesCopy = [];
 	this.bgValuesTemp = [];
+	this.bgValuesTempCopy = [];
 	this.bgImageWidth = (this.parentRect.width-this.instanceWidth)/2;
 	this.bgImageHeight = (this.parentRect.height-this.instanceHeight)/2;
 	for (var f = 0; f < this.bgImageWidth*this.bgImageHeight; f++) {
 		this.bgValues.push(0.0);
+		this.bgValuesCopy.push(0.0);
 		this.bgValuesTemp.push(0.0);
+		this.bgValuesTempCopy.push(0.0);
 	}
 
 	// Image data
@@ -1315,6 +1319,7 @@ LineSpace.prototype.drawLines = function(lense, ds, color, showBox, forceShow, l
 			if (!numIndexes) {
 				this.context.globalAlpha = opacity;	
 				this.context.globalCompositeOperation = "source-over";
+				//increase point size here
 				context.arc(transX+lense.scale*this.instanceWidth/2, transY+lense.scale*this.instanceHeight/2, 2, 0, 2 * Math.PI);
 				context.fill();
 			}
@@ -1542,10 +1547,13 @@ LineSpace.prototype.changeView = function(dimensions) {
 LineSpace.prototype.calcBackgroundInterpolate = function(nearest) {
 	var self = this;
 	var val = 0;
-	if (false) { // nearest neighbor
+	if (true) { // nearest neighbor
 		val = +nearest[0][0][self.dimensions[3]];
 	}
-	else if (true) { // inverse weighted
+	else if (false) {
+		val = +nearest[0][0][self.dimensions[3]];
+	}
+	else if (false) { // inverse weighted
 		var w = [];
 		var sum = 0;
 		nearest.forEach(function(item, index) {
@@ -1619,6 +1627,47 @@ LineSpace.prototype.updateBackground = function() {
 		}
 	}
 
+	for (var f = 0; f < self.bgImageWidth/4; f+=1) {
+		for (var i = 0; i < self.bgImageHeight/4; i+=1) {
+			self.bgValuesTempCopy[f*self.bgImageHeight + i] = self.bgValuesTemp[f*self.bgImageHeight + i];
+		}
+	}
+
+	for (var f = 0; f < self.bgImageWidth/4; f+=1) {
+		for (var i = 0; i < self.bgImageHeight/4; i+=1) {
+			var sampleDist = 10.0;
+			var x3 = Math.floor(f/sampleDist);
+			var y3 = Math.floor(i/sampleDist);
+			var dx = (1.0*f-sampleDist*x)/sampleDist;
+
+			var x = 1.0*f;
+			var y = 1.0*i;
+			var x1 = 1.0*Math.floor(x/sampleDist)*sampleDist;
+			var x2 = 1.0*x1+sampleDist;
+			var y1 = 1.0*Math.floor(y/sampleDist)*sampleDist;
+			var y2 = 1.0*y1+sampleDist;
+			if (y2 >= self.bgImageHeight/4) {
+				y2 -= 4;
+				console.log(y2, self.bgImageHeight/4, self.bgImageHeight);
+			}
+			if (x2 >= self.bgImageWidth/4) {
+				x2 -= 4;
+				console.log(x2, self.bgImageWidth/4, self.bgImageWidth);
+			}
+			var Q11 = 1.0*self.bgValuesTempCopy[x1*self.bgImageHeight + y1];
+			var Q21 = 1.0*self.bgValuesTempCopy[x2*self.bgImageHeight + y1];
+			var Q12 = 1.0*self.bgValuesTempCopy[x1*self.bgImageHeight + y2];
+			var Q22 = 1.0*self.bgValuesTempCopy[x2*self.bgImageHeight + y2];
+
+			var P = (x2-x)*(y2-y)*Q11/((x2-x1)*(y2-y1));
+			P += (x-x1)*(y2-y)*Q21/((x2-x1)*(y2-y1));
+			P += (x2-x)*(y-y1)*Q12/((x2-x1)*(y2-y1));
+			P += (x-x1)*(y-y1)*Q22/((x2-x1)*(y2-y1));
+			self.bgValuesTemp[f*self.bgImageHeight + i] = P;
+			//self.bgValuesTemp[f*self.bgImageHeight + i] = self.bgValuesTempCopy[x3*sampleDist*self.bgImageHeight + y3*sampleDist]*(1.0-dx) + self.bgValuesTempCopy[(x3+1)*sampleDist*self.bgImageHeight + y3*sampleDist]*(dx);
+		}
+	}
+
 	for (var f = 0; f < self.bgImageWidth; f+=1) {
 		for (var i = 0; i < self.bgImageHeight; i+=1) {
 			self.bgValues[f*self.bgImageHeight + i] = self.bgValuesTemp[Math.floor(f/4)*self.bgImageHeight + Math.floor(i/4)];
@@ -1633,6 +1682,7 @@ LineSpace.prototype.updateBackground = function() {
 	if (!self.bgVersion) { self.bgVersion = 0; }
 	self.bgVersion++;
 
+	if (false) {
 	var q = d3.queue();
 	for (var sample1 = 0; sample1 < 50; sample1++) {
 		for (var sample2 = 0; sample2 < 50; sample2++) {
@@ -1667,6 +1717,39 @@ LineSpace.prototype.updateBackground = function() {
 							}
 						}
 					}
+
+					for (var f = 0; f < self.bgImageWidth; f+=1) {
+						for (var i = 0; i < self.bgImageHeight; i+=1) {
+							self.bgValuesCopy[f*self.bgImageHeight + i] = self.bgValues[f*self.bgImageHeight + i];
+						}
+					}
+
+					for (var f = 0; f < self.bgImageWidth; f+=1) {
+						for (var i = 0; i < self.bgImageHeight; i+=1) {
+							var sampleDist = 5.0;
+							var x3 = Math.floor(f/sampleDist);
+							var y3 = Math.floor(i/sampleDist);
+							var dx = (1.0*f-sampleDist*x)/sampleDist;
+
+							var x = 1.0*f;
+							var y = 1.0*i;
+							var x1 = 1.0*Math.floor(x/sampleDist)*sampleDist;
+							var x2 = 1.0*x1+sampleDist;
+							var y1 = 1.0*Math.floor(y/sampleDist)*sampleDist;
+							var y2 = 1.0*y1+sampleDist;
+							var Q11 = 1.0*self.bgValuesCopy[x1*self.bgImageHeight + y1];
+							var Q21 = 1.0*self.bgValuesCopy[x2*self.bgImageHeight + y1];
+							var Q12 = 1.0*self.bgValuesCopy[x1*self.bgImageHeight + y2];
+							var Q22 = 1.0*self.bgValuesCopy[x2*self.bgImageHeight + y2];
+
+							var P = (x2-x)*(y2-y)*Q11/((x2-x1)*(y2-y1));
+							P += (x-x1)*(y2-y)*Q21/((x2-x1)*(y2-y1));
+							P += (x2-x)*(y-y1)*Q12/((x2-x1)*(y2-y1));
+							P += (x-x1)*(y-y1)*Q22/((x2-x1)*(y2-y1));
+							self.bgValues[f*self.bgImageHeight + i] = P;
+							//self.bgValuesTemp[f*self.bgImageHeight + i] = self.bgValuesTempCopy[x3*sampleDist*self.bgImageHeight + y3*sampleDist]*(1.0-dx) + self.bgValuesTempCopy[(x3+1)*sampleDist*self.bgImageHeight + y3*sampleDist]*(dx);
+						}
+					}
 					
 					callback(null); 
 				}, 200);
@@ -1680,6 +1763,7 @@ LineSpace.prototype.updateBackground = function() {
 		console.log("done");
 		self.redrawBackground();
 	});
+	}
 }
 
 LineSpace.prototype.redrawBackground = function() {
