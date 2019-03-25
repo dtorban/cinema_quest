@@ -1547,17 +1547,17 @@ LineSpace.prototype.changeView = function(dimensions) {
 LineSpace.prototype.calcBackgroundInterpolate = function(nearest) {
 	var self = this;
 	var val = 0;
-	if (true) { // nearest neighbor
+	if (false) { // nearest neighbor
 		val = +nearest[0][0][self.dimensions[3]];
 	}
 	else if (false) {
 		val = +nearest[0][0][self.dimensions[3]];
 	}
-	else if (false) { // inverse weighted
+	else if (true) { // inverse weighted
 		var w = [];
 		var sum = 0;
 		nearest.forEach(function(item, index) {
-			var weight = 1/(Math.pow(item[1],1));
+			var weight = 1/(Math.pow(item[1],2));
 			sum += weight;
 			w.push(weight);
 		});		
@@ -1627,12 +1627,15 @@ LineSpace.prototype.updateBackground = function() {
 		}
 	}
 
+	if (false) {
 	for (var f = 0; f < self.bgImageWidth/4; f+=1) {
 		for (var i = 0; i < self.bgImageHeight/4; i+=1) {
 			self.bgValuesTempCopy[f*self.bgImageHeight + i] = self.bgValuesTemp[f*self.bgImageHeight + i];
 		}
 	}
+	}
 
+	if (false) {
 	for (var f = 0; f < self.bgImageWidth/4; f+=1) {
 		for (var i = 0; i < self.bgImageHeight/4; i+=1) {
 			var sampleDist = 10.0;
@@ -1667,6 +1670,7 @@ LineSpace.prototype.updateBackground = function() {
 			//self.bgValuesTemp[f*self.bgImageHeight + i] = self.bgValuesTempCopy[x3*sampleDist*self.bgImageHeight + y3*sampleDist]*(1.0-dx) + self.bgValuesTempCopy[(x3+1)*sampleDist*self.bgImageHeight + y3*sampleDist]*(dx);
 		}
 	}
+	}
 
 	for (var f = 0; f < self.bgImageWidth; f+=1) {
 		for (var i = 0; i < self.bgImageHeight; i+=1) {
@@ -1682,7 +1686,7 @@ LineSpace.prototype.updateBackground = function() {
 	if (!self.bgVersion) { self.bgVersion = 0; }
 	self.bgVersion++;
 
-	if (false) {
+	if (true) {
 	var q = d3.queue();
 	for (var sample1 = 0; sample1 < 50; sample1++) {
 		for (var sample2 = 0; sample2 < 50; sample2++) {
@@ -1718,12 +1722,15 @@ LineSpace.prototype.updateBackground = function() {
 						}
 					}
 
+					if (false) {
 					for (var f = 0; f < self.bgImageWidth; f+=1) {
 						for (var i = 0; i < self.bgImageHeight; i+=1) {
 							self.bgValuesCopy[f*self.bgImageHeight + i] = self.bgValues[f*self.bgImageHeight + i];
 						}
 					}
+					}
 
+					if (false) {
 					for (var f = 0; f < self.bgImageWidth; f+=1) {
 						for (var i = 0; i < self.bgImageHeight; i+=1) {
 							var sampleDist = 5.0;
@@ -1750,6 +1757,7 @@ LineSpace.prototype.updateBackground = function() {
 							//self.bgValuesTemp[f*self.bgImageHeight + i] = self.bgValuesTempCopy[x3*sampleDist*self.bgImageHeight + y3*sampleDist]*(1.0-dx) + self.bgValuesTempCopy[(x3+1)*sampleDist*self.bgImageHeight + y3*sampleDist]*(dx);
 						}
 					}
+					}	
 					
 					callback(null); 
 				}, 200);
@@ -1867,8 +1875,11 @@ LineSpace.prototype.xAxis = function(context) {
 	if (self.dimensions[0].startsWith("output_")) {
 		tickFormat = function(d) { return d3.format(".2f")(d); };
 	}
-	else {
+	else if (self.dimensions[0].startsWith("input_")) {
 		tickFormat = function(d) { return d3.format(".2f")(Math.exp(d)); };
+	}
+	else {
+		tickFormat = function(d) { return d3.format(".2f")(d); };
 	}
 
 	var internalHeight = self.parentRect.height - self.instanceHeight;
@@ -1910,8 +1921,11 @@ LineSpace.prototype.yAxis = function(context) {
 	if (self.dimensions[1].startsWith("output_")) {
 		tickFormat = function(d) { return d3.format(".2f")(d); };
 	}
-	else {
+	else if (self.dimensions[1].startsWith("input_")) {
 		tickFormat = function(d) { return d3.format(".2f")(Math.exp(d)); };
+	}
+	else {
+		tickFormat = function(d) { return d3.format(".2f")(d); };
 	}
 
 	var internalHeight = self.parentRect.height - self.instanceHeight;

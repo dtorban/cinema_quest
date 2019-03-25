@@ -291,9 +291,9 @@
 			   		ds.rowSet.push(ds.rows);
 		   		});
 		   		
-	   			pcaList = generateFeature('pca', data, pcc.query, paramInfo);
-		   		generateKMeans('kmeans', data, pcc.query, 5, paramInfo);
-		   		generateKMeans('kmeans', data, pcc.query, 10, paramInfo);
+	   			//pcaList = generateFeature('pca', data, pcc.query, paramInfo);
+		   		//generateKMeans('kmeans', data, pcc.query, 5, paramInfo);
+		   		//generateKMeans('kmeans', data, pcc.query, 10, paramInfo);
 		   		/*generateMDS('mds', data, pcc.query, paramInfo);
 		   		var fold3 = new KFoldCrossValidation(3, dataSet.length);
 		   		var fold10 = new KFoldCrossValidation(10, dataSet.length);
@@ -443,7 +443,7 @@
 				points.push(point);
 
 
-				var outPrediction = pcaList[0].predict(points);
+				/*var outPrediction = pcaList[0].predict(points);
 				var weight = query["pca_in1"] ? query["pca_in1"].interpWeight : 0.0;
 				interp.ds.params["pca_in1"] = weight*interp.ds.params["pca_in1"] + (1.0-weight)*outPrediction[0][0];
 				var weight = query["pca_in2"] ? query["pca_in2"].interpWeight : 0.0;
@@ -460,7 +460,7 @@
 				var weight = query["pca_out1"] ? query["pca_out1"].interpWeight : 0.0;
 				interp.ds.params["pca_out1"] = weight*interp.ds.params["pca_out1"] + (1.0-weight)*outPrediction[0][0];
 				var weight = query["pca_out2"] ? query["pca_out2"].interpWeight : 0.0;
-				interp.ds.params["pca_out2"] = weight*interp.ds.params["pca_out2"] + (1.0-weight)*outPrediction[0][1];
+				interp.ds.params["pca_out2"] = weight*interp.ds.params["pca_out2"] + (1.0-weight)*outPrediction[0][1];*/
 
    				return interp;
    			}

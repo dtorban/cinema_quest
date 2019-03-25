@@ -38,11 +38,56 @@ function loadDatabase(dbString, callback) {
 		dbInfo.file = dbString + "/data.csv";
 		dbInfo.fileColumn = "FILE";
 		d3.csv(dbInfo.file, function(error, results) {
-	   		var fileName = results[0][dbInfo.fileColumn];
+			var dimensions = d3.keys(results[0]);
+
+			results.forEach(function(item, index) {
+				dimensions.forEach(function(d) {
+					if (d.startsWith('input_')) {
+						item[d] = Math.log(+item[d]);
+					}
+				});
+			});
+
+
+			var groups = {};
+
+			results.forEach(function(item, index) {
+				var key = index;
+				if ('sim_id' in item) {
+					key = item["sim_id"];	
+				}
+
+				if (!(key in groups)) {
+					groups[key] = [item];
+				}
+				else {
+					groups[key].push(item);
+				}
+			});
+
+			results = [];
+
+			d3.keys(groups).forEach(function(item, index) {
+				var params = {}
+				dimensions.forEach(function(d) {
+					groups[item].forEach(function(row, index) {
+						if (!(d in params)) {
+							params[d] = +row[d];
+						}
+						else {
+							params[d] += +row[d];
+						}
+					});
+					params[d] = params[d]/groups[item].length;
+				});
+				results.push(params);
+			});
+
+			var fileName = ""+results[0][dbInfo.fileColumn];
 	   		console.log(fileName);
 	   		if (fileName.endsWith(".jpg") || fileName.endsWith(".png") || fileName.endsWith(".gif") || fileName.endsWith(".tiff")) {
 	   			dbInfo.type = "image";
-	   		}
+		   	}
 
 			loadDatabaseWithInfo(dbInfo, results, callback);
 		});
@@ -59,7 +104,7 @@ function loadDatabaseData(dbInfo, results, callback) {
 	   				var params = results;
 			         	var q = d3.queue();
 
-			         	if (dbInfo.type == "image") {
+			         	if (dbInfo.type === "image") {
 			         		var data = [];
 			         		var numProcessed = 0;
 			         		results.forEach(function(item, index) {
@@ -116,6 +161,15 @@ function loadDatabaseData(dbInfo, results, callback) {
 			         			//URL.revokeObjectURL(img.src)
 			         			data.push(ds);
 				   			});
+						}
+						else if (dbInfo.type === "none") {
+							var data = [];
+							results.forEach(function(item, index) {
+								var ds = {id: index, params: params[index], rows: [], image: null};
+			         			data.push(ds);
+				   			});
+
+				            callback(data);
 						}
 						else {
 							results.forEach(function(item, index) {
