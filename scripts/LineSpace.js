@@ -124,6 +124,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     this.linkInterp = 0;
     self.rowSetIndex = rowSetIndex;
     self.track = [];
+    self.paramExtents = {};
 
     this.actionCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
@@ -857,8 +858,10 @@ LineSpace.prototype.setPixelValue = function(context, x, y, r, g, b, a) {
 	context.putImageData(self.imageData, x, y);
 }
 
-LineSpace.prototype.onSelectionChange = function(query) {
+LineSpace.prototype.onSelectionChange = function(query, extents) {
 	var self = this;
+
+	self.paramExtents = extents;
 
 	self.track = [];
 	self.selectContext.beginPath();
@@ -1616,7 +1619,14 @@ LineSpace.prototype.updateBackground = function() {
 				var pInfo = self.paramInfo[self.dimensions[3]];
 
 				if (val != null) {
-					self.bgValuesTemp[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
+					var normalizedVal = (val - pInfo.min)/(pInfo.max-pInfo.min);
+					if (self.dimensions[3] in self.paramExtents && self.paramExtents[self.dimensions[3]] != null) {
+						var extent = self.paramExtents[self.dimensions[3]];
+						var normMax = (extent[0] - pInfo.min)/(pInfo.max-pInfo.min);
+						var normMin = (extent[1] - pInfo.min)/(pInfo.max-pInfo.min);
+						normalizedVal = (normalizedVal - normMin)/(normMax - normMin);
+					}
+					self.bgValuesTemp[f*self.bgImageHeight + i] = normalizedVal;
 				}
 				else {
 					self.bgValuesTemp[f*self.bgImageHeight + i] = null;
@@ -1712,7 +1722,14 @@ LineSpace.prototype.updateBackground = function() {
 									var pInfo = self.paramInfo[self.dimensions[3]];
 
 									if (val != null) {
-										self.bgValues[f*self.bgImageHeight + i] = (val - pInfo.min)/(pInfo.max-pInfo.min);
+										var normalizedVal = (val - pInfo.min)/(pInfo.max-pInfo.min);
+										if (self.dimensions[3] in self.paramExtents && self.paramExtents[self.dimensions[3]] != null) {
+											var extent = self.paramExtents[self.dimensions[3]];
+											var normMax = (extent[0] - pInfo.min)/(pInfo.max-pInfo.min);
+											var normMin = (extent[1] - pInfo.min)/(pInfo.max-pInfo.min);
+											normalizedVal = (normalizedVal - normMin)/(normMax - normMin);
+										}
+										self.bgValues[f*self.bgImageHeight + i] = normalizedVal;
 									}
 									else {
 										self.bgValues[f*self.bgImageHeight + i] = null;

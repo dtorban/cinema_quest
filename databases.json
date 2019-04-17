@@ -1,9 +1,5 @@
 [
 	{"name" : "Rainbow Sphere", "database" : "examples/rainbowsphere_D.cdb"},
-	{"name" : "CMS_full", "database" : "data/full.cdb"},
-	{"name" : "CMS_full 2400", "database" : "data/full_5000.cdb"},
-	{"name" : "CMS_patient", "database" : "data/patient.cdb"},
-	{"name" : "CMS_discrete", "database" : "data/discrete.cdb"},
-	{"name" : "CMS_discrete3", "database" : "data/discrete3.cdb"},
-	{"name" : "CMS_latin", "database" : "data/latin.cdb"}
+	{"name" : "CMS_discrete", "database" : "cms/discrete3.cdb"},
+	{"name" : "CMS_latin", "database" : "cms/latin.cdb"}
 ]

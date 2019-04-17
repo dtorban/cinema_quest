@@ -1,0 +1,10 @@
+{
+	"type" : "none",
+	"delimiter" : ",",
+	"columns" : [0],
+	"sample" : {
+		"start" : "1",
+		"length" : "400",
+		"step" : "1"
+	}
+}

@@ -27,7 +27,7 @@
 				<select id="database">
 				</select>
 				<select id="view" onchange="changeView(true)">
-					<option value="1,3,0,5,Select...|1,4,0,7,Select...">Overview</option>
+					<option value="3,5,0,9,Select...|3,5,0,9,Select...">Overview</option>
 					<option value="pca_in1,pca_in2,pca_in3,pca_in4,Select...|pca_out1,pca_out2,pca_out3,pca_out4,Select...">PCA</option>
 					<option value="mds_in1,mds_in2,1,Select...,Select...|mds_out1,mds_out2,1,Select...,Select...">MDS</option>
 					<option value="pca_in1,pca_in2,error_out_10Fold_i0,error_variance_out_10Fold_i0,Select...|pca_out1,pca_out2,error_out_10Fold_i0,error_variance_out_10Fold_i0,Select...">PCA Error</option>
@@ -189,7 +189,7 @@
 
 	   		function onSelectionChange(query) {
 	   			//lineSpace.onSelectionChange(query);
-	   			lineSpace2.onSelectionChange(query);
+	   			lineSpace2.onSelectionChange(query, pcc.brushExtents);
 	   		}
 
 	   		function onCreateLense(space, lense) {
