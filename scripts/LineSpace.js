@@ -125,6 +125,7 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     self.rowSetIndex = rowSetIndex;
     self.track = [];
     self.paramExtents = {};
+    self.zoom = false;
 
     this.actionCanvas = parent.append("canvas")
 		.attr('width', this.parentRect.width*this.pixelRatio)
@@ -549,6 +550,21 @@ function LineSpace(parent, getGraphProperties, interpolateFunctions, onSelect, o
     	});
     clearLensesButton.style("float", "left").style("position", "relative");
 
+    var checkbox = selectDiv.append("input")
+	    .attr("type", "checkbox")
+	    .on('click',function() {
+	    	self.zoom = d3.event.target.checked;
+    		self.update();
+    	});
+    if (self.zoom) {
+    	checkbox.attr("checked", self.zoom);
+    }
+    checkbox.style("float", "left").style("position", "relative");
+
+    var label = selectDiv.append("div")
+      .html("Zoom");
+    label.style("float", "left").style("position", "relative");
+
     self.opacitySelect = selectDiv
 		.append('select')
   		.attr('class','select')
@@ -879,24 +895,31 @@ LineSpace.prototype.onSelectionChange = function(query, extents) {
 	   		var ds = self.fullDataSet[item];
 	   		self.dataSet.push({id: index, params: ds.params, rows: ds.rows, rowSet: ds.rowSet, refId: ds.refId});
 	   	});
-		self.redraw();
-		self.redrawLenses();
 
-		if (!self.selectionChangeVersion) { self.selectionChangeVersion = 0; }
-		self.selectionChangeVersion++;
+	   	if (!self.zoom) {
+	   		self.redraw();
+			self.redrawLenses();
 
-		var q = d3.queue();
-			q.defer(function(callback) {
-					var ver = self.selectionChangeVersion;
-					setTimeout(function() {
-						if (ver == self.selectionChangeVersion) {
-							
-							self.updateBackground();
-						}
-						callback(null); 
-			}, 200);
+			if (!self.selectionChangeVersion) { self.selectionChangeVersion = 0; }
+			self.selectionChangeVersion++;
+
+			var q = d3.queue();
+				q.defer(function(callback) {
+						var ver = self.selectionChangeVersion;
+						setTimeout(function() {
+							if (ver == self.selectionChangeVersion) {
 								
-		});
+								self.updateBackground();
+							}
+							callback(null); 
+				}, 200);
+									
+			});
+	   	}
+	   	else {
+			self.update();
+	   	}
+
 	}
 	else {
 		self.query = query;
@@ -1473,15 +1496,28 @@ LineSpace.prototype.update = function() {
 	var fold10 = new KFoldCrossValidation(10, self.fullDataSet.length);
 	var validator = fold10;
 
-	self.fullDataSet.forEach(function(ds, index) {
-		var graphProperties = self.getGraphProperties(self, ds);
-		paramExtentX.push(graphProperties.x);
-		paramExtentY.push(graphProperties.y);
-		ds.extentX = d3.extent(ds.rowSet[self.rowSetIndex], function(d) { return d.x; });
-		ds.extentY = d3.extent(ds.rowSet[self.rowSetIndex], function(d) { return d.y; });
-		extentX.push.apply(extentX, ds.extentX);
-		extentY.push.apply(extentY, ds.extentY);
-	});
+	if (self.zoom) {
+		self.dataSet.forEach(function(ds) {
+			var graphProperties = self.getGraphProperties(self, ds);
+			paramExtentX.push(graphProperties.x);
+			paramExtentY.push(graphProperties.y);
+			ds.extentX = d3.extent(ds.rowSet[self.rowSetIndex], function(d) { return d.x; });
+			ds.extentY = d3.extent(ds.rowSet[self.rowSetIndex], function(d) { return d.y; });
+			extentX.push.apply(extentX, ds.extentX);
+			extentY.push.apply(extentY, ds.extentY);
+		});
+	}
+	else {
+		self.fullDataSet.forEach(function(ds, index) {
+			var graphProperties = self.getGraphProperties(self, ds);
+			paramExtentX.push(graphProperties.x);
+			paramExtentY.push(graphProperties.y);
+			ds.extentX = d3.extent(ds.rowSet[self.rowSetIndex], function(d) { return d.x; });
+			ds.extentY = d3.extent(ds.rowSet[self.rowSetIndex], function(d) { return d.y; });
+			extentX.push.apply(extentX, ds.extentX);
+			extentY.push.apply(extentY, ds.extentY);
+		});
+	}
 
 	var paramSet = Object.keys(self.fullDataSet[0].params).filter(function(d) {
 		return !isNaN(+self.fullDataSet[0].params[d]);

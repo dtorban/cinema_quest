@@ -1,5 +1,6 @@
 [
 	{"name" : "Rainbow Sphere", "database" : "examples/rainbowsphere_D.cdb"},
 	{"name" : "CMS_discrete", "database" : "cms/discrete3.cdb"},
-	{"name" : "CMS_latin", "database" : "cms/latin.cdb"}
+	{"name" : "CMS_latin", "database" : "cms/latin.cdb"},
+	{"name" : "CMS_combined", "database" : "cms/combined.cdb"}
 ]
